@@ -45,7 +45,6 @@ contract SafeHarborRegistry {
     /// @notice Sets an address as an approved deployer.
     /// @param deployer The address to approve.
     function approveDeployer(address deployer) external onlyAdmin {
-        // TODO: onlyAdmin
         agreementDeployers[deployer] = true;
     }
 
