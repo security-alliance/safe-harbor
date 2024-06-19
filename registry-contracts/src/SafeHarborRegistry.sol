@@ -31,7 +31,7 @@ contract SafeHarborRegistry {
     /// @notice Officially adopt the agreement, or modify its terms if already adopted.
     /// @param entity The address of the entity adopting the agreement.
     /// @param details The new details of the agreement.
-    function adoptSafeHarbor(address entity, address details) external {
+    function recordAdoption(address entity, address details) external {
         require(
             agreementDeployers[msg.sender],
             "Only approved deployers may adopt the Safe Harbor"

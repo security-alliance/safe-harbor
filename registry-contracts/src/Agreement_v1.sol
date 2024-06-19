@@ -18,12 +18,9 @@ contract AgreementDetailDeployerV1 {
         registry = SafeHarborRegistry(registryAddress);
     }
 
-    function adoptSafeHarbor(
-        address entity,
-        AgreementDetailsV1 memory details
-    ) external {
+    function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
-        registry.adoptSafeHarbor(entity, address(agreementDetails));
+        registry.recordAdoption(msg.sender, address(agreementDetails));
     }
 }
 
