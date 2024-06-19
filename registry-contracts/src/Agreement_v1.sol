@@ -33,6 +33,8 @@ struct AgreementDetailsV1 {
     Contact[] contactDetails;
     // The bounty terms.
     BountyTerms bountyTerms;
+    // Indication whether the agreement should be automatically upgraded to future versions approved by SEAL.
+    bool automaticallyUpgrade;
     // Address where recovered funds should be sent.
     address assetRecoveryAddress;
     // IPFS hash of the actual agreement document, which confirms all terms.
@@ -76,9 +78,4 @@ struct BountyTerms {
     IdentityRequirement identityRequirement;
     // Description of what KYC, sanctions, diligence, or other verification will be performed on Whitehats to determine their eligibility to receive the bounty.
     string diligenceRequirements;
-}
-
-struct VersionControl {
-    // Indication whether the agreement should be automatically upgraded to future versions approved by SEAL.
-    bool automaticallyUpgrade;
 }
