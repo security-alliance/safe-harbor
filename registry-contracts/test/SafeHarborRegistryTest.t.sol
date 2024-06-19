@@ -32,11 +32,7 @@ contract SafeHarborRegistryTest is Test {
     function testAdoptSafeHarbor() public {
         // Expect the SafeHarborAdoption event to be emitted with specific parameters
         vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(
-            address(this),
-            emptyDetails,
-            exampleDetails
-        );
+        emit SafeHarborRegistry.SafeHarborAdoption(address(this), emptyDetails, exampleDetails);
         registry.adoptSafeHarbor(exampleDetails);
 
         // Verify that the agreement details were correctly updated
