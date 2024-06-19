@@ -27,8 +27,8 @@ contract AgreementDetailDeployerV1 {
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
-    // The contracts in scope of the agreement.
-    Contract[] scope;
+    // The accounts in scope of the agreement.
+    Account[] scope;
     // The contact details (required for pre-notifying).
     Contact[] contactDetails;
     // The bounty terms.
@@ -41,24 +41,24 @@ struct AgreementDetailsV1 {
     string agreementURI;
 }
 
-struct Contract {
-    // The address of the contract.
-    address contractAddress;
-    // The chain IDs on which the contract is deployed.
+struct Account {
+    // The address of the account (EOA or smart contract).
+    address accountAddress;
+    // The chain IDs on which the account is present.
     uint[] chainIDs;
-    // Whether smart contracts deployed by this address are in scope.
+    // Whether smart contracts deployed by this account are in scope.
     bool includeChildContracts;
-    // Whether smart contracts deployed by this address after the agreement is adopted are in scope.
+    // Whether smart contracts deployed by this account after the agreement is adopted are in scope.
     bool includeNewChildContracts;
 }
 
 struct Contact {
     // The name of the contact.
     string name;
-    // The email of the contact.
-    string email;
-    // The phone number of the contact.
-    string phone;
+    // The role of the contact.
+    string role;
+    // The contact details (IE email, phone, telegram).
+    string contact;
 }
 
 enum IdentityRequirement {
