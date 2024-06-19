@@ -27,8 +27,8 @@ contract AgreementDetailDeployerV1 {
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
-    // The assets in scope of the agreement.
-    Asset[] scope;
+    // The contracts in scope of the agreement.
+    Contract[] scope;
     // The contact details (required for pre-notifying).
     Contact[] contactDetails;
     // The bounty terms.
@@ -41,10 +41,10 @@ struct AgreementDetailsV1 {
     string agreementURI;
 }
 
-struct Asset {
-    // The address of the asset.
-    address assetAddress;
-    // The chain IDs on which the asset is deployed.
+struct Contract {
+    // The address of the contract.
+    address contractAddress;
+    // The chain IDs on which the contract is deployed.
     uint[] chainIDs;
     // Whether smart contracts deployed by this address are in scope.
     bool includeChildContracts;
