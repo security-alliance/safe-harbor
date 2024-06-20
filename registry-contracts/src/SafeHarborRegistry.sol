@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry {
-    address public admin;
+    address public agreementDeployer;
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
     event SafeHarborAdoption(
@@ -31,7 +31,7 @@ contract SafeHarborRegistry {
     /// @notice Officially adopt the agreement, or modify its terms if already adopted.
     /// @param entity The address of the entity adopting the agreement.
     /// @param details The new details of the agreement.
-    function recordAdoption(address entity, address details) external {
+    function recordAdoption(AgreementDetailsV1 memory details) external {
         require(
             agreementDeployers[msg.sender],
             "Only approved deployers may adopt the Safe Harbor"
@@ -40,6 +40,11 @@ contract SafeHarborRegistry {
         address memory oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);
+    }
+
+    function getAgreementDetails(address entity) (detailsAddress address, version string) {
+        // if you have the entity's details in your agreements mapping, return the details address.
+        // otherwise, 
     }
 
     /// @notice Sets an address as an approved deployer.
