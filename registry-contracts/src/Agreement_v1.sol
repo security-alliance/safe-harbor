@@ -13,6 +13,26 @@ contract AgreementV1 {
     constructor(AgreementDetailsV1 memory _details) {
         details = _details;
     }
+
+    /// @notice Returns a specific Chain struct from the agreement details.
+    function getChain(uint index) public view returns (Chain memory) {
+        return details.chains[index];
+    }
+
+    /// @notice Returns a specific Contact struct from the agreement details.
+    function getContact(uint index) public view returns (Contact memory) {
+        return details.contactDetails[index];
+    }
+
+    /// @notice Returns the number of Chains in the agreement.
+    function getChainsCount() public view returns (uint) {
+        return details.chains.length;
+    }
+
+    /// @notice Returns the number of Contacts in the agreement.
+    function getContactsCount() public view returns (uint) {
+        return details.contactDetails.length;
+    }
 }
 
 /// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry

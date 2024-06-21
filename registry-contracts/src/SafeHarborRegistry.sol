@@ -13,6 +13,12 @@ contract SafeHarborRegistry {
         address newDetails
     );
 
+    /// @notice An event that records when an address is newly enabled as a factory.
+    event FactoryEnabled(address factory);
+
+    /// @notice An event that records when an address is newly disabled as a factory.
+    event FactoryDisabled(address factory);
+
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
     /// @notice A mapping which records the approved agreement factories.
@@ -41,12 +47,14 @@ contract SafeHarborRegistry {
     /// @param factory The address to enable.
     function enableFactory(address factory) external onlyAdmin {
         agreementFactories[factory] = true;
+        emit FactoryEnabled(factory);
     }
 
     /// @notice Disables an address as an factory.
     /// @param factory The address to disable.
     function disableFactory(address factory) external onlyAdmin {
         agreementFactories[factory] = false;
+        emit FactoryDisabled(factory);
     }
 
     /// @notice Modifier to restrict access to admin-only functions.
