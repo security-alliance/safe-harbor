@@ -51,13 +51,79 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         });
     }
 
+    function assertEqualDetails(
+        AgreementDetailsV1 memory details1,
+        AgreementDetailsV1 memory details2
+    ) public {
+        assertEq(details1.protocolName, details2.protocolName);
+
+        for (uint256 i = 0; i < details1.chains.length; i++) {
+            assertEq(details1.chains[i].chainID, details2.chains[i].chainID);
+            assertEq(
+                details1.chains[i].assetRecoveryAddress,
+                details2.chains[i].assetRecoveryAddress
+            );
+
+            for (uint256 j = 0; j < details1.chains[i].accounts.length; j++) {
+                assertEq(
+                    details1.chains[i].accounts[j].accountAddress,
+                    details2.chains[i].accounts[j].accountAddress
+                );
+                assertTrue(
+                    details1.chains[i].accounts[j].includeChildContracts ==
+                        details2.chains[i].accounts[j].includeChildContracts
+                );
+                assertTrue(
+                    details1.chains[i].accounts[j].includeNewChildContracts ==
+                        details2.chains[i].accounts[j].includeNewChildContracts
+                );
+            }
+        }
+
+        for (uint256 i = 0; i < details1.contactDetails.length; i++) {
+            assertEq(
+                details1.contactDetails[i].name,
+                details2.contactDetails[i].name
+            );
+            assertEq(
+                details1.contactDetails[i].role,
+                details2.contactDetails[i].role
+            );
+            assertEq(
+                details1.contactDetails[i].contact,
+                details2.contactDetails[i].contact
+            );
+        }
+
+        assertEq(
+            details1.bountyTerms.bountyPercentage,
+            details2.bountyTerms.bountyPercentage
+        );
+        assertEq(
+            details1.bountyTerms.bountyCapUSD,
+            details2.bountyTerms.bountyCapUSD
+        );
+        assertTrue(
+            details1.bountyTerms.retainable == details2.bountyTerms.retainable
+        );
+        assertTrue(
+            details1.bountyTerms.identityRequirement ==
+                details2.bountyTerms.identityRequirement
+        );
+        assertEq(
+            details1.bountyTerms.diligenceRequirements,
+            details2.bountyTerms.diligenceRequirements
+        );
+        assertTrue(
+            details1.automaticallyUpgrade == details2.automaticallyUpgrade
+        );
+        assertEq(details1.agreementURI, details2.agreementURI);
+    }
+
     function test_adoptSafeHarbor() public {
-        vm.expectEmit();
-        emit SafeHarborRegistry.FactoryEnabled(address(factory));
         registry.enableFactory(address(factory));
 
         vm.expectEmit();
-
         emit SafeHarborRegistry.SafeHarborAdoption(
             address(tx.origin),
             address(0),
@@ -74,65 +140,61 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
             address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac)
         );
 
-        (
-            string memory protocolName,
-            // Chain[] memory chains,
-            // Contact[] memory contactDetails,
-            BountyTerms memory bountyTerms,
-            bool automaticallyUpgrade,
-            string memory agreementURI
-        ) = agreement.details();
+        AgreementDetailsV1 memory outputDetails = agreement.getDetails();
 
-        console.log("protocolName", protocolName);
-        console.log(
-            "bountyTerms.bountyPercentage",
-            bountyTerms.bountyPercentage
+        assertEqualDetails(details, outputDetails);
+    }
+
+    function test_updateSafeHarbor() public {
+        registry.enableFactory(address(factory));
+        factory.adoptSafeHarbor(details);
+        details.agreementURI = "ipfs://newHash";
+        vm.expectEmit();
+        emit SafeHarborRegistry.SafeHarborAdoption(
+            address(tx.origin),
+            address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac),
+            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
         );
-        console.log("bountyTerms.bountyCapUSD", bountyTerms.bountyCapUSD);
-        console.log("bountyTerms.retainable", bountyTerms.retainable);
-        console.log(
-            "bountyTerms.diligenceRequirements",
-            bountyTerms.diligenceRequirements
+        factory.adoptSafeHarbor(details);
+
+        assertEq(
+            registry.agreements(address(tx.origin)),
+            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
         );
-        console.log("automaticallyUpgrade", automaticallyUpgrade);
-        console.log("agreementURI", agreementURI);
 
-        // get chain info
-        Chain[] memory chains;
-        uint256 numChains = agreement.getChainsCount();
-        for (uint256 i = 0; i < numChains; i++) {
-            Chain memory chain = agreement.getChain(i);
-            console.log(
-                "chain.assetRecoveryAddress",
-                chain.assetRecoveryAddress
-            );
-            console.log("chain.chainID", chain.chainID);
+        // Make sure the agreement was recorded correctly
+        AgreementV1 agreement = AgreementV1(
+            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
+        );
 
-            // get account info
-            Account[] memory accounts = chain.accounts;
-            uint256 numAccounts = accounts.length;
-            for (uint256 j = 0; j < numAccounts; j++) {
-                Account memory account = accounts[j];
-                console.log("account.accountAddress", account.accountAddress);
-                console.log(
-                    "account.includeChildContracts",
-                    account.includeChildContracts
-                );
-                console.log(
-                    "account.includeNewChildContracts",
-                    account.includeNewChildContracts
-                );
-            }
-        }
+        AgreementDetailsV1 memory outputDetails = agreement.getDetails();
 
-        // get contact info
-        Contact[] memory contactDetails;
-        uint256 numContacts = agreement.getContactsCount();
-        for (uint256 i = 0; i < numContacts; i++) {
-            Contact memory contact = agreement.getContact(i);
-            console.log("contact.name", contact.name);
-            console.log("contact.role", contact.role);
-            console.log("contact.contact", contact.contact);
-        }
+        assertEqualDetails(details, outputDetails);
+    }
+
+    function test_unableToAdoptWithoutApprovedFactory() public {
+        vm.expectRevert("Only approved factories may adopt the Safe Harbor");
+        factory.adoptSafeHarbor(details);
+    }
+
+    function test_enableFactory() public {
+        vm.expectEmit();
+        emit SafeHarborRegistry.FactoryEnabled(address(factory));
+        registry.enableFactory(address(factory));
+        assertTrue(registry.agreementFactories(address(factory)));
+    }
+
+    function test_disableFactory() public {
+        registry.enableFactory(address(factory));
+        vm.expectEmit();
+        emit SafeHarborRegistry.FactoryDisabled(address(factory));
+        registry.disableFactory(address(factory));
+        assertTrue(!registry.agreementFactories(address(factory)));
+    }
+
+    function test_transferAdminRights() public {
+        address newAdmin = address(0x1);
+        registry.transferAdminRights(newAdmin);
+        assertEq(registry.admin(), newAdmin);
     }
 }

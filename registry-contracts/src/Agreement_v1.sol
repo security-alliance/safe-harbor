@@ -14,24 +14,11 @@ contract AgreementV1 {
         details = _details;
     }
 
-    /// @notice Returns a specific Chain struct from the agreement details.
-    function getChain(uint index) public view returns (Chain memory) {
-        return details.chains[index];
-    }
-
-    /// @notice Returns a specific Contact struct from the agreement details.
-    function getContact(uint index) public view returns (Contact memory) {
-        return details.contactDetails[index];
-    }
-
-    /// @notice Returns the number of Chains in the agreement.
-    function getChainsCount() public view returns (uint) {
-        return details.chains.length;
-    }
-
-    /// @notice Returns the number of Contacts in the agreement.
-    function getContactsCount() public view returns (uint) {
-        return details.contactDetails.length;
+    /// @notice Function that returns the details of the agreement.
+    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
+    /// @return The details of the agreement.
+    function getDetails() external view returns (AgreementDetailsV1 memory) {
+        return details;
     }
 }
 
