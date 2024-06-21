@@ -3,33 +3,42 @@ pragma solidity ^0.8.20;
 
 import "./SafeHarborRegistry.sol";
 
-// Smart contract that contains the terms that will be deployed by a protocol
-// when they adopt the agreement with the protocol's selected AgreementDetails
+/// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory
 contract AgreementV1 {
+    /// @notice The details of the agreement.
     AgreementDetailsV1 public details;
 
+    /// @notice Constructor that sets the details of the agreement.
+    /// @param _details The details of the agreement.
     constructor(AgreementDetailsV1 memory _details) {
         details = _details;
     }
 }
 
-// The contract that has been approved by the safe harbor registry to record new adoptions.
+/// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry
 contract AgreementV1Factory {
+    /// @notice The SafeHarborRegistry contract.
     SafeHarborRegistry public registry;
 
+    /// @notice Constructor that sets the SafeHarborRegistry address.
+    /// @param registryAddress The address of the SafeHarborRegistry contract.
     constructor(address registryAddress) {
         registry = SafeHarborRegistry(registryAddress);
     }
 
+    /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry
+    /// @param details The details of the agreement.
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
         registry.recordAdoption(address(agreementDetails));
     }
 }
 
+/// @notice Struct that contains the details of the agreement
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
+    // The scope and recovery address by chain.
     Chain[] chains;
     // The contact details (required for pre-notifying).
     Contact[] contactDetails;
@@ -41,12 +50,17 @@ struct AgreementDetailsV1 {
     string agreementURI;
 }
 
+/// @notice Struct that contains the details of an agreement by chain
 struct Chain {
+    // The accounts in scope for the agreement.
     Account[] accounts;
+    // The address to which recovered assets will be sent.
     address assetRecoveryAddress;
+    // The chain ID.
     uint chainID;
 }
 
+/// @notice Struct that contains the details of an account in an agreement
 struct Account {
     // The address of the account (EOA or smart contract).
     address accountAddress;
@@ -54,11 +68,9 @@ struct Account {
     bool includeChildContracts;
     // Whether smart contracts deployed by this account after the agreement is adopted are in scope.
     bool includeNewChildContracts;
-    //
-    // signature of (Account.signature = 0)
-    // For contracts - add support for https://eips.ethereum.org/EIPS/eip-1271
 }
 
+/// @notice Struct that contains the contact details of the agreement
 struct Contact {
     // The name of the contact.
     string name;
@@ -68,9 +80,13 @@ struct Contact {
     string contact;
 }
 
+/// @notice Enum that defines the identity requirements for a Whitehat to be eligible under the agreement
 enum IdentityRequirement {
+    // The Whitehat can remain fully anonymous.
     Anonymous,
+    // The Whitehat uses a moniker and there's no/limited KYC.
     Pseudonymous,
+    // The Whitehat must be KYCed.
     Named
 }
 

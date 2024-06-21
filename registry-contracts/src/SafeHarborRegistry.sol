@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry {
-    address public agreementDeployer;
+    /// @notice admin is only used to permission new factoryDeployers for Agreements
     address public admin;
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
@@ -23,13 +23,7 @@ contract SafeHarborRegistry {
         admin = msg.sender;
     }
 
-    /// @notice Modifier to restrict access to admin-only functions.
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only the admin can perform this action");
-        _;
-    }
-
-    /// @notice Officially adopt the agreement, or modify its terms if already adopted.
+    /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories
     /// @param details The new details of the agreement.
     function recordAdoption(address details) external {
         require(
@@ -38,7 +32,6 @@ contract SafeHarborRegistry {
         );
 
         address entity = tx.origin;
-
         address oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);
@@ -54,6 +47,12 @@ contract SafeHarborRegistry {
     /// @param factory The address to disable.
     function disableFactory(address factory) external onlyAdmin {
         agreementFactories[factory] = false;
+    }
+
+    /// @notice Modifier to restrict access to admin-only functions.
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only the admin can perform this action");
+        _;
     }
 
     /// @notice Allows the admin to transfer admin rights to another address.
