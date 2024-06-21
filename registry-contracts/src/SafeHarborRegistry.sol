@@ -15,8 +15,8 @@ contract SafeHarborRegistry {
 
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
-    /// @notice A mapping which records the approved agreement deployers.
-    mapping(address entity => address deployer) public agreementDeployers;
+    /// @notice A mapping which records the approved agreement factories.
+    mapping(address factory => bool) public agreementFactories;
 
     /// @notice Sets the admin address to the contract deployer.
     constructor() {
@@ -30,26 +30,30 @@ contract SafeHarborRegistry {
     }
 
     /// @notice Officially adopt the agreement, or modify its terms if already adopted.
-    /// @param entity The address of the entity adopting the agreement.
     /// @param details The new details of the agreement.
-    function recordAdoption(address entity, address details) external {
+    function recordAdoption(address details) external {
         require(
-            agreementDeployers[entity] == msg.sender,
-            "Only approved deployers may adopt the Safe Harbor"
+            agreementFactories[msg.sender],
+            "Only approved factories may adopt the Safe Harbor"
         );
+
+        address entity = tx.origin;
 
         address oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);
     }
 
-    /// @notice Sets an address as an approved deployer.
-    /// @param deployer The address to approve.
-    function approveDeployer(
-        address entity,
-        address deployer
-    ) external onlyAdmin {
-        agreementDeployers[entity] = deployer;
+    /// @notice Enables an address as a factory.
+    /// @param factory The address to enable.
+    function enableFactory(address factory) external onlyAdmin {
+        agreementFactories[factory] = true;
+    }
+
+    /// @notice Disables an address as an factory.
+    /// @param factory The address to disable.
+    function disableFactory(address factory) external onlyAdmin {
+        agreementFactories[factory] = false;
     }
 
     /// @notice Allows the admin to transfer admin rights to another address.

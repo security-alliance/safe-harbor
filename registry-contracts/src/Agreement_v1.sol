@@ -14,7 +14,7 @@ contract AgreementV1 {
 }
 
 // The contract that has been approved by the safe harbor registry to record new adoptions.
-contract AgreementDetailDeployerV1 {
+contract AgreementV1Factory {
     SafeHarborRegistry public registry;
 
     constructor(address registryAddress) {
@@ -23,14 +23,14 @@ contract AgreementDetailDeployerV1 {
 
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
-        registry.recordAdoption(msg.sender, address(agreementDetails));
+        registry.recordAdoption(address(agreementDetails));
     }
 }
 
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
-    ChainStruct[] chains;
+    Chain[] chains;
     // The contact details (required for pre-notifying).
     Contact[] contactDetails;
     // The terms of the agreement.
@@ -41,13 +41,13 @@ struct AgreementDetailsV1 {
     string agreementURI;
 }
 
-struct ChainStruct {
-    AccountStruct[] accounts;
+struct Chain {
+    Account[] accounts;
     address assetRecoveryAddress;
     uint chainID;
 }
 
-struct AccountStruct {
+struct Account {
     // The address of the account (EOA or smart contract).
     address accountAddress;
     // Whether smart contracts deployed by this account are in scope.
