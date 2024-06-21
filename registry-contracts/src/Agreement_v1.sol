@@ -82,11 +82,11 @@ struct Contact {
 
 /// @notice Enum that defines the identity requirements for a Whitehat to be eligible under the agreement
 enum IdentityRequirement {
-    // The Whitehat can remain fully anonymous.
+    // The Whitehat has no moniker and no identifying information about the Whitehat has been verified.
     Anonymous,
-    // The Whitehat uses a moniker and there's no/limited KYC.
+    // The Whitehat uses a moniker but there has been limited or no verification of the legal name(s) of person(s) or entity behind the moniker.
     Pseudonymous,
-    // The Whitehat must be KYCed.
+    // The Whitehat is using a legal individual or entity name and that identity has been verified.
     Named
 }
 
