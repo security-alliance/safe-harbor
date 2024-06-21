@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry {
     address public agreementDeployer;
+    address public admin;
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
     event SafeHarborAdoption(
@@ -15,7 +16,7 @@ contract SafeHarborRegistry {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
     /// @notice A mapping which records the approved agreement deployers.
-    mapping(address deployer => bool approved) public agreementDeployers;
+    mapping(address entity => address deployer) public agreementDeployers;
 
     /// @notice Sets the admin address to the contract deployer.
     constructor() {
@@ -31,26 +32,24 @@ contract SafeHarborRegistry {
     /// @notice Officially adopt the agreement, or modify its terms if already adopted.
     /// @param entity The address of the entity adopting the agreement.
     /// @param details The new details of the agreement.
-    function recordAdoption(AgreementDetailsV1 memory details) external {
+    function recordAdoption(address entity, address details) external {
         require(
-            agreementDeployers[msg.sender],
+            agreementDeployers[entity] == msg.sender,
             "Only approved deployers may adopt the Safe Harbor"
         );
 
-        address memory oldDetails = agreements[entity];
+        address oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);
     }
 
-    function getAgreementDetails(address entity) (detailsAddress address, version string) {
-        // if you have the entity's details in your agreements mapping, return the details address.
-        // otherwise, 
-    }
-
     /// @notice Sets an address as an approved deployer.
     /// @param deployer The address to approve.
-    function approveDeployer(address deployer) external onlyAdmin {
-        agreementDeployers[deployer] = true;
+    function approveDeployer(
+        address entity,
+        address deployer
+    ) external onlyAdmin {
+        agreementDeployers[entity] = deployer;
     }
 
     /// @notice Allows the admin to transfer admin rights to another address.

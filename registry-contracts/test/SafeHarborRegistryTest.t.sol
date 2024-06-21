@@ -3,77 +3,53 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/SafeHarborRegistry.sol";
-
-event SafeHarborAdoption(
-    address indexed entity,
-    SafeHarborRegistry.AgreementDetails oldDetails,
-    SafeHarborRegistry.AgreementDetails newDetails
-);
+import "../src/Agreement_v1.sol";
 
 contract SafeHarborRegistryTest is Test {
-    SafeHarborRegistry registry;
-    SafeHarborRegistry.AgreementDetails emptyDetails;
-    SafeHarborRegistry.AgreementDetails exampleDetails;
+    function testSetUp() public {
+        SafeHarborRegistry registry = new SafeHarborRegistry();
+        AgreementDetailDeployerV1 deployer = new AgreementDetailDeployerV1(
+            address(registry)
+        );
 
-    function setUp() public {
-        registry = new SafeHarborRegistry();
+        registry.approveDeployer(address(this), address(deployer));
 
-        // Define example agreement details
-        exampleDetails = SafeHarborRegistry.AgreementDetails({
+        AgreementDetailsV1 memory details = AgreementDetailsV1({
             protocolName: "Test Protocol",
-            scope: "Test Assets",
-            contactDetails: "test@example.com",
-            bountyTerms: "10% bounty",
-            assetRecoveryAddress: address(0xdead),
-            agreementURI: "ipfs://testhash"
+            // For complex array types, each element should be constructed explicitly in its own statement.
+            chains: new ChainStruct[](1), // Specify the size of the array
+            contactDetails: new Contact[](1), // An empty array is fine if no initial elements
+            bountyTerms: BountyTerms({
+                bountyPercentage: 10,
+                bountyCapUSD: 100,
+                retainable: false,
+                identityRequirement: IdentityRequirement.Named,
+                diligenceRequirements: "joe mama"
+            }),
+            automaticallyUpgrade: false,
+            agreementURI: "ipfs://QmX7"
         });
-    }
 
-    function testAdoptSafeHarbor() public {
-        // Expect the SafeHarborAdoption event to be emitted with specific parameters
-        vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(address(this), emptyDetails, exampleDetails);
-        registry.adoptSafeHarbor(exampleDetails);
+        // Properly initialize elements of the array `chains`
+        details.chains[0] = ChainStruct({
+            accounts: new AccountStruct[](1), // Specify the size of the array
+            assetRecoveryAddress: address(this),
+            chainID: 1
+        });
 
-        // Verify that the agreement details were correctly updated
-        (
-            string memory protocolName,
-            string memory scope,
-            string memory contactDetails,
-            string memory bountyTerms,
-            address assetRecoveryAddress,
-            string memory agreementURI
-        ) = registry.agreements(address(this));
+        // Initialize the `accounts` array within the `ChainStruct`
+        details.chains[0].accounts[0] = AccountStruct({
+            accountAddress: address(this),
+            includeChildContracts: false,
+            includeNewChildContracts: false
+        });
 
-        assertEq(protocolName, exampleDetails.protocolName);
-        assertEq(scope, exampleDetails.scope);
-        assertEq(contactDetails, exampleDetails.contactDetails);
-        assertEq(bountyTerms, exampleDetails.bountyTerms);
-        assertEq(assetRecoveryAddress, exampleDetails.assetRecoveryAddress);
-        assertEq(agreementURI, exampleDetails.agreementURI);
-    }
+        details.contactDetails[0] = Contact({
+            name: "Big mama",
+            role: "head mama",
+            contact: "raven"
+        });
 
-    function testAdoptAndUpdateSafeHarbor() public {
-        registry.adoptSafeHarbor(exampleDetails);
-
-        exampleDetails.scope = "Updated Assets";
-
-        registry.adoptSafeHarbor(exampleDetails);
-
-        (
-            string memory protocolName,
-            string memory scope,
-            string memory contactDetails,
-            string memory bountyTerms,
-            address assetRecoveryAddress,
-            string memory agreementURI
-        ) = registry.agreements(address(this));
-
-        assertEq(protocolName, exampleDetails.protocolName);
-        assertEq(scope, exampleDetails.scope);
-        assertEq(contactDetails, exampleDetails.contactDetails);
-        assertEq(bountyTerms, exampleDetails.bountyTerms);
-        assertEq(assetRecoveryAddress, exampleDetails.assetRecoveryAddress);
-        assertEq(agreementURI, exampleDetails.agreementURI);
+        deployer.adoptSafeHarbor(details);
     }
 }

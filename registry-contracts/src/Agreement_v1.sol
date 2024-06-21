@@ -3,17 +3,17 @@ pragma solidity ^0.8.20;
 
 import "./SafeHarborRegistry.sol";
 
-// Smart contract that contains the terms that will be deployed by a protocol 
+// Smart contract that contains the terms that will be deployed by a protocol
 // when they adopt the agreement with the protocol's selected AgreementDetails
 contract AgreementV1 {
-    AgreementDetailsV1 public immutable details;
+    AgreementDetailsV1 public details;
 
     constructor(AgreementDetailsV1 memory _details) {
         details = _details;
     }
 }
 
-// The contract that has been approved by the safe harbor registry to record new adoptions. 
+// The contract that has been approved by the safe harbor registry to record new adoptions.
 contract AgreementDetailDeployerV1 {
     SafeHarborRegistry public registry;
 
@@ -30,33 +30,31 @@ contract AgreementDetailDeployerV1 {
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
-    Chain[]
+    ChainStruct[] chains;
     // The contact details (required for pre-notifying).
     Contact[] contactDetails;
-
-    BountyTerms bountyTerms
+    // The terms of the agreement.
+    BountyTerms bountyTerms;
     // Indication whether the agreement should be automatically upgraded to future versions approved by SEAL.
     bool automaticallyUpgrade;
     // IPFS hash of the actual agreement document, which confirms all terms.
     string agreementURI;
 }
 
-struct Chain {
-    Account[] accounts
-    address assetRecoveryAddress
-    uint chainID
+struct ChainStruct {
+    AccountStruct[] accounts;
+    address assetRecoveryAddress;
+    uint chainID;
 }
 
-struct Account {
+struct AccountStruct {
     // The address of the account (EOA or smart contract).
     address accountAddress;
-    // The chain IDs on which the account is present.
-    uint[] chainIDs;
     // Whether smart contracts deployed by this account are in scope.
     bool includeChildContracts;
     // Whether smart contracts deployed by this account after the agreement is adopted are in scope.
     bool includeNewChildContracts;
-    // 
+    //
     // signature of (Account.signature = 0)
     // For contracts - add support for https://eips.ethereum.org/EIPS/eip-1271
 }
