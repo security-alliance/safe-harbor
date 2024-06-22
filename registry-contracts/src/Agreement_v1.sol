@@ -6,7 +6,7 @@ import "./SafeHarborRegistry.sol";
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 contract AgreementV1 {
     /// @notice The details of the agreement.
-    AgreementDetailsV1 public details;
+    AgreementDetailsV1 private details;
 
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
@@ -21,8 +21,8 @@ contract AgreementV1 {
         return details;
     }
 
-    // @notice Function that returns the version of the agreement.
-    function getVersion() external pure returns (string memory) {
+    /// @notice Function that returns the version of the agreement.
+    function version() external pure returns (string memory) {
         return "1.0.0";
     }
 }
@@ -38,8 +38,8 @@ contract AgreementV1Factory {
         registry = SafeHarborRegistry(registryAddress);
     }
 
-    // @notice Function that returns the version of the agreement factory.
-    function getVersion() external pure returns (string memory) {
+    /// @notice Function that returns the version of the agreement factory.
+    function version() external pure returns (string memory) {
         return "1.0.0";
     }
 

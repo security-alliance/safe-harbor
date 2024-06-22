@@ -18,9 +18,6 @@ contract SafeHarborRegistryDeploy is Script {
     // This could have been any value, but we choose zero.
     bytes32 constant DETERMINISTIC_DEPLOY_SALT = bytes32(0);
 
-    // This is the address of the safe harbor registry admin.
-    address constant REGISTRY_ADMIN = address(0x00);
-
     function run() public {
         require(
             DETERMINISTIC_CREATE2_FACTORY.code.length != 0,
@@ -38,7 +35,7 @@ contract SafeHarborRegistryDeploy is Script {
         vm.startBroadcast(deployerPrivateKey);
         SafeHarborRegistry registry = new SafeHarborRegistry{
             salt: DETERMINISTIC_DEPLOY_SALT
-        }(REGISTRY_ADMIN);
+        }(tx.origin);
 
         address deployedRegistry = address(registry);
         AgreementV1Factory factory = new AgreementV1Factory{

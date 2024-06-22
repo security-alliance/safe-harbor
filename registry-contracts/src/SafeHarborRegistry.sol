@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry {
-    /// @notice admin is only used to permission new factoryDeployers for Agreements
+    /// @notice admin address used to enable or disable factories.
     address public admin;
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
@@ -25,12 +25,12 @@ contract SafeHarborRegistry {
     /// @notice A mapping which records the approved agreement factories.
     mapping(address factory => bool) public agreementFactories;
 
-    /// @notice Sets the admin address to the contract deployer. Origin because this works even through reate2
+    /// @notice Sets the admin address to the provided address.
     constructor(address _admin) {
         admin = _admin;
     }
 
-    /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories
+    /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories.
     /// @param details The new details of the agreement.
     function recordAdoption(address details) external {
         require(
