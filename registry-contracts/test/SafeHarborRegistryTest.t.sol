@@ -43,8 +43,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
 
         details.chains[0].accounts[0] = Account({
             accountAddress: address(0x22),
-            includeChildContracts: false,
-            includeNewChildContracts: false
+            childContractScope: ChildContractScope.ExistingOnly
         });
 
         details.contactDetails[0] = Contact({

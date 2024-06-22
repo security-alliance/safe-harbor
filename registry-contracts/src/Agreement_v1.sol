@@ -77,14 +77,22 @@ struct Chain {
     uint chainID;
 }
 
+/// @notice Enum that defines the inclusion of child contracts in an agreement.
+enum ChildContractScope {
+    // No child contracts are included
+    None,
+    // Only existing child contracts are included
+    ExistingOnly,
+    // All child contracts, both existing and new, are included
+    All
+}
+
 /// @notice Struct that contains the details of an account in an agreement.
 struct Account {
     // The address of the account (EOA or smart contract).
     address accountAddress;
-    // Whether smart contracts deployed by this account are in scope.
-    bool includeChildContracts;
-    // Whether smart contracts deployed by this account after the agreement is adopted are in scope.
-    bool includeNewChildContracts;
+    // The scope of child contracts included in the agreement.
+    ChildContractScope childContractScope;
 }
 
 /// @notice Struct that contains the contact details of the agreement.
