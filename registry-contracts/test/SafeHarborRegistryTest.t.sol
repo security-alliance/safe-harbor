@@ -122,6 +122,8 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     }
 
     function test_adoptSafeHarbor() public {
+        // Impersonating the admin to enable the factory
+        vm.prank(tx.origin);
         registry.enableFactory(address(factory));
 
         vm.expectEmit();
@@ -147,6 +149,8 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     }
 
     function test_updateSafeHarbor() public {
+        // Impersonating the admin to enable the factory
+        vm.prank(tx.origin);
         registry.enableFactory(address(factory));
         factory.adoptSafeHarbor(details);
         details.agreementURI = "ipfs://newHash";
@@ -181,20 +185,28 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     function test_enableFactory() public {
         vm.expectEmit();
         emit SafeHarborRegistry.FactoryEnabled(address(factory));
+        // Impersonating the admin to enable the factory
+        vm.prank(tx.origin);
         registry.enableFactory(address(factory));
         assertTrue(registry.agreementFactories(address(factory)));
     }
 
     function test_disableFactory() public {
+        // Impersonating the admin to enable the factory
+        vm.prank(tx.origin);
         registry.enableFactory(address(factory));
         vm.expectEmit();
         emit SafeHarborRegistry.FactoryDisabled(address(factory));
+        // Impersonating the admin to disable the factory
+        vm.prank(tx.origin);
         registry.disableFactory(address(factory));
         assertTrue(!registry.agreementFactories(address(factory)));
     }
 
     function test_transferAdminRights() public {
         address newAdmin = address(0x1);
+        // Impersonating the admin to transfer admin rights
+        vm.prank(tx.origin);
         registry.transferAdminRights(newAdmin);
         assertEq(registry.admin(), newAdmin);
     }
