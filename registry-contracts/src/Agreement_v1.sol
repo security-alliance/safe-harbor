@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "./SafeHarborRegistry.sol";
+import "./SignatureValidator.sol";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 contract AgreementV1 {
@@ -14,21 +15,21 @@ contract AgreementV1 {
         details = _details;
     }
 
+    /// @notice Function that returns the version of the agreement.
+    function version() external pure returns (string memory) {
+        return "1.0.0";
+    }
+
     /// @notice Function that returns the details of the agreement.
     /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
     /// @return The details of the agreement.
     function getDetails() external view returns (AgreementDetailsV1 memory) {
         return details;
     }
-
-    /// @notice Function that returns the version of the agreement.
-    function version() external pure returns (string memory) {
-        return "1.0.0";
-    }
 }
 
 /// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
-contract AgreementV1Factory {
+contract AgreementV1Factory is SignatureValidator {
     /// @notice The SafeHarborRegistry contract.
     SafeHarborRegistry public registry;
 
@@ -48,6 +49,25 @@ contract AgreementV1Factory {
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
         registry.recordAdoption(address(agreementDetails));
+    }
+
+    function validateAccount(
+        AgreementDetailsV1 memory details,
+        Account memory account
+    ) external view returns (bool) {
+        // Iterate over all accounts, setting signature fields to zero
+        for (uint i = 0; i < details.chains.length; i++) {
+            for (uint j = 0; j < details.chains[i].accounts.length; j++) {
+                details.chains[i].accounts[j].signature = new bytes(0);
+            }
+        }
+
+        // Hash the details
+        bytes32 hash = keccak256(abi.encode(details));
+
+        // Verify that the account's accountAddress signed the hashed details
+        return
+            isSignatureValid(account.accountAddress, hash, account.signature);
     }
 }
 
@@ -93,6 +113,8 @@ struct Account {
     address accountAddress;
     // The scope of child contracts included in the agreement.
     ChildContractScope childContractScope;
+    // The signature of the account. Optionally used to verify that this account has accepted this agreement.
+    bytes signature;
 }
 
 /// @notice Struct that contains the contact details of the agreement.
