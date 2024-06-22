@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "./SafeHarborRegistry.sol";
 
-/// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory
+/// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 contract AgreementV1 {
     /// @notice The details of the agreement.
     AgreementDetailsV1 public details;
@@ -20,9 +20,14 @@ contract AgreementV1 {
     function getDetails() external view returns (AgreementDetailsV1 memory) {
         return details;
     }
+
+    // @notice Function that returns the version of the agreement.
+    function getVersion() external pure returns (string memory) {
+        return "1.0.0";
+    }
 }
 
-/// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry
+/// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
 contract AgreementV1Factory {
     /// @notice The SafeHarborRegistry contract.
     SafeHarborRegistry public registry;
@@ -33,7 +38,12 @@ contract AgreementV1Factory {
         registry = SafeHarborRegistry(registryAddress);
     }
 
-    /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry
+    // @notice Function that returns the version of the agreement factory.
+    function getVersion() external pure returns (string memory) {
+        return "1.0.0";
+    }
+
+    /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry.
     /// @param details The details of the agreement.
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
@@ -41,7 +51,7 @@ contract AgreementV1Factory {
     }
 }
 
-/// @notice Struct that contains the details of the agreement
+/// @notice Struct that contains the details of the agreement.
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
@@ -57,7 +67,7 @@ struct AgreementDetailsV1 {
     string agreementURI;
 }
 
-/// @notice Struct that contains the details of an agreement by chain
+/// @notice Struct that contains the details of an agreement by chain.
 struct Chain {
     // The accounts in scope for the agreement.
     Account[] accounts;
@@ -67,7 +77,7 @@ struct Chain {
     uint chainID;
 }
 
-/// @notice Struct that contains the details of an account in an agreement
+/// @notice Struct that contains the details of an account in an agreement.
 struct Account {
     // The address of the account (EOA or smart contract).
     address accountAddress;
@@ -77,7 +87,7 @@ struct Account {
     bool includeNewChildContracts;
 }
 
-/// @notice Struct that contains the contact details of the agreement
+/// @notice Struct that contains the contact details of the agreement.
 struct Contact {
     // The name of the contact.
     string name;
@@ -87,7 +97,7 @@ struct Contact {
     string contact;
 }
 
-/// @notice Enum that defines the identity requirements for a Whitehat to be eligible under the agreement
+/// @notice Enum that defines the identity requirements for a Whitehat to be eligible under the agreement.
 enum IdentityRequirement {
     // The Whitehat has no moniker and no identifying information about the Whitehat has been verified.
     Anonymous,
@@ -97,6 +107,7 @@ enum IdentityRequirement {
     Named
 }
 
+// @notice Struct that contains the terms of the bounty for the agreement.
 struct BountyTerms {
     // Percentage of the recovered funds a Whitehat receives as their bounty (0-100).
     uint bountyPercentage;

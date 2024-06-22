@@ -21,12 +21,13 @@ contract SafeHarborRegistry {
 
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
+
     /// @notice A mapping which records the approved agreement factories.
     mapping(address factory => bool) public agreementFactories;
 
     /// @notice Sets the admin address to the contract deployer. Origin because this works even through reate2
-    constructor() {
-        admin = tx.origin;
+    constructor(address _admin) {
+        admin = _admin;
     }
 
     /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories
