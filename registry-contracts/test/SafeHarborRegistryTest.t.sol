@@ -125,6 +125,14 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         assertTrue(registry.agreementFactories(address(0xff)));
     }
 
+    function test_enableFactory_notAdmin() public {
+        vm.stopPrank();
+        vm.startPrank(address(0xcc));
+
+        vm.expectRevert("Only the admin can perform this action");
+        registry.enableFactory(address(0xff));
+    }
+
     function test_disableFactory() public {
         vm.expectEmit();
         emit SafeHarborRegistry.FactoryDisabled(address(0xff));
@@ -133,9 +141,25 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         assertTrue(!registry.agreementFactories(address(0xff)));
     }
 
+    function test_disableFactory_notAdmin() public {
+        vm.stopPrank();
+        vm.startPrank(address(0xcc));
+
+        vm.expectRevert("Only the admin can perform this action");
+        registry.disableFactory(address(0xff));
+    }
+
     function test_transferAdminRights() public {
         registry.transferAdminRights(address(0xbb));
 
         assertEq(registry.admin(), address(0xbb));
+    }
+
+    function test_transferAdminRights_notAdmin() public {
+        vm.stopPrank();
+        vm.startPrank(address(0xcc));
+
+        vm.expectRevert("Only the admin can perform this action");
+        registry.transferAdminRights(address(0xbb));
     }
 }
