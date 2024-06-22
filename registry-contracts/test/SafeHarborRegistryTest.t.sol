@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-/// @notice Imporing these packages instead of Test because naming conflicts between "Accounts" and "Chains" against
+/// @notice Imporing these packages directly due to naming conflicts between "Account" and "Chain" structs.
 import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
@@ -15,7 +15,9 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     AgreementDetailsV1 details;
 
     function setUp() public {
-        registry = new SafeHarborRegistry();
+        address fakeAdmin = address(0xaa);
+
+        registry = new SafeHarborRegistry(fakeAdmin);
         factory = new AgreementV1Factory(address(registry));
 
         details = AgreementDetailsV1({
@@ -35,12 +37,12 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
 
         details.chains[0] = Chain({
             accounts: new Account[](1),
-            assetRecoveryAddress: address(0x1),
+            assetRecoveryAddress: address(0x11),
             chainID: 1
         });
 
         details.chains[0].accounts[0] = Account({
-            accountAddress: address(0x2),
+            accountAddress: address(0x22),
             includeChildContracts: false,
             includeNewChildContracts: false
         });
@@ -50,164 +52,90 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
             role: "testRole",
             contact: "testContact"
         });
+
+        vm.startPrank(fakeAdmin);
     }
 
-    function assertEqualDetails(
-        AgreementDetailsV1 memory details1,
-        AgreementDetailsV1 memory details2
+    function assertEq(
+        AgreementDetailsV1 memory expected,
+        AgreementDetailsV1 memory actual
     ) public {
-        assertEq(details1.protocolName, details2.protocolName);
+        bytes memory expectedBytes = abi.encode(expected);
+        bytes memory actualBytes = abi.encode(actual);
 
-        for (uint256 i = 0; i < details1.chains.length; i++) {
-            assertEq(details1.chains[i].chainID, details2.chains[i].chainID);
-            assertEq(
-                details1.chains[i].assetRecoveryAddress,
-                details2.chains[i].assetRecoveryAddress
-            );
-
-            for (uint256 j = 0; j < details1.chains[i].accounts.length; j++) {
-                assertEq(
-                    details1.chains[i].accounts[j].accountAddress,
-                    details2.chains[i].accounts[j].accountAddress
-                );
-                assertTrue(
-                    details1.chains[i].accounts[j].includeChildContracts ==
-                        details2.chains[i].accounts[j].includeChildContracts
-                );
-                assertTrue(
-                    details1.chains[i].accounts[j].includeNewChildContracts ==
-                        details2.chains[i].accounts[j].includeNewChildContracts
-                );
-            }
-        }
-
-        for (uint256 i = 0; i < details1.contactDetails.length; i++) {
-            assertEq(
-                details1.contactDetails[i].name,
-                details2.contactDetails[i].name
-            );
-            assertEq(
-                details1.contactDetails[i].role,
-                details2.contactDetails[i].role
-            );
-            assertEq(
-                details1.contactDetails[i].contact,
-                details2.contactDetails[i].contact
-            );
-        }
-
-        assertEq(
-            details1.bountyTerms.bountyPercentage,
-            details2.bountyTerms.bountyPercentage
-        );
-        assertEq(
-            details1.bountyTerms.bountyCapUSD,
-            details2.bountyTerms.bountyCapUSD
-        );
-        assertTrue(
-            details1.bountyTerms.retainable == details2.bountyTerms.retainable
-        );
-        assertTrue(
-            details1.bountyTerms.identityRequirement ==
-                details2.bountyTerms.identityRequirement
-        );
-        assertEq(
-            details1.bountyTerms.diligenceRequirements,
-            details2.bountyTerms.diligenceRequirements
-        );
-        assertTrue(
-            details1.automaticallyUpgrade == details2.automaticallyUpgrade
-        );
-        assertEq(details1.agreementURI, details2.agreementURI);
+        assertEq0(expectedBytes, actualBytes);
     }
 
     function test_adoptSafeHarbor() public {
-        // Impersonating the admin to enable the factory
-        vm.prank(tx.origin);
+        address newAgreementAddr = 0xffD4505B3452Dc22f8473616d50503bA9E1710Ac;
+
         registry.enableFactory(address(factory));
 
+        // Adopt new agreement
         vm.expectEmit();
         emit SafeHarborRegistry.SafeHarborAdoption(
-            address(tx.origin),
+            tx.origin,
             address(0),
-            address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac)
+            newAgreementAddr
         );
         factory.adoptSafeHarbor(details);
-        assertEq(
-            registry.agreements(address(tx.origin)),
-            address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac)
-        );
+        assertEq(registry.agreements(tx.origin), newAgreementAddr);
 
-        // Make sure the agreement was recorded correctly
-        AgreementV1 agreement = AgreementV1(
-            address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac)
-        );
-
-        AgreementDetailsV1 memory outputDetails = agreement.getDetails();
-
-        assertEqualDetails(details, outputDetails);
+        AgreementV1 newAgreement = AgreementV1(newAgreementAddr);
+        AgreementDetailsV1 memory newDetails = newAgreement.getDetails();
+        assertEq(details, newDetails);
     }
 
-    function test_updateSafeHarbor() public {
-        // Impersonating the admin to enable the factory
-        vm.prank(tx.origin);
+    function test_adoptSafeHarbor_update() public {
+        address initialAgreementAddr = 0xffD4505B3452Dc22f8473616d50503bA9E1710Ac;
+        address newAgreementAddr = 0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81;
+
+        // Create an initial agreement
         registry.enableFactory(address(factory));
         factory.adoptSafeHarbor(details);
+
+        // Adopt new agreement
         details.agreementURI = "ipfs://newHash";
         vm.expectEmit();
         emit SafeHarborRegistry.SafeHarborAdoption(
-            address(tx.origin),
-            address(0xffD4505B3452Dc22f8473616d50503bA9E1710Ac),
-            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
+            tx.origin,
+            initialAgreementAddr,
+            newAgreementAddr
         );
         factory.adoptSafeHarbor(details);
 
-        assertEq(
-            registry.agreements(address(tx.origin)),
-            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
-        );
+        assertEq(registry.agreements(tx.origin), newAgreementAddr);
 
-        // Make sure the agreement was recorded correctly
-        AgreementV1 agreement = AgreementV1(
-            address(0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81)
-        );
-
-        AgreementDetailsV1 memory outputDetails = agreement.getDetails();
-
-        assertEqualDetails(details, outputDetails);
+        AgreementV1 newAgreement = AgreementV1(newAgreementAddr);
+        AgreementDetailsV1 memory newDetails = newAgreement.getDetails();
+        assertEq(details, newDetails);
     }
 
-    function test_unableToAdoptWithoutApprovedFactory() public {
+    function testadoptSafeHarbor_disabledFactory() public {
+        registry.disableFactory(address(factory));
         vm.expectRevert("Only approved factories may adopt the Safe Harbor");
         factory.adoptSafeHarbor(details);
     }
 
     function test_enableFactory() public {
         vm.expectEmit();
-        emit SafeHarborRegistry.FactoryEnabled(address(factory));
-        // Impersonating the admin to enable the factory
-        vm.prank(tx.origin);
-        registry.enableFactory(address(factory));
-        assertTrue(registry.agreementFactories(address(factory)));
+        emit SafeHarborRegistry.FactoryEnabled(address(0xff));
+        registry.enableFactory(address(0xff));
+
+        assertTrue(registry.agreementFactories(address(0xff)));
     }
 
     function test_disableFactory() public {
-        // Impersonating the admin to enable the factory
-        vm.prank(tx.origin);
-        registry.enableFactory(address(factory));
         vm.expectEmit();
-        emit SafeHarborRegistry.FactoryDisabled(address(factory));
-        // Impersonating the admin to disable the factory
-        vm.prank(tx.origin);
-        registry.disableFactory(address(factory));
-        assertTrue(!registry.agreementFactories(address(factory)));
+        emit SafeHarborRegistry.FactoryDisabled(address(0xff));
+        registry.disableFactory(address(0xff));
+
+        assertTrue(!registry.agreementFactories(address(0xff)));
     }
 
     function test_transferAdminRights() public {
-        address newAdmin = address(0x1);
-        // Impersonating the admin to transfer admin rights
-        vm.prank(tx.origin);
-        registry.transferAdminRights(newAdmin);
-        assertEq(registry.admin(), newAdmin);
+        registry.transferAdminRights(address(0xbb));
+
+        assertEq(registry.admin(), address(0xbb));
     }
 }
