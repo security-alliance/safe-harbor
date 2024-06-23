@@ -89,7 +89,7 @@ contract AgreementV1Test is TestBase, DSTest {
     function getMockAgreementDetails()
         internal
         view
-        returns (AgreementDetailsV1 memory details)
+        returns (AgreementDetailsV1 memory mockDetails)
     {
         Account memory account = Account({
             accountAddress: vm.addr(mockKey),
@@ -118,7 +118,7 @@ contract AgreementV1Test is TestBase, DSTest {
             diligenceRequirements: "testDiligenceRequirements"
         });
 
-        details = AgreementDetailsV1({
+        mockDetails = AgreementDetailsV1({
             protocolName: "testProtocol",
             chains: new Chain[](1),
             contactDetails: new Contact[](1),
@@ -126,9 +126,9 @@ contract AgreementV1Test is TestBase, DSTest {
             automaticallyUpgrade: false,
             agreementURI: "ipfs://testHash"
         });
-        details.chains[0] = chain;
-        details.contactDetails[0] = contact;
+        mockDetails.chains[0] = chain;
+        mockDetails.contactDetails[0] = contact;
 
-        return details;
+        return mockDetails;
     }
 }
