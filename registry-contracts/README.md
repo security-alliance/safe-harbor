@@ -12,17 +12,17 @@ This repository is built using [Foundry](https://book.getfoundry.sh/). See the i
 
 There are 3 contracts in this system:
 
--   `SafeHarborRegistry` - Where a mapping of entities to `AgreementV1` addresses are stored and where agreement factories can be enabled or disabled.
--   `AgreementV1Factory` - Where new Agreements are deployed by protocols calling the `adoptSafeHarbor()` method to officially adopt the agreement.
--   `AgreementV1` - Where details for a specific agreement are stored.
+-   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreement factories are enabled / disabled.
+-   `AgreementV1Factory` - Where protocols adopt new agreement contracts.
+-   `AgreementV1` - Adopted agreements created by protocols.
 
 ## Setup
 
-1. The `SafeHarborRegistry` contract is deployed with the admin as `tx.origin`.
-2. The `AgreementV1Factory` contract is deployed with the `SafeHarborRegistry` address passed in as a constructor argument.
-3. The `SafeHarborRegistry` admin calls `enableFactory()` on `SafeHarborRegistry` with the `AgreementV1Factory` address.
+1. The `SafeHarborRegistry` contract is deployed with the admin passed as a constructor argument.
+2. The `AgreementV1Factory` contract is deployed with the `SafeHarborRegistry` address passed as a constructor argument.
+3. The `SafeHarborRegistry` admin calls `enableFactory()` on `SafeHarborRegistry` with the `AgreementV1Factory`'s address.
 
-In the future SEAL may create newer versions of the Safe Harbor Agreement. When this happens a new factory (e.g. `AgreementV2Factory`) will be deployed and the admin will call `enableFactory()` on `SafeHarborRegistry` with the new factory's address. Optionally, the admin may disable the old factory to prevent new adoptions using the old agreement structure.
+In the future SEAL may create new versions of this agreement. When this happens a new factory (e.g. `AgreementV2Factory`) may be deployed and enabled using the `enableFactory()` method. Optionally, the admin may disable old factories to prevent new adoptions using old agreement structures.
 
 ## Adoption
 
@@ -30,28 +30,32 @@ In the future SEAL may create newer versions of the Safe Harbor Agreement. When 
 2. The factory creates an `Agreement` contract containing the provided agreement details.
 3. The factory adds the `Agreement` contract address to the `SafeHarborRegistry`.
 
-A protocol may update their agreement details using any enabled factory. To do so, the protocol calls `adoptSafeHarbor()` on an agreement factory with their new agreement details. This will create a new `Agreement` contract and add the contract address to the `SafeHarborRegistry`.
+A protocol may update their agreement details using any enabled factory. To do so, the protocol calls `adoptSafeHarbor()` on an agreement factory with their new agreement details. This will create a new `Agreement` contract and update the `SafeHarborRegistry`.
 
-Calling `adoptSafeHarbor()` is considered the legally binding action in the agreement. The `tx.origin` should represent the decision-making authority of the protocol.
+Calling `adoptSafeHarbor()` is considered the legally binding action in the agreement. The `msg.sender` should represent the decision-making authority of the protocol.
 
 ### Signed Accounts
 
-For added security, protocols may choose to sign their agreement with the accounts in scope. This feature ensures that the accounts listed in the agreement have cryptographically signed the agreement details. Both EOA and ERC-1271 signatures are supported and can be validated with the agreement's factory. Given a signed account, whitehats can be certain that the owner of said account has approved the agreement details.
+For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the agreement's factory. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
 
-**Signing the Agreement Details**: When preparing the final agreement details, prior to deploying on-chain, the protocol may sign the agreement details with any or all of the accounts under scope and store these signatures within the agreement details. A helper script to generate these account signatures for EOA accounts has been provided. To use it set the `SIGNER_PRIVATE_KEY` and `AGREEMENT_FILE` environment variables. Then, run the script using:
+#### Signing the Agreement Details
+
+When preparing the final agreement details, prior to deploying on-chain, the protocol may sign the agreement details for any or all of the accounts under scope and store these signatures within the agreement details. A helper script to generate these account signatures for EOA accounts has been provided. To use it set the `SIGNER_PRIVATE_KEY` environment variable. Then, run the script using:
 
 ```
 forge script GenerateAccountSignatureV1.s.sol --fork-url <YOUR_RPC_URL> -vvvv
 ```
 
-**Verification of Signed Accounts**: Whitehats may use the agreement factory's `validateAccount()` method to verify that a given Account has consented to the agreement details.
+#### Verification of Signed Accounts
 
-## Reading Data
+Whitehats may use the agreement factory's `validateAccount()` method to verify that a given Account has consented to the agreement details.
+
+## Querying Agreements
 
 1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV1` address.
 2. Query the protocol's `Agreement` contract with `getDetails()` to get the structured agreement details.
 
-Different versions may have different `AgreementDetails` structs. All `Agreement` and `AgreementFactory` contracts will include a `version()` method. This allows a user to know what struct to use when decoding some queried agreement details.
+Different versions may have different `AgreementDetails` structs. All `Agreement` and `AgreementFactory` contracts will include a `version()` method that can be used to infer the `AgreementDetails` structure.
 
 # Deployment
 
