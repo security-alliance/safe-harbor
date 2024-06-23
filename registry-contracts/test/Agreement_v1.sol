@@ -21,39 +21,7 @@ contract AgreementV1Test is TestBase, DSTest {
 
         registry = new SafeHarborRegistry(fakeAdmin);
         factory = new AgreementV1Factory(address(registry));
-
-        details = AgreementDetailsV1({
-            protocolName: "testProtocol",
-            chains: new Chain[](1),
-            contactDetails: new Contact[](1),
-            bountyTerms: BountyTerms({
-                bountyPercentage: 10,
-                bountyCapUSD: 100,
-                retainable: false,
-                identityRequirement: IdentityRequirement.Named,
-                diligenceRequirements: "testDiligenceRequirements"
-            }),
-            automaticallyUpgrade: false,
-            agreementURI: "ipfs://testHash"
-        });
-
-        details.chains[0] = Chain({
-            accounts: new Account[](1),
-            assetRecoveryAddress: address(0x11),
-            chainID: 1
-        });
-
-        details.chains[0].accounts[0] = Account({
-            accountAddress: vm.addr(mockKey),
-            childContractScope: ChildContractScope.ExistingOnly,
-            signature: new bytes(0)
-        });
-
-        details.contactDetails[0] = Contact({
-            name: "testName",
-            role: "testRole",
-            contact: "testContact"
-        });
+        details = getMockAgreementDetails();
 
         vm.startPrank(fakeAdmin);
     }
@@ -115,5 +83,53 @@ contract AgreementV1Test is TestBase, DSTest {
             details.chains[0].accounts[0]
         );
         assertTrue(!isValid);
+    }
+
+    function getMockAgreementDetails()
+        internal
+        pure
+        returns (AgreementDetailsV1 memory details)
+    {
+        Account memory account = Account({
+            accountAddress: address(0xeaA33ea82591611Ac749b875aBD80a465219ab40),
+            childContractScope: ChildContractScope.ExistingOnly,
+            signature: new bytes(0)
+        });
+
+        Chain memory chain = Chain({
+            accounts: new Account[](1),
+            assetRecoveryAddress: address(
+                0xa30F2797Bf542ECe99290cf4E4C6546cc349B9A1
+            ),
+            chainID: 1
+        });
+        chain.accounts[0] = account;
+
+        Contact memory contact = Contact({
+            name: "testName",
+            role: "testRole",
+            contact: "testContact"
+        });
+
+        BountyTerms memory bountyTerms = BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100,
+            retainable: false,
+            identityRequirement: IdentityRequirement.Named,
+            diligenceRequirements: "testDiligenceRequirements"
+        });
+
+        details = AgreementDetailsV1({
+            protocolName: "testProtocol",
+            chains: new Chain[](1),
+            contactDetails: new Contact[](1),
+            bountyTerms: bountyTerms,
+            automaticallyUpgrade: false,
+            agreementURI: "ipfs://testHash"
+        });
+        details.chains[0] = chain;
+        details.contactDetails[0] = contact;
+
+        return details;
     }
 }
