@@ -3,6 +3,7 @@ src = "src"
 out = "out"
 libs = ["lib"]
 via_ir = true
+
 [profile.default.optimizer_details]
 constantOptimizer = true
 yul = false
