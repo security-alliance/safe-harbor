@@ -1,6 +1,0 @@
-SafeHarborRegistryTest:test_adoptSafeHarbor() (gas: 1635324)
-SafeHarborRegistryTest:test_adoptSafeHarbor_update() (gas: 2598168)
-SafeHarborRegistryTest:test_disableFactory() (gas: 19398)
-SafeHarborRegistryTest:test_enableFactory() (gas: 39257)
-SafeHarborRegistryTest:test_transferAdminRights() (gas: 13997)
-SafeHarborRegistryTest:testadoptSafeHarbor_disabledFactory() (gas: 1011198)
