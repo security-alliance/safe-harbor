@@ -7,7 +7,7 @@ import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "../src/SafeHarborRegistry.sol";
-import "../src/Agreement_v1.sol";
+import "../src/AgreementV1.sol";
 
 contract AgreementV1Test is TestBase, DSTest {
     SafeHarborRegistry registry;

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {SafeHarborRegistry} from "../src/SafeHarborRegistry.sol";
-import {AgreementV1Factory} from "../src/Agreement_v1.sol";
+import {AgreementV1Factory} from "../src/AgreementV1.sol";
 
 contract SafeHarborRegistryDeploy is Script {
     // This is a create2 factory deployed by a one-time-use-account as described here:
