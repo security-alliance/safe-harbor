@@ -24,20 +24,22 @@ contract SafeHarborRegistryDeploy is Script {
             "Create2 factory not deployed yet, see https://github.com/Arachnid/deterministic-deployment-proxy."
         );
 
-        require(
-            getExpectedAddress().code.length == 0,
-            "Registry already deployed, nothing left to do."
-        );
-
         uint256 deployerPrivateKey = vm.envUint(
             "REGISTRY_DEPLOYER_PRIVATE_KEY"
         );
+        address deployerAddress = vm.addr(deployerPrivateKey);
+
+        require(
+            getExpectedAddress(deployerAddress).code.length == 0,
+            "Registry already deployed, nothing left to do."
+        );
+
         vm.startBroadcast(deployerPrivateKey);
         SafeHarborRegistry registry = new SafeHarborRegistry{
             salt: DETERMINISTIC_DEPLOY_SALT
-        }(tx.origin);
-
+        }(deployerAddress);
         address deployedRegistry = address(registry);
+
         AgreementV1Factory factory = new AgreementV1Factory{
             salt: DETERMINISTIC_DEPLOY_SALT
         }(deployedRegistry);
@@ -46,14 +48,14 @@ contract SafeHarborRegistryDeploy is Script {
         vm.stopBroadcast();
 
         require(
-            deployedRegistry == getExpectedAddress(),
+            deployedRegistry == getExpectedAddress(deployerAddress),
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
     }
 
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
     // and salt are used.
-    function getExpectedAddress() public pure returns (address) {
+    function getExpectedAddress(address admin) public pure returns (address) {
         return
             address(
                 uint160(
@@ -63,7 +65,12 @@ contract SafeHarborRegistryDeploy is Script {
                                 bytes1(0xff),
                                 DETERMINISTIC_CREATE2_FACTORY,
                                 DETERMINISTIC_DEPLOY_SALT,
-                                keccak256(type(SafeHarborRegistry).creationCode)
+                                keccak256(
+                                    abi.encodePacked(
+                                        type(SafeHarborRegistry).creationCode,
+                                        abi.encode(admin)
+                                    )
+                                )
                             )
                         )
                     )
