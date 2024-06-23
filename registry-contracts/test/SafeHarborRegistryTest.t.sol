@@ -20,31 +20,33 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     function test_recordAdoption() public {
         address factory = address(0xff);
         address agreement = address(0xbb);
+        address entity = address(0xee);
 
         vm.prank(admin);
         registry.enableFactory(factory);
 
         vm.expectEmit();
         emit SafeHarborRegistry.SafeHarborAdoption(
-            tx.origin,
+            entity,
             address(0),
             agreement
         );
         vm.prank(factory);
-        registry.recordAdoption(agreement);
-        assertEq(registry.agreements(tx.origin), agreement);
+        registry.recordAdoption(entity, agreement);
+        assertEq(registry.agreements(entity), agreement);
     }
 
     function test_adoptSafeHarbor_disabledFactory() public {
         address factory = address(0xff);
         address agreement = address(0xbb);
+        address entity = address(0xee);
 
         vm.prank(admin);
         registry.disableFactory(factory);
 
         vm.expectRevert("Only approved factories may adopt the Safe Harbor");
         vm.prank(factory);
-        registry.recordAdoption(agreement);
+        registry.recordAdoption(entity, agreement);
     }
 
     function test_enableFactory() public {

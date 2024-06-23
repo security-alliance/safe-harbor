@@ -48,7 +48,7 @@ contract AgreementV1Factory is SignatureValidator {
     /// @param details The details of the agreement.
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
-        registry.recordAdoption(address(agreementDetails));
+        registry.recordAdoption(msg.sender, address(agreementDetails));
     }
 
     function validateAccount(

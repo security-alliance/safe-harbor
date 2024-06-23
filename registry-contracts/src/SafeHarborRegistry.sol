@@ -32,13 +32,12 @@ contract SafeHarborRegistry {
 
     /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories.
     /// @param details The new details of the agreement.
-    function recordAdoption(address details) external {
+    function recordAdoption(address entity, address details) external {
         require(
             agreementFactories[msg.sender],
             "Only approved factories may adopt the Safe Harbor"
         );
 
-        address entity = tx.origin;
         address oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);

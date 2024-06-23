@@ -23,7 +23,8 @@ contract AgreementV1Test is TestBase, DSTest {
         factory = new AgreementV1Factory(address(registry));
         details = getMockAgreementDetails();
 
-        vm.startPrank(fakeAdmin);
+        vm.prank(fakeAdmin);
+        registry.enableFactory(address(factory));
     }
 
     function assertEq(
@@ -38,17 +39,17 @@ contract AgreementV1Test is TestBase, DSTest {
 
     function test_adoptSafeHarbor() public {
         address newAgreementAddr = 0xffD4505B3452Dc22f8473616d50503bA9E1710Ac;
-
-        registry.enableFactory(address(factory));
+        address entity = address(0xee);
 
         vm.expectEmit();
         emit SafeHarborRegistry.SafeHarborAdoption(
-            tx.origin,
+            entity,
             address(0),
             newAgreementAddr
         );
+        vm.prank(entity);
         factory.adoptSafeHarbor(details);
-        assertEq(registry.agreements(tx.origin), newAgreementAddr);
+        assertEq(registry.agreements(entity), newAgreementAddr);
 
         AgreementV1 newAgreement = AgreementV1(newAgreementAddr);
         AgreementDetailsV1 memory newDetails = newAgreement.getDetails();
@@ -87,20 +88,18 @@ contract AgreementV1Test is TestBase, DSTest {
 
     function getMockAgreementDetails()
         internal
-        pure
+        view
         returns (AgreementDetailsV1 memory details)
     {
         Account memory account = Account({
-            accountAddress: address(0xeaA33ea82591611Ac749b875aBD80a465219ab40),
+            accountAddress: vm.addr(mockKey),
             childContractScope: ChildContractScope.ExistingOnly,
             signature: new bytes(0)
         });
 
         Chain memory chain = Chain({
             accounts: new Account[](1),
-            assetRecoveryAddress: address(
-                0xa30F2797Bf542ECe99290cf4E4C6546cc349B9A1
-            ),
+            assetRecoveryAddress: address(0x11),
             chainID: 1
         });
         chain.accounts[0] = account;
