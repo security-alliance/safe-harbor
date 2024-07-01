@@ -93,41 +93,31 @@ contract AgreementV1Test is TestBase, DSTest {
     {
         Account memory account = Account({
             accountAddress: vm.addr(mockKey),
-            childContractScope: ChildContractScope.ExistingOnly,
+            childContractScope: ChildContractScope.All,
             signature: new bytes(0)
         });
 
         Chain memory chain = Chain({
             accounts: new Account[](1),
             assetRecoveryAddress: address(0x11),
-            chainID: 1
+            id: 1
         });
         chain.accounts[0] = account;
-
-        Contact memory contact = Contact({
-            name: "testName",
-            role: "testRole",
-            contact: "testContact"
-        });
 
         BountyTerms memory bountyTerms = BountyTerms({
             bountyPercentage: 10,
             bountyCapUSD: 100,
-            retainable: false,
-            identityRequirement: IdentityRequirement.Named,
-            diligenceRequirements: "testDiligenceRequirements"
+            verification: IdentityVerification.Retainable
         });
 
         mockDetails = AgreementDetailsV1({
             protocolName: "testProtocol",
             chains: new Chain[](1),
-            contactDetails: new Contact[](1),
+            contactDetails: "Contact Details",
             bountyTerms: bountyTerms,
-            automaticallyUpgrade: false,
             agreementURI: "ipfs://testHash"
         });
         mockDetails.chains[0] = chain;
-        mockDetails.contactDetails[0] = contact;
 
         return mockDetails;
     }

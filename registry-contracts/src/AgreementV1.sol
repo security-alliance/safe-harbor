@@ -55,17 +55,17 @@ contract AgreementV1Factory is SignatureValidator {
         AgreementDetailsV1 memory details,
         Account memory account
     ) external view returns (bool) {
-        // Iterate over all accounts, setting signature fields to zero
+        // Iterate over all accounts, setting signature fields to zero.
         for (uint i = 0; i < details.chains.length; i++) {
             for (uint j = 0; j < details.chains[i].accounts.length; j++) {
                 details.chains[i].accounts[j].signature = new bytes(0);
             }
         }
 
-        // Hash the details
+        // Hash the details.
         bytes32 hash = keccak256(abi.encode(details));
 
-        // Verify that the account's accountAddress signed the hashed details
+        // Verify that the account's accountAddress signed the hashed details.
         return
             isSignatureValid(account.accountAddress, hash, account.signature);
     }
@@ -75,34 +75,30 @@ contract AgreementV1Factory is SignatureValidator {
 struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
+    // The contact details (required for pre-notifying).
+    string contactDetails;
     // The scope and recovery address by chain.
     Chain[] chains;
-    // The contact details (required for pre-notifying).
-    Contact[] contactDetails;
     // The terms of the agreement.
     BountyTerms bountyTerms;
-    // Indication whether the agreement should be automatically upgraded to future versions approved by SEAL.
-    bool automaticallyUpgrade;
     // IPFS hash of the actual agreement document, which confirms all terms.
     string agreementURI;
 }
 
 /// @notice Struct that contains the details of an agreement by chain.
 struct Chain {
-    // The accounts in scope for the agreement.
-    Account[] accounts;
     // The address to which recovered assets will be sent.
     address assetRecoveryAddress;
+    // The accounts in scope for the agreement.
+    Account[] accounts;
     // The chain ID.
-    uint chainID;
+    uint id;
 }
 
 /// @notice Enum that defines the inclusion of child contracts in an agreement.
 enum ChildContractScope {
     // No child contracts are included
     None,
-    // Only existing child contracts are included
-    ExistingOnly,
     // All child contracts, both existing and new, are included
     All
 }
@@ -117,36 +113,22 @@ struct Account {
     bytes signature;
 }
 
-/// @notice Struct that contains the contact details of the agreement.
-struct Contact {
-    // The name of the contact.
-    string name;
-    // The role of the contact.
-    string role;
-    // The contact details (IE email, phone, telegram).
-    string contact;
+/// @notice Whitehat identity verification methods
+enum IdentityVerification {
+    Retainable,
+    Immunefi,
+    Bugcrowd,
+    Hackerone
 }
 
-/// @notice Enum that defines the identity requirements for a Whitehat to be eligible under the agreement.
-enum IdentityRequirement {
-    // The Whitehat has no moniker and no identifying information about the Whitehat has been verified.
-    Anonymous,
-    // The Whitehat uses a moniker but there has been limited or no verification of the legal name(s) of person(s) or entity behind the moniker.
-    Pseudonymous,
-    // The Whitehat is using a legal individual or entity name and that identity has been verified.
-    Named
-}
-
-// @notice Struct that contains the terms of the bounty for the agreement.
+/// @notice Struct that contains the terms of the bounty for the agreement.
 struct BountyTerms {
     // Percentage of the recovered funds a Whitehat receives as their bounty (0-100).
     uint bountyPercentage;
     // The maximum bounty in USD.
     uint bountyCapUSD;
-    // Indicates if the Whitehat can retain their bounty.
-    bool retainable;
-    // Identity requirements for Whitehats eligible under the agreement.
-    IdentityRequirement identityRequirement;
-    // Description of what KYC, sanctions, diligence, or other verification will be performed on Whitehats to determine their eligibility to receive the bounty.
-    string diligenceRequirements;
+    // The method by which the Whitehat's identity is verified. If Retainable,
+    // the Whitehat's identity is not verified. If set to a verification service,
+    // the Whitehat's identity is verified by that service.
+    IdentityVerification verification;
 }

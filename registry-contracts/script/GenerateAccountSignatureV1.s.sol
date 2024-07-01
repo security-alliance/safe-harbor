@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import {AgreementDetailsV1, Chain, Account, Contact, BountyTerms, IdentityRequirement, ChildContractScope} from "../src/AgreementV1.sol";
+import {AgreementDetailsV1, Chain, Account, BountyTerms, ChildContractScope, IdentityVerification} from "../src/AgreementV1.sol";
 
 // This function generates an account signature for EOAs. For ERC-1271 contracts
 // the method of signature generation may vary from contract to contract. Ensure
@@ -39,7 +39,7 @@ contract GenerateAccountSignatureV1 is ScriptBase {
     {
         Account memory account = Account({
             accountAddress: address(0xeaA33ea82591611Ac749b875aBD80a465219ab40),
-            childContractScope: ChildContractScope.ExistingOnly,
+            childContractScope: ChildContractScope.All,
             signature: new bytes(0)
         });
 
@@ -48,34 +48,24 @@ contract GenerateAccountSignatureV1 is ScriptBase {
             assetRecoveryAddress: address(
                 0xa30F2797Bf542ECe99290cf4E4C6546cc349B9A1
             ),
-            chainID: 1
+            id: 1
         });
         chain.accounts[0] = account;
-
-        Contact memory contact = Contact({
-            name: "testName",
-            role: "testRole",
-            contact: "testContact"
-        });
 
         BountyTerms memory bountyTerms = BountyTerms({
             bountyPercentage: 10,
             bountyCapUSD: 100,
-            retainable: false,
-            identityRequirement: IdentityRequirement.Named,
-            diligenceRequirements: "testDiligenceRequirements"
+            verification: IdentityVerification.Retainable
         });
 
         details = AgreementDetailsV1({
             protocolName: "testProtocol",
             chains: new Chain[](1),
-            contactDetails: new Contact[](1),
+            contactDetails: "Test contact information",
             bountyTerms: bountyTerms,
-            automaticallyUpgrade: false,
             agreementURI: "ipfs://testHash"
         });
         details.chains[0] = chain;
-        details.contactDetails[0] = contact;
 
         return details;
     }
