@@ -113,7 +113,9 @@ struct Account {
     bytes signature;
 }
 
-/// @notice Whitehat identity verification methods
+/// @notice Whitehat identity verification methods. If Retainable, the Whitehat's
+// identity is not verified. If set to a verification service, the Whitehat's
+// identity is verified by that service. The provided services are those selected by SEAL.
 enum IdentityVerification {
     Retainable,
     Immunefi,
