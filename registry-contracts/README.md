@@ -39,6 +39,8 @@ Calling `adoptSafeHarbor()` is considered the legally binding action in the agre
 
 For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the agreement's factory. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
 
+AccountDetails use EIP-712 hashing for both EOA and ERC-1271 signatures for a better client-side experience.
+
 #### Signing the Agreement Details
 
 When preparing the final agreement details, prior to deploying on-chain, the protocol may sign the agreement details for any or all of the accounts under scope and store these signatures within the agreement details. A helper script to generate these account signatures for EOA accounts has been provided. To use it set the `SIGNER_PRIVATE_KEY` environment variable. Then, run the script using:
