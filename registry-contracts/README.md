@@ -6,6 +6,8 @@ This directory houses the "Safe Harbor Registry". This is a smart contract writt
 2. Store the agreement details on-chain for Whitehat ease-of-use.
 3. Allow for future updates to the agreement terms.
 
+These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and seperately deployed.
+
 # Technical Details
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation). To test the contracts, use `forge test`.
