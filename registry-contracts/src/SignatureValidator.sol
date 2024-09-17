@@ -27,7 +27,8 @@ contract SignatureValidator {
             v := byte(0, mload(add(signature, 96)))
         }
 
-        return ecrecover(hash, v, r, s);
+        signer = ecrecover(hash, v, r, s);
+        require(signer != address(0), "Invalid signature");
     }
 
     /// @notice Returns whether an EOA signed a given hash.
