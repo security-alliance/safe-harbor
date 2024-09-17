@@ -47,12 +47,12 @@ contract SafeHarborRegistryDeploy is Script {
 
         address deployedRegistryAddress = address(registry);
 
-        vm.stopBroadcast();
-
         require(
             deployedRegistryAddress == registryAddress,
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
+
+        vm.stopBroadcast();
     }
 
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
