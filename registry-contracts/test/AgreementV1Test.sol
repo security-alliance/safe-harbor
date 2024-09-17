@@ -17,14 +17,25 @@ contract AgreementV1Test is TestBase, DSTest {
     uint256 mockKey = 100;
 
     function setUp() public {
-        address fakeAdmin = address(0xaa);
+        address deployer = address(0x11);
+        uint256 deployerNonce = vm.getNonce(deployer);
 
-        registry = new SafeHarborRegistry(fakeAdmin);
-        factory = new AgreementV1Factory(address(registry));
+        address registryAddress = vm.computeCreateAddress(
+            deployer,
+            deployerNonce + 1
+        );
+
+        vm.prank(deployer);
+        factory = new AgreementV1Factory(registryAddress);
+
+        vm.prank(deployer);
+        registry = new SafeHarborRegistry(
+            address(factory),
+            SafeHarborRegistry(address(0))
+        );
+
+        assertEq(registryAddress, address(registry));
         details = getMockAgreementDetails();
-
-        vm.prank(fakeAdmin);
-        registry.enableFactory(address(factory));
     }
 
     function assertEq(
@@ -38,7 +49,7 @@ contract AgreementV1Test is TestBase, DSTest {
     }
 
     function test_adoptSafeHarbor() public {
-        address newAgreementAddr = 0xffD4505B3452Dc22f8473616d50503bA9E1710Ac;
+        address newAgreementAddr = 0x681d27702F59b6805428eA152D6eDb91bC19E67A;
         address entity = address(0xee);
 
         vm.expectEmit();

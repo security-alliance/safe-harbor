@@ -29,26 +29,28 @@ contract SafeHarborRegistryDeploy is Script {
         );
         address deployerAddress = vm.addr(deployerPrivateKey);
 
+        address registryAddress = getExpectedAddress(deployerAddress);
         require(
-            getExpectedAddress(deployerAddress).code.length == 0,
+            registryAddress.code.length == 0,
             "Registry already deployed, nothing left to do."
         );
 
         vm.startBroadcast(deployerPrivateKey);
-        SafeHarborRegistry registry = new SafeHarborRegistry{
-            salt: DETERMINISTIC_DEPLOY_SALT
-        }(deployerAddress);
-        address deployedRegistry = address(registry);
-
         AgreementV1Factory factory = new AgreementV1Factory{
             salt: DETERMINISTIC_DEPLOY_SALT
-        }(deployedRegistry);
-        registry.enableFactory(address(factory));
+        }(registryAddress);
+
+        address deployedFactoryAddress = address(factory);
+        SafeHarborRegistry registry = new SafeHarborRegistry{
+            salt: DETERMINISTIC_DEPLOY_SALT
+        }(deployedFactoryAddress, SafeHarborRegistry(address(0)));
+
+        address deployedRegistryAddress = address(registry);
 
         vm.stopBroadcast();
 
         require(
-            deployedRegistry == getExpectedAddress(deployerAddress),
+            deployedRegistryAddress == registryAddress,
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
     }

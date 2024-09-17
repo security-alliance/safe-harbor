@@ -20,11 +20,10 @@ There are 3 contracts in this system:
 
 ## Setup
 
-1. The `SafeHarborRegistry` contract is deployed with the admin passed as a constructor argument.
-2. The `AgreementV1Factory` contract is deployed with the `SafeHarborRegistry` address passed as a constructor argument.
-3. The `SafeHarborRegistry` admin calls `enableFactory()` on `SafeHarborRegistry` with the `AgreementV1Factory`'s address.
+1. The `SafeHarborRegistry` contract is deployed with the `AgreementV1Factory`'s address and the fallback registry as constructor arguments.
+2. The `AgreementV1Factory` contract is deployed with the `SafeHarborRegistry` address as a constructor argument.
 
-In the future SEAL may create new versions of this agreement. When this happens a new factory (e.g. `AgreementV2Factory`) may be deployed and enabled using the `enableFactory()` method. Optionally, the admin may disable old factories to prevent new adoptions using old agreement structures.
+In the future SEAL may create new versions of this agreement. When this happens a new factory (e.g. `AgreementV2Factory`) and registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details.
 
 ## Adoption
 

@@ -3,17 +3,14 @@ pragma solidity ^0.8.20;
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry {
-    /// @notice admin address used to enable or disable factories.
-    address public admin;
-
-    /// @notice pending admin address used to accept admin rights.
-    address public _pendingAdmin;
-
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
 
-    /// @notice A mapping which records the approved agreement factories.
-    mapping(address factory => bool) public agreementFactories;
+    /// @notice The factory address which is approved to submit agreements.
+    address factory;
+
+    /// @notice The fallback registry.
+    SafeHarborRegistry fallbackRegistry;
 
     /// ----- EVENTS -----
 
@@ -24,39 +21,23 @@ contract SafeHarborRegistry {
         address newDetails
     );
 
-    /// @notice An event that records when an address is newly enabled as a factory.
-    event FactoryEnabled(address factory);
-
-    /// @notice An event that records when an address is newly disabled as a factory.
-    event FactoryDisabled(address factory);
-
     /// ----- ERRORS -----
-    error OnlyAdmin();
-    error OnlyPendingAdmin();
     error OnlyFactories();
+    error NoDetails();
 
     /// ----- MODIFIERS -----
     /// @notice Modifier to restrict access to admin-only functions.
-    modifier onlyAdmin() {
-        if (msg.sender != admin) revert OnlyAdmin();
-        _;
-    }
-
-    modifier onlyPendingAdmin() {
-        if (msg.sender != _pendingAdmin) revert OnlyPendingAdmin();
-        _;
-    }
-
     modifier onlyFactory() {
-        if (!agreementFactories[msg.sender]) revert OnlyFactories();
+        if (msg.sender != factory) revert OnlyFactories();
         _;
     }
 
     /// ----- METHODS -----
 
     /// @notice Sets the admin address to the provided address.
-    constructor(address _admin) {
-        admin = _admin;
+    constructor(address _factory, SafeHarborRegistry _fallbackRegistry) {
+        factory = _factory;
+        fallbackRegistry = _fallbackRegistry;
     }
 
     /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories.
@@ -70,30 +51,19 @@ contract SafeHarborRegistry {
         emit SafeHarborAdoption(entity, oldDetails, details);
     }
 
-    /// @notice Enables an address as a factory.
-    /// @param factory The address to enable.
-    function enableFactory(address factory) external onlyAdmin {
-        agreementFactories[factory] = true;
-        emit FactoryEnabled(factory);
-    }
+    /// @notice Get the details of an agreement.  Recursively queries fallback registries.
+    /// @param entity The entity to query.
+    function getDetails(address entity) external view returns (address) {
+        address details = agreements[entity];
 
-    /// @notice Disables an address as an factory.
-    /// @param factory The address to disable.
-    function disableFactory(address factory) external onlyAdmin {
-        agreementFactories[factory] = false;
-        emit FactoryDisabled(factory);
-    }
+        if (details != address(0)) {
+            return details;
+        }
 
-    /// @notice Allows the admin to transfer admin rights to another address.
-    /// @param newAdmin The address of the new admin.
-    function transferAdminRights(address newAdmin) external onlyAdmin {
-        require(newAdmin != address(0), "New admin address cannot be zero");
-        _pendingAdmin = newAdmin;
-    }
+        if (fallbackRegistry != SafeHarborRegistry(address(0))) {
+            return fallbackRegistry.getDetails(entity);
+        }
 
-    /// @notice Allows the pending admin to accept admin rights.
-    function acceptAdminRights() external onlyPendingAdmin {
-        admin = _pendingAdmin;
-        _pendingAdmin = address(0);
+        revert NoDetails();
     }
 }
