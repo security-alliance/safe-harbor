@@ -30,13 +30,57 @@ contract AgreementV1 {
 
 /// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
 contract AgreementV1Factory is SignatureValidator {
+    /// @notice https://eips.ethereum.org/EIPS/eip-712
+    struct EIP712Domain {
+        string name;
+        string version;
+        uint256 chainId;
+        address verifyingContract;
+    }
+
     /// @notice The SafeHarborRegistry contract.
     SafeHarborRegistry public registry;
+
+    /// ----- eip-712 TYPEHASHES
+    bytes32 constant EIP712DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+
+    bytes32 constant AGREEMENTDETAILS_TYPEHASH =
+        keccak256(
+            "AgreementDetailsV1(string protocolName,string contactDetails,Chain[] chains,BountyTerms bountyTerms,string agreementURI)"
+        );
+
+    bytes32 constant CHAIN_TYPEHASH =
+        keccak256(
+            "Chain(address assetRecoveryAddress,Account[] accounts,uint id)"
+        );
+
+    bytes32 constant ACCOUNT_TYPEHASH =
+        keccak256(
+            "Account(address accountAddress,ChildContractScope childContractScope,bytes signature)"
+        );
+
+    bytes32 constant BOUNTYTERMS_TYPEHASH =
+        keccak256(
+            "BountyTerms(uint bountyPercentage,uint bountyCapUSD,IdentityVerification verification)"
+        );
+
+    bytes32 DOMAIN_SEPARATOR;
 
     /// @notice Constructor that sets the SafeHarborRegistry address.
     /// @param registryAddress The address of the SafeHarborRegistry contract.
     constructor(address registryAddress) {
         registry = SafeHarborRegistry(registryAddress);
+        DOMAIN_SEPARATOR = hash(
+            EIP712Domain({
+                name: "Ether Mail",
+                version: "1.0.0",
+                chainId: 1,
+                verifyingContract: address(this)
+            })
+        );
     }
 
     /// @notice Function that returns the version of the agreement factory.
@@ -65,12 +109,12 @@ contract AgreementV1Factory is SignatureValidator {
             }
         }
 
-        // Hash the details.
-        bytes32 hash = keccak256(abi.encode(details));
+        // Hash the details with eip-712.
+        bytes32 digest = hash(details);
 
         // Verify that the account's accountAddress signed the hashed details.
         return
-            isSignatureValid(account.accountAddress, hash, account.signature);
+            isSignatureValid(account.accountAddress, digest, account.signature);
     }
 
     /// @notice Function that validates an account's signature for the agreement using an agreement address.
@@ -84,6 +128,95 @@ contract AgreementV1Factory is SignatureValidator {
         AgreementDetailsV1 memory details = agreement.getDetails();
 
         return validateAccount(details, account);
+    }
+
+    /// ----- EIP-712 METHODS -----
+
+    function hash(
+        EIP712Domain memory eip712Domain
+    ) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    EIP712DOMAIN_TYPEHASH,
+                    keccak256(bytes(eip712Domain.name)),
+                    keccak256(bytes(eip712Domain.version)),
+                    eip712Domain.chainId,
+                    eip712Domain.verifyingContract
+                )
+            );
+    }
+
+    function hash(
+        BountyTerms memory bountyTerms
+    ) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    BOUNTYTERMS_TYPEHASH,
+                    bountyTerms.bountyPercentage,
+                    bountyTerms.bountyCapUSD,
+                    uint8(bountyTerms.verification)
+                )
+            );
+    }
+
+    function hash(Account memory account) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    ACCOUNT_TYPEHASH,
+                    account.accountAddress,
+                    uint8(account.childContractScope),
+                    keccak256(account.signature)
+                )
+            );
+    }
+
+    function hash(Account[] memory accounts) internal pure returns (bytes32) {
+        bytes memory encoded;
+        for (uint i = 0; i < accounts.length; i++) {
+            encoded = abi.encodePacked(encoded, hash(accounts[i]));
+        }
+
+        return keccak256(encoded);
+    }
+
+    function hash(Chain memory chain) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    CHAIN_TYPEHASH,
+                    chain.assetRecoveryAddress,
+                    hash(chain.accounts),
+                    chain.id
+                )
+            );
+    }
+
+    function hash(Chain[] memory chains) internal pure returns (bytes32) {
+        bytes memory encoded;
+        for (uint i = 0; i < chains.length; i++) {
+            encoded = abi.encodePacked(encoded, hash(chains[i]));
+        }
+
+        return keccak256(encoded);
+    }
+
+    function hash(
+        AgreementDetailsV1 memory details
+    ) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    AGREEMENTDETAILS_TYPEHASH,
+                    keccak256(bytes(details.protocolName)),
+                    keccak256(bytes(details.contactDetails)),
+                    hash(details.chains),
+                    hash(details.bountyTerms),
+                    keccak256(bytes(details.agreementURI))
+                )
+            );
     }
 }
 

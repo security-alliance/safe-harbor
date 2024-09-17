@@ -3,28 +3,51 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import {AgreementDetailsV1, Chain, Account, BountyTerms, ChildContractScope, IdentityVerification} from "../src/AgreementV1.sol";
+import {AgreementV1Factory, AgreementDetailsV1, Chain, Account, BountyTerms, ChildContractScope, IdentityVerification} from "../src/AgreementV1.sol";
 
 // This function generates an account signature for EOAs. For ERC-1271 contracts
 // the method of signature generation may vary from contract to contract. Ensure
 // that you always reset all signature fields to empty before hashing the agreement
 // details.
 contract GenerateAccountSignatureV1 is ScriptBase {
-    function run() external view {
+    function run() external {
         uint256 signerPrivateKey = vm.envUint("SIGNER_PRIVATE_KEY");
+        address signerAddress = vm.addr(signerPrivateKey);
         AgreementDetailsV1 memory details = getAgreementDetails();
 
         // Empty signature field for hashing
+        ChildContractScope signerScope;
+        bool signerPresent;
         for (uint i = 0; i < details.chains.length; i++) {
             for (uint j = 0; j < details.chains[i].accounts.length; j++) {
                 details.chains[i].accounts[j].signature = new bytes(0);
+
+                Account memory acc = details.chains[i].accounts[j];
+                if (acc.accountAddress == signerAddress) {
+                    signerScope = acc.childContractScope;
+                    signerPresent = true;
+                }
             }
         }
 
+        if (!signerPresent) {
+            console.log("Signer not found in agreement details");
+            revert();
+        }
+
         // Generate the signature
-        bytes32 hash = keccak256(abi.encode(details));
+        AgreementV1Factory factory = new AgreementV1Factory(address(0));
+        bytes32 hash = factory.hash(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Assert that the signature is valid
+        Account memory account = Account({
+            accountAddress: signerAddress,
+            childContractScope: signerScope,
+            signature: signature
+        });
+        assert(factory.validateAccount(details, account));
 
         console.log("Account Address:");
         console.logAddress(vm.addr(signerPrivateKey));
@@ -38,7 +61,7 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         returns (AgreementDetailsV1 memory details)
     {
         Account memory account = Account({
-            accountAddress: address(0xeaA33ea82591611Ac749b875aBD80a465219ab40),
+            accountAddress: address(0xa40F732195D3165359478FC35f040442e3f9b127),
             childContractScope: ChildContractScope.All,
             signature: new bytes(0)
         });

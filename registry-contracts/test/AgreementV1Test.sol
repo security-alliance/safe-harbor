@@ -68,8 +68,8 @@ contract AgreementV1Test is TestBase, DSTest {
     }
 
     function test_validateAccount() public {
-        bytes32 hash = keccak256(abi.encode(details));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, hash);
+        bytes32 digest = factory.hash(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         details.chains[0].accounts[0].signature = signature;
@@ -84,8 +84,8 @@ contract AgreementV1Test is TestBase, DSTest {
     function test_validateAccount_invalid() public {
         uint256 fakeKey = 200;
 
-        bytes32 hash = keccak256(abi.encode(details));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, hash);
+        bytes32 digest = factory.hash(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         details.chains[0].accounts[0].signature = signature;
@@ -107,8 +107,8 @@ contract AgreementV1Test is TestBase, DSTest {
         address newAgreementAddr = registry.agreements(entity);
 
         //* Sign the details with the mock key
-        bytes32 hash = keccak256(abi.encode(details));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, hash);
+        bytes32 digest = factory.hash(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // Update the account's signature in the details
@@ -135,8 +135,8 @@ contract AgreementV1Test is TestBase, DSTest {
 
         //* Sign the details with a fake key (to simulate an invalid signature)
         uint256 fakeKey = 200;
-        bytes32 hash = keccak256(abi.encode(details));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, hash);
+        bytes32 digest = factory.hash(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // Update the account's signature in the details with an invalid signature
