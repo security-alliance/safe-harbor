@@ -95,14 +95,6 @@ struct Chain {
     uint id;
 }
 
-/// @notice Enum that defines the inclusion of child contracts in an agreement.
-enum ChildContractScope {
-    // No child contracts are included
-    None,
-    // All child contracts, both existing and new, are included
-    All
-}
-
 /// @notice Struct that contains the details of an account in an agreement.
 struct Account {
     // The address of the account (EOA or smart contract).
@@ -110,7 +102,18 @@ struct Account {
     // The scope of child contracts included in the agreement.
     ChildContractScope childContractScope;
     // The signature of the account. Optionally used to verify that this account has accepted this agreement.
+    // Instructions for generating this signature may be found in the [README](../README.md).
     bytes signature;
+}
+
+/// @notice Enum that defines the inclusion of child contracts in an agreement.
+enum ChildContractScope {
+    // No child contracts are included.
+    None,
+    // Only child contracts that exist at the time of this agreement are included.
+    ExistingOnly,
+    // All child contracts, both existing and new, are included.
+    All
 }
 
 /// @notice Whitehat identity verification methods. If Retainable, the Whitehat's
