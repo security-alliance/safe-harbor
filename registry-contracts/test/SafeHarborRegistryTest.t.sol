@@ -44,7 +44,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         vm.prank(admin);
         registry.disableFactory(factory);
 
-        vm.expectRevert("Only approved factories may adopt the Safe Harbor");
+        vm.expectRevert(SafeHarborRegistry.OnlyFactories.selector);
         vm.prank(factory);
         registry.recordAdoption(entity, agreement);
     }
@@ -64,7 +64,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         address factory = address(0xff);
         address fakeAdmin = address(0xcc);
 
-        vm.expectRevert("Only the admin can perform this action");
+        vm.expectRevert(SafeHarborRegistry.OnlyAdmin.selector);
         vm.prank(fakeAdmin);
         registry.enableFactory(factory);
     }
@@ -84,7 +84,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         address factory = address(0xff);
         address fakeAdmin = address(0xcc);
 
-        vm.expectRevert("Only the admin can perform this action");
+        vm.expectRevert(SafeHarborRegistry.OnlyAdmin.selector);
         vm.prank(fakeAdmin);
         registry.disableFactory(factory);
     }
@@ -92,17 +92,36 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     function test_transferAdminRights() public {
         address newAdmin = address(0xbb);
 
+        // transfer admin rights
         vm.prank(admin);
         registry.transferAdminRights(newAdmin);
+        assertEq(registry._pendingAdmin(), newAdmin);
+
+        // accept admin rights
+        vm.prank(newAdmin);
+        registry.acceptAdminRights();
         assertEq(registry.admin(), newAdmin);
+        assertEq(registry._pendingAdmin(), address(0));
     }
 
     function test_transferAdminRights_notAdmin() public {
         address fakeAdmin = address(0xcc);
         address newAdmin = address(0xbb);
 
-        vm.expectRevert("Only the admin can perform this action");
+        vm.expectRevert(SafeHarborRegistry.OnlyAdmin.selector);
         vm.prank(fakeAdmin);
         registry.transferAdminRights(newAdmin);
+    }
+
+    function test_transferAdminRights_notPendingAdmin() public {
+        address fakeNewAdmin = address(0xcc);
+        address newAdmin = address(0xbb);
+
+        vm.prank(admin);
+        registry.transferAdminRights(newAdmin);
+
+        vm.expectRevert(SafeHarborRegistry.OnlyPendingAdmin.selector);
+        vm.prank(fakeNewAdmin);
+        registry.acceptAdminRights();
     }
 }
