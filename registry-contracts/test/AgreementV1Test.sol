@@ -86,6 +86,61 @@ contract AgreementV1Test is TestBase, DSTest {
         assertTrue(!isValid);
     }
 
+    function test_validateAccountByAddress() public {
+        //* Deploy a new AgreementV1 via the factory
+        address entity = address(0xee);
+        vm.prank(entity);
+        factory.adoptSafeHarbor(details);
+
+        // Get the address of the newly created AgreementV1 contract
+        address newAgreementAddr = registry.agreements(entity);
+
+        //* Sign the details with the mock key
+        bytes32 hash = keccak256(abi.encode(details));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Update the account's signature in the details
+        details.chains[0].accounts[0].signature = signature;
+
+        //* Validate the signature using validateAccountByAddress
+        bool isValid = factory.validateAccountByAddress(
+            newAgreementAddr,
+            details.chains[0].accounts[0]
+        );
+
+        //* Assert that the validation is successful
+        assertTrue(isValid);
+    }
+
+    function test_validateAccountByAddress_invalid() public {
+        //* Deploy a new AgreementV1 via the factory
+        address entity = address(0xee);
+        vm.prank(entity);
+        factory.adoptSafeHarbor(details);
+
+        // Get the address of the newly created AgreementV1 contract
+        address newAgreementAddr = registry.agreements(entity);
+
+        //* Sign the details with a fake key (to simulate an invalid signature)
+        uint256 fakeKey = 200;
+        bytes32 hash = keccak256(abi.encode(details));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Update the account's signature in the details with an invalid signature
+        details.chains[0].accounts[0].signature = signature;
+
+        //* Validate the signature using validateAccountByAddress
+        bool isValid = factory.validateAccountByAddress(
+            newAgreementAddr,
+            details.chains[0].accounts[0]
+        );
+
+        //* Assert that the validation fails
+        assertTrue(!isValid);
+    }
+
     function getMockAgreementDetails()
         internal
         view

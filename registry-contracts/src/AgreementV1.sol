@@ -51,10 +51,13 @@ contract AgreementV1Factory is SignatureValidator {
         registry.recordAdoption(msg.sender, address(agreementDetails));
     }
 
+    /// @notice Function that validates an account's signature for the agreement.
+    /// @param details The details of the agreement.
+    /// @param account The account to validate.
     function validateAccount(
         AgreementDetailsV1 memory details,
         Account memory account
-    ) external view returns (bool) {
+    ) public view returns (bool) {
         // Iterate over all accounts, setting signature fields to zero.
         for (uint i = 0; i < details.chains.length; i++) {
             for (uint j = 0; j < details.chains[i].accounts.length; j++) {
@@ -68,6 +71,19 @@ contract AgreementV1Factory is SignatureValidator {
         // Verify that the account's accountAddress signed the hashed details.
         return
             isSignatureValid(account.accountAddress, hash, account.signature);
+    }
+
+    /// @notice Function that validates an account's signature for the agreement using an agreement address.
+    /// @param agreementAddress The address of the deployed AgreementV1 contract.
+    /// @param account The account to validate.
+    function validateAccountByAddress(
+        address agreementAddress,
+        Account memory account
+    ) external view returns (bool) {
+        AgreementV1 agreement = AgreementV1(agreementAddress);
+        AgreementDetailsV1 memory details = agreement.getDetails();
+
+        return validateAccount(details, account);
     }
 }
 
