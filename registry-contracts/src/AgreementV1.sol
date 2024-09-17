@@ -148,6 +148,22 @@ contract AgreementV1Factory is SignatureValidator {
     }
 
     function hash(
+        IdentityVerification verification
+    ) internal pure returns (bytes32) {
+        if (verification == IdentityVerification.Retainable) {
+            return keccak256("Retainable");
+        } else if (verification == IdentityVerification.Immunefi) {
+            return keccak256("Immunefi");
+        } else if (verification == IdentityVerification.Bugcrowd) {
+            return keccak256("Bugcrowd");
+        } else if (verification == IdentityVerification.Hackerone) {
+            return keccak256("Hackerone");
+        } else {
+            revert("Invalid verification service");
+        }
+    }
+
+    function hash(
         BountyTerms memory bountyTerms
     ) internal pure returns (bytes32) {
         return
@@ -156,9 +172,23 @@ contract AgreementV1Factory is SignatureValidator {
                     BOUNTYTERMS_TYPEHASH,
                     bountyTerms.bountyPercentage,
                     bountyTerms.bountyCapUSD,
-                    uint8(bountyTerms.verification)
+                    hash(bountyTerms.verification)
                 )
             );
+    }
+
+    function hash(
+        ChildContractScope childContractScope
+    ) internal pure returns (bytes32) {
+        if (childContractScope == ChildContractScope.None) {
+            return keccak256("None");
+        } else if (childContractScope == ChildContractScope.ExistingOnly) {
+            return keccak256("ExistingOnly");
+        } else if (childContractScope == ChildContractScope.All) {
+            return keccak256("All");
+        } else {
+            revert("Invalid child contract scope");
+        }
     }
 
     function hash(Account memory account) internal pure returns (bytes32) {
@@ -167,7 +197,7 @@ contract AgreementV1Factory is SignatureValidator {
                 abi.encode(
                     ACCOUNT_TYPEHASH,
                     account.accountAddress,
-                    uint8(account.childContractScope),
+                    hash(account.childContractScope),
                     keccak256(account.signature)
                 )
             );
