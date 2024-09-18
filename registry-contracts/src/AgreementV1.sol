@@ -83,13 +83,6 @@ contract AgreementV1Factory is SignatureValidator {
     /// @param details The details of the agreement.
     /// @param account The account to validate.
     function validateAccount(AgreementDetailsV1 memory details, Account memory account) public view returns (bool) {
-        // Iterate over all accounts, setting signature fields to zero.
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
-                details.chains[i].accounts[j].signature = new bytes(0);
-            }
-        }
-
         // Hash the details with eip-712.
         bytes32 digest = hash(details);
 
