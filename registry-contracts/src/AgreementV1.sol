@@ -30,6 +30,9 @@ contract AgreementV1 {
 
 /// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
 contract AgreementV1Factory is SignatureValidator {
+    string public constant version = "1.0.0";
+    SafeHarborRegistry public registry;
+
     /// @notice https://eips.ethereum.org/EIPS/eip-712
     struct EIP712Domain {
         string name;
@@ -37,9 +40,6 @@ contract AgreementV1Factory is SignatureValidator {
         uint256 chainId;
         address verifyingContract;
     }
-
-    /// @notice The SafeHarborRegistry contract.
-    SafeHarborRegistry public registry;
 
     /// ----- eip-712 TYPEHASHES
     bytes32 constant EIP712DOMAIN_TYPEHASH =
@@ -63,13 +63,14 @@ contract AgreementV1Factory is SignatureValidator {
     /// @param registryAddress The address of the SafeHarborRegistry contract.
     constructor(address registryAddress) {
         registry = SafeHarborRegistry(registryAddress);
-        DOMAIN_SEPARATOR =
-            hash(EIP712Domain({name: "Ether Mail", version: "1.0.0", chainId: 1, verifyingContract: address(this)}));
-    }
-
-    /// @notice Function that returns the version of the agreement factory.
-    function version() external pure returns (string memory) {
-        return "1.0.0";
+        DOMAIN_SEPARATOR = hash(
+            EIP712Domain({
+                name: "Safe Harbor",
+                version: version,
+                chainId: block.chainid,
+                verifyingContract: address(this)
+            })
+        );
     }
 
     /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry.
