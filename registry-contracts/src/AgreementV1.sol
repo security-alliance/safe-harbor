@@ -160,11 +160,8 @@ contract AgreementV1Factory is SignatureValidator {
     }
 
     function hash(Account memory account) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ACCOUNT_TYPEHASH, account.accountAddress, hash(account.childContractScope), keccak256(account.signature)
-            )
-        );
+        // Account signatures are not included in the hash, avoiding circular dependancies.
+        return keccak256(abi.encode(ACCOUNT_TYPEHASH, account.accountAddress, hash(account.childContractScope)));
     }
 
     function hash(ChildContractScope childContractScope) internal pure returns (bytes32) {
