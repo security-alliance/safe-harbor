@@ -3,7 +3,15 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import {AgreementV1Factory, AgreementDetailsV1, Chain, Account, BountyTerms, ChildContractScope, IdentityVerification} from "../src/AgreementV1.sol";
+import {
+    AgreementV1Factory,
+    AgreementDetailsV1,
+    Chain,
+    Account,
+    BountyTerms,
+    ChildContractScope,
+    IdentityVerification
+} from "../src/AgreementV1.sol";
 
 // This function generates an account signature for EOAs. For ERC-1271 contracts
 // the method of signature generation may vary from contract to contract. Ensure
@@ -18,8 +26,8 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         // Empty signature field for hashing
         ChildContractScope signerScope;
         bool signerPresent;
-        for (uint i = 0; i < details.chains.length; i++) {
-            for (uint j = 0; j < details.chains[i].accounts.length; j++) {
+        for (uint256 i = 0; i < details.chains.length; i++) {
+            for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
                 details.chains[i].accounts[j].signature = new bytes(0);
 
                 Account memory acc = details.chains[i].accounts[j];
@@ -42,11 +50,8 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // Assert that the signature is valid
-        Account memory account = Account({
-            accountAddress: signerAddress,
-            childContractScope: signerScope,
-            signature: signature
-        });
+        Account memory account =
+            Account({accountAddress: signerAddress, childContractScope: signerScope, signature: signature});
         assert(factory.validateAccount(details, account));
 
         console.log("Account Address:");
@@ -55,11 +60,7 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         console.logBytes(signature);
     }
 
-    function getAgreementDetails()
-        internal
-        pure
-        returns (AgreementDetailsV1 memory details)
-    {
+    function getAgreementDetails() internal pure returns (AgreementDetailsV1 memory details) {
         Account memory account = Account({
             accountAddress: address(0xa40F732195D3165359478FC35f040442e3f9b127),
             childContractScope: ChildContractScope.All,
@@ -68,18 +69,13 @@ contract GenerateAccountSignatureV1 is ScriptBase {
 
         Chain memory chain = Chain({
             accounts: new Account[](1),
-            assetRecoveryAddress: address(
-                0xa30F2797Bf542ECe99290cf4E4C6546cc349B9A1
-            ),
+            assetRecoveryAddress: address(0xa30F2797Bf542ECe99290cf4E4C6546cc349B9A1),
             id: 1
         });
         chain.accounts[0] = account;
 
-        BountyTerms memory bountyTerms = BountyTerms({
-            bountyPercentage: 10,
-            bountyCapUSD: 100,
-            verification: IdentityVerification.Retainable
-        });
+        BountyTerms memory bountyTerms =
+            BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
 
         details = AgreementDetailsV1({
             protocolName: "testProtocol",

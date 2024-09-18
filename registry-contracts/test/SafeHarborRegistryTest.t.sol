@@ -15,10 +15,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
 
     function setUp() public {
         factory = address(0xff);
-        registry = new SafeHarborRegistry(
-            factory,
-            SafeHarborRegistry(address(0))
-        );
+        registry = new SafeHarborRegistry(factory, SafeHarborRegistry(address(0)));
         registryV2 = new SafeHarborRegistry(factory, registry);
     }
 
@@ -27,11 +24,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         address entity = address(0xee);
 
         vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(
-            entity,
-            address(0),
-            agreement
-        );
+        emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), agreement);
         vm.prank(factory);
         registry.recordAdoption(entity, agreement);
         assertEq(registry.agreements(entity), agreement);

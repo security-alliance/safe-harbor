@@ -23,11 +23,7 @@ contract SignatureValidatorTest is TestBase, DSTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(key, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        bool isValid = validator.isSignatureValid(
-            vm.addr(key),
-            hash,
-            signature
-        );
+        bool isValid = validator.isSignatureValid(vm.addr(key), hash, signature);
         assertTrue(isValid);
     }
 
@@ -40,11 +36,7 @@ contract SignatureValidatorTest is TestBase, DSTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(key, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        bool isValid = validator.isSignatureValid(
-            invalidAddress,
-            hash,
-            signature
-        );
+        bool isValid = validator.isSignatureValid(invalidAddress, hash, signature);
         assertTrue(!isValid);
     }
 
@@ -57,11 +49,7 @@ contract SignatureValidatorTest is TestBase, DSTest {
         bytes memory signature = abi.encodePacked(r, s, v);
 
         FakeERC1271 fakeContract = new FakeERC1271(hash, signature);
-        bool isValid = validator.isSignatureValid(
-            address(fakeContract),
-            hash,
-            signature
-        );
+        bool isValid = validator.isSignatureValid(address(fakeContract), hash, signature);
 
         assertTrue(isValid);
     }
@@ -76,11 +64,7 @@ contract SignatureValidatorTest is TestBase, DSTest {
         bytes memory signature = abi.encodePacked(r, s, v);
 
         FakeERC1271 fakeContract = new FakeERC1271(hash, fakesignature);
-        bool isValid = validator.isSignatureValid(
-            address(fakeContract),
-            hash,
-            signature
-        );
+        bool isValid = validator.isSignatureValid(address(fakeContract), hash, signature);
 
         assertTrue(!isValid);
     }
@@ -95,13 +79,8 @@ contract FakeERC1271 {
         wantSignature = _wantSignature;
     }
 
-    function isValidSignature(
-        bytes32 hash,
-        bytes memory signature
-    ) external view returns (bytes4) {
-        if (
-            hash == wantHash && keccak256(signature) == keccak256(wantSignature)
-        ) {
+    function isValidSignature(bytes32 hash, bytes memory signature) external view returns (bytes4) {
+        if (hash == wantHash && keccak256(signature) == keccak256(wantSignature)) {
             return 0x1626ba7e;
         }
         return 0x0;

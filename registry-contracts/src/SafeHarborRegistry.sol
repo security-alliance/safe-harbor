@@ -15,11 +15,7 @@ contract SafeHarborRegistry {
     /// ----- EVENTS -----
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
-    event SafeHarborAdoption(
-        address indexed entity,
-        address oldDetails,
-        address newDetails
-    );
+    event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
 
     /// ----- ERRORS -----
     error OnlyFactories();
@@ -42,10 +38,7 @@ contract SafeHarborRegistry {
 
     /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories.
     /// @param details The new details of the agreement.
-    function recordAdoption(
-        address entity,
-        address details
-    ) external onlyFactory {
+    function recordAdoption(address entity, address details) external onlyFactory {
         address oldDetails = agreements[entity];
         agreements[entity] = details;
         emit SafeHarborAdoption(entity, oldDetails, details);

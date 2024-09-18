@@ -20,28 +20,19 @@ contract AgreementV1Test is TestBase, DSTest {
         address deployer = address(0x11);
         uint256 deployerNonce = vm.getNonce(deployer);
 
-        address registryAddress = vm.computeCreateAddress(
-            deployer,
-            deployerNonce + 1
-        );
+        address registryAddress = vm.computeCreateAddress(deployer, deployerNonce + 1);
 
         vm.prank(deployer);
         factory = new AgreementV1Factory(registryAddress);
 
         vm.prank(deployer);
-        registry = new SafeHarborRegistry(
-            address(factory),
-            SafeHarborRegistry(address(0))
-        );
+        registry = new SafeHarborRegistry(address(factory), SafeHarborRegistry(address(0)));
 
         assertEq(registryAddress, address(registry));
         details = getMockAgreementDetails();
     }
 
-    function assertEq(
-        AgreementDetailsV1 memory expected,
-        AgreementDetailsV1 memory actual
-    ) public {
+    function assertEq(AgreementDetailsV1 memory expected, AgreementDetailsV1 memory actual) public {
         bytes memory expectedBytes = abi.encode(expected);
         bytes memory actualBytes = abi.encode(actual);
 
@@ -53,11 +44,7 @@ contract AgreementV1Test is TestBase, DSTest {
         address entity = address(0xee);
 
         vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(
-            entity,
-            address(0),
-            newAgreementAddr
-        );
+        emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), newAgreementAddr);
         vm.prank(entity);
         factory.adoptSafeHarbor(details);
         assertEq(registry.agreements(entity), newAgreementAddr);
@@ -74,10 +61,7 @@ contract AgreementV1Test is TestBase, DSTest {
 
         details.chains[0].accounts[0].signature = signature;
 
-        bool isValid = factory.validateAccount(
-            details,
-            details.chains[0].accounts[0]
-        );
+        bool isValid = factory.validateAccount(details, details.chains[0].accounts[0]);
         assertTrue(isValid);
     }
 
@@ -90,10 +74,7 @@ contract AgreementV1Test is TestBase, DSTest {
 
         details.chains[0].accounts[0].signature = signature;
 
-        bool isValid = factory.validateAccount(
-            details,
-            details.chains[0].accounts[0]
-        );
+        bool isValid = factory.validateAccount(details, details.chains[0].accounts[0]);
         assertTrue(!isValid);
     }
 
@@ -115,10 +96,7 @@ contract AgreementV1Test is TestBase, DSTest {
         details.chains[0].accounts[0].signature = signature;
 
         //* Validate the signature using validateAccountByAddress
-        bool isValid = factory.validateAccountByAddress(
-            newAgreementAddr,
-            details.chains[0].accounts[0]
-        );
+        bool isValid = factory.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
 
         //* Assert that the validation is successful
         assertTrue(isValid);
@@ -143,38 +121,24 @@ contract AgreementV1Test is TestBase, DSTest {
         details.chains[0].accounts[0].signature = signature;
 
         //* Validate the signature using validateAccountByAddress
-        bool isValid = factory.validateAccountByAddress(
-            newAgreementAddr,
-            details.chains[0].accounts[0]
-        );
+        bool isValid = factory.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
 
         //* Assert that the validation fails
         assertTrue(!isValid);
     }
 
-    function getMockAgreementDetails()
-        internal
-        view
-        returns (AgreementDetailsV1 memory mockDetails)
-    {
+    function getMockAgreementDetails() internal view returns (AgreementDetailsV1 memory mockDetails) {
         Account memory account = Account({
             accountAddress: vm.addr(mockKey),
             childContractScope: ChildContractScope.All,
             signature: new bytes(0)
         });
 
-        Chain memory chain = Chain({
-            accounts: new Account[](1),
-            assetRecoveryAddress: address(0x11),
-            id: 1
-        });
+        Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: address(0x11), id: 1});
         chain.accounts[0] = account;
 
-        BountyTerms memory bountyTerms = BountyTerms({
-            bountyPercentage: 10,
-            bountyCapUSD: 100,
-            verification: IdentityVerification.Retainable
-        });
+        BountyTerms memory bountyTerms =
+            BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
 
         mockDetails = AgreementDetailsV1({
             protocolName: "testProtocol",

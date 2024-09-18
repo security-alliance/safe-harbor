@@ -2,10 +2,7 @@
 pragma solidity ^0.8.20;
 
 interface IERC1271 {
-    function isValidSignature(
-        bytes32 hash,
-        bytes memory signature
-    ) external view returns (bytes4);
+    function isValidSignature(bytes32 hash, bytes memory signature) external view returns (bytes4);
 }
 
 contract SignatureValidator {
@@ -13,10 +10,7 @@ contract SignatureValidator {
     /// @param hash The unsigned hash.
     /// @param signature The signature.
     /// @return signer The signer of the hash.
-    function recoverSigner(
-        bytes32 hash,
-        bytes memory signature
-    ) internal pure returns (address signer) {
+    function recoverSigner(bytes32 hash, bytes memory signature) internal pure returns (address signer) {
         uint8 v;
         bytes32 r;
         bytes32 s;
@@ -35,11 +29,11 @@ contract SignatureValidator {
     /// @param wantSigner The signer to check for.
     /// @param hash The hash that was signed.
     /// @param signature The signature.
-    function isEOASignatureValid(
-        address wantSigner,
-        bytes32 hash,
-        bytes memory signature
-    ) internal pure returns (bool) {
+    function isEOASignatureValid(address wantSigner, bytes32 hash, bytes memory signature)
+        internal
+        pure
+        returns (bool)
+    {
         address signer = recoverSigner(hash, signature);
         return signer == wantSigner;
     }
@@ -48,11 +42,11 @@ contract SignatureValidator {
     /// @param wantSigner The signer to check for.
     /// @param hash The hash that was signed.
     /// @param signature The signature.
-    function isContractSignatureValid(
-        address wantSigner,
-        bytes32 hash,
-        bytes memory signature
-    ) internal view returns (bool) {
+    function isContractSignatureValid(address wantSigner, bytes32 hash, bytes memory signature)
+        internal
+        view
+        returns (bool)
+    {
         bytes4 result = IERC1271(wantSigner).isValidSignature(hash, signature);
         return result == 0x1626ba7e;
     }
@@ -71,11 +65,7 @@ contract SignatureValidator {
     /// @param wantSigner The signer to check for.
     /// @param hash The hash that was signed.
     /// @param signature The signature.
-    function isSignatureValid(
-        address wantSigner,
-        bytes32 hash,
-        bytes memory signature
-    ) public view returns (bool) {
+    function isSignatureValid(address wantSigner, bytes32 hash, bytes memory signature) public view returns (bool) {
         if (isContract(wantSigner)) {
             return isContractSignatureValid(wantSigner, hash, signature);
         } else {

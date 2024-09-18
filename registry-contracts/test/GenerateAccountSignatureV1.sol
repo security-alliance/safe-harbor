@@ -11,8 +11,7 @@ import "../script/GenerateAccountSignatureV1.s.sol";
 contract SafeHarborRegistryTest is TestBase, DSTest {
     // Set up the environment before each test
     function setUp() public {
-        string
-            memory fakePrivateKey = "0xf0931a501a9b5fd5183d01f35526e5bc64d05d9d25d4005a8b1600ed6cd8d795";
+        string memory fakePrivateKey = "0xf0931a501a9b5fd5183d01f35526e5bc64d05d9d25d4005a8b1600ed6cd8d795";
         vm.setEnv("SIGNER_PRIVATE_KEY", fakePrivateKey);
     }
 
