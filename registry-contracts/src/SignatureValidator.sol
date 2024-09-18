@@ -48,6 +48,9 @@ contract SignatureValidator {
         returns (bool)
     {
         bytes4 result = IERC1271(wantSigner).isValidSignature(hash, signature);
+
+        // EIP-1271 magic value
+        // https://eips.ethereum.org/EIPS/eip-1271
         return result == 0x1626ba7e;
     }
 
