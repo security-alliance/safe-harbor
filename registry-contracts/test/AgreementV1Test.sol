@@ -55,7 +55,7 @@ contract AgreementV1Test is TestBase, DSTest {
     }
 
     function test_validateAccount() public {
-        bytes32 digest = factory.hash(details);
+        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -68,7 +68,7 @@ contract AgreementV1Test is TestBase, DSTest {
     function test_validateAccount_invalid() public {
         uint256 fakeKey = 200;
 
-        bytes32 digest = factory.hash(details);
+        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -88,7 +88,7 @@ contract AgreementV1Test is TestBase, DSTest {
         address newAgreementAddr = registry.agreements(entity);
 
         //* Sign the details with the mock key
-        bytes32 digest = factory.hash(details);
+        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -113,7 +113,7 @@ contract AgreementV1Test is TestBase, DSTest {
 
         //* Sign the details with a fake key (to simulate an invalid signature)
         uint256 fakeKey = 200;
-        bytes32 digest = factory.hash(details);
+        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -137,17 +137,20 @@ contract AgreementV1Test is TestBase, DSTest {
         Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: address(0x11), id: 1});
         chain.accounts[0] = account;
 
+        Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
+
         BountyTerms memory bountyTerms =
             BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
 
         mockDetails = AgreementDetailsV1({
             protocolName: "testProtocol",
             chains: new Chain[](1),
-            contactDetails: "Contact Details",
+            contactDetails: new Contact[](1),
             bountyTerms: bountyTerms,
             agreementURI: "ipfs://testHash"
         });
         mockDetails.chains[0] = chain;
+        mockDetails.contactDetails[0] = contact;
 
         return mockDetails;
     }

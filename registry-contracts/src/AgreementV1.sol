@@ -49,6 +49,8 @@ contract AgreementV1Factory is SignatureValidator {
         "AgreementDetailsV1(string protocolName,string contactDetails,Chain[] chains,BountyTerms bountyTerms,string agreementURI)"
     );
 
+    bytes32 constant CONTACT_TYPEHASH = keccak256("Contact(string name,string contact)");
+
     bytes32 constant CHAIN_TYPEHASH = keccak256("Chain(address assetRecoveryAddress,Account[] accounts,uint id)");
 
     bytes32 constant ACCOUNT_TYPEHASH =
@@ -57,20 +59,15 @@ contract AgreementV1Factory is SignatureValidator {
     bytes32 constant BOUNTYTERMS_TYPEHASH =
         keccak256("BountyTerms(uint bountyPercentage,uint bountyCapUSD,IdentityVerification verification)");
 
-    bytes32 DOMAIN_SEPARATOR;
+    bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
+    uint256 private immutable _CACHED_CHAIN_ID;
 
     /// @notice Constructor that sets the SafeHarborRegistry address.
     /// @param registryAddress The address of the SafeHarborRegistry contract.
     constructor(address registryAddress) {
         registry = SafeHarborRegistry(registryAddress);
-        DOMAIN_SEPARATOR = hash(
-            EIP712Domain({
-                name: "Safe Harbor",
-                version: version,
-                chainId: block.chainid,
-                verifyingContract: address(this)
-            })
-        );
+        _CACHED_CHAIN_ID = block.chainid;
+        _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
     }
 
     /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry.
@@ -85,9 +82,8 @@ contract AgreementV1Factory is SignatureValidator {
     /// @param account The account to validate.
     function validateAccount(AgreementDetailsV1 memory details, Account memory account) public view returns (bool) {
         // Hash the details with eip-712.
-        bytes32 digest = hash(details);
+        bytes32 digest = encode(DOMAIN_SEPERATOR(), details);
 
-        // Verify that the account's accountAddress signed the hashed details.
         return isSignatureValid(account.accountAddress, digest, account.signature);
     }
 
@@ -102,29 +98,67 @@ contract AgreementV1Factory is SignatureValidator {
     }
 
     /// ----- EIP-712 METHODS -----
+    function DOMAIN_SEPERATOR() public view returns (bytes32) {
+        if (block.chainid == _CACHED_CHAIN_ID) {
+            return _CACHED_DOMAIN_SEPARATOR;
+        } else {
+            return _buildDomainSeparator();
+        }
+    }
+
+    function _buildDomainSeparator() private view returns (bytes32) {
+        return hash(
+            EIP712Domain({
+                name: "Safe Harbor",
+                version: version,
+                chainId: block.chainid,
+                verifyingContract: address(this)
+            })
+        );
+    }
+
     function hash(EIP712Domain memory eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 EIP712DOMAIN_TYPEHASH,
-                keccak256(bytes(eip712Domain.name)),
-                keccak256(bytes(eip712Domain.version)),
+                hash(eip712Domain.name),
+                hash(eip712Domain.version),
                 eip712Domain.chainId,
                 eip712Domain.verifyingContract
             )
         );
     }
 
+    function encode(bytes32 domainSeperator, AgreementDetailsV1 memory details) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19\x01", domainSeperator, hash(details)));
+    }
+
     function hash(AgreementDetailsV1 memory details) public pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 AGREEMENTDETAILS_TYPEHASH,
-                keccak256(bytes(details.protocolName)),
-                keccak256(bytes(details.contactDetails)),
+                hash(details.protocolName),
+                hash(details.contactDetails),
                 hash(details.chains),
                 hash(details.bountyTerms),
-                keccak256(bytes(details.agreementURI))
+                hash(details.agreementURI)
             )
         );
+    }
+
+    function hash(Contact[] memory contacts) internal pure returns (bytes32) {
+        // Array values are encoded as the keccak256 of the concatenation of the encoded values.
+        // https://eips.ethereum.org/EIPS/eip-712#definition-of-encodedata
+        bytes memory encoded;
+        for (uint256 i = 0; i < contacts.length; i++) {
+            encoded = abi.encodePacked(encoded, hash(contacts[i]));
+        }
+
+        return keccak256(encoded);
+    }
+
+    function hash(Contact memory contact) internal pure returns (bytes32) {
+        return keccak256(abi.encode(CONTACT_TYPEHASH, hash(contact.name), hash(contact.contact)));
     }
 
     function hash(Chain[] memory chains) internal pure returns (bytes32) {
@@ -160,11 +194,11 @@ contract AgreementV1Factory is SignatureValidator {
 
     function hash(ChildContractScope childContractScope) internal pure returns (bytes32) {
         if (childContractScope == ChildContractScope.None) {
-            return keccak256("None");
+            return hash("None");
         } else if (childContractScope == ChildContractScope.ExistingOnly) {
-            return keccak256("ExistingOnly");
+            return hash("ExistingOnly");
         } else if (childContractScope == ChildContractScope.All) {
-            return keccak256("All");
+            return hash("All");
         } else {
             revert("Invalid child contract scope");
         }
@@ -183,16 +217,20 @@ contract AgreementV1Factory is SignatureValidator {
 
     function hash(IdentityVerification verification) internal pure returns (bytes32) {
         if (verification == IdentityVerification.Retainable) {
-            return keccak256("Retainable");
+            return hash("Retainable");
         } else if (verification == IdentityVerification.Immunefi) {
-            return keccak256("Immunefi");
+            return hash("Immunefi");
         } else if (verification == IdentityVerification.Bugcrowd) {
-            return keccak256("Bugcrowd");
+            return hash("Bugcrowd");
         } else if (verification == IdentityVerification.Hackerone) {
-            return keccak256("Hackerone");
+            return hash("Hackerone");
         } else {
             revert("Invalid verification service");
         }
+    }
+
+    function hash(string memory str) internal pure returns (bytes32) {
+        return keccak256(bytes(str));
     }
 }
 
@@ -201,13 +239,20 @@ struct AgreementDetailsV1 {
     // The name of the protocol adopting the agreement.
     string protocolName;
     // The contact details (required for pre-notifying).
-    string contactDetails;
+    Contact[] contactDetails;
     // The scope and recovery address by chain.
     Chain[] chains;
     // The terms of the agreement.
     BountyTerms bountyTerms;
     // IPFS hash of the actual agreement document, which confirms all terms.
     string agreementURI;
+}
+
+/// @notice Struct that contains the contact details of the agreement.
+struct Contact {
+    string name;
+    // This person's contact details (email, phone, telegram handle, etc.)
+    string contact;
 }
 
 /// @notice Struct that contains the details of an agreement by chain.

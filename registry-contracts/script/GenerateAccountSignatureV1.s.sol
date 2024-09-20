@@ -7,6 +7,7 @@ import {
     AgreementV1Factory,
     AgreementDetailsV1,
     Chain,
+    Contact,
     Account,
     BountyTerms,
     ChildContractScope,
@@ -45,8 +46,8 @@ contract GenerateAccountSignatureV1 is ScriptBase {
 
         // Generate the signature
         AgreementV1Factory factory = new AgreementV1Factory(address(0));
-        bytes32 hash = factory.hash(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, hash);
+        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // Assert that the signature is valid
@@ -74,17 +75,20 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         });
         chain.accounts[0] = account;
 
+        Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
+
         BountyTerms memory bountyTerms =
             BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
 
         details = AgreementDetailsV1({
             protocolName: "testProtocol",
             chains: new Chain[](1),
-            contactDetails: "Test contact information",
+            contactDetails: new Contact[](1),
             bountyTerms: bountyTerms,
             agreementURI: "ipfs://testHash"
         });
         details.chains[0] = chain;
+        details.contactDetails[0] = contact;
 
         return details;
     }
