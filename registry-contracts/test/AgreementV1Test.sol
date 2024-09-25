@@ -139,8 +139,13 @@ contract AgreementV1Test is TestBase, DSTest {
 
         Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
 
-        BountyTerms memory bountyTerms =
-            BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
+        BountyTerms memory bountyTerms = BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100,
+            retainable: true,
+            identity: IdentityRequirements.Anonymous,
+            diligenceRequirements: "none"
+        });
 
         mockDetails = AgreementDetailsV1({
             protocolName: "testProtocol",

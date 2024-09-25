@@ -11,7 +11,7 @@ import {
     Account,
     BountyTerms,
     ChildContractScope,
-    IdentityVerification
+    IdentityRequirements
 } from "../src/AgreementV1.sol";
 
 // This function generates an account signature for EOAs. For ERC-1271 contracts
@@ -77,8 +77,13 @@ contract GenerateAccountSignatureV1 is ScriptBase {
 
         Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
 
-        BountyTerms memory bountyTerms =
-            BountyTerms({bountyPercentage: 10, bountyCapUSD: 100, verification: IdentityVerification.Retainable});
+        BountyTerms memory bountyTerms = BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100,
+            retainable: true,
+            identity: IdentityRequirements.Anonymous,
+            diligenceRequirements: "none"
+        });
 
         details = AgreementDetailsV1({
             protocolName: "testProtocol",

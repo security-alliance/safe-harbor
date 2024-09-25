@@ -210,22 +210,22 @@ contract AgreementV1Factory is SignatureValidator {
                 BOUNTYTERMS_TYPEHASH,
                 bountyTerms.bountyPercentage,
                 bountyTerms.bountyCapUSD,
-                hash(bountyTerms.verification)
+                bountyTerms.retainable,
+                hash(bountyTerms.identity),
+                hash(bountyTerms.diligenceRequirements)
             )
         );
     }
 
-    function hash(IdentityVerification verification) internal pure returns (bytes32) {
-        if (verification == IdentityVerification.Retainable) {
-            return hash("Retainable");
-        } else if (verification == IdentityVerification.Immunefi) {
-            return hash("Immunefi");
-        } else if (verification == IdentityVerification.Bugcrowd) {
-            return hash("Bugcrowd");
-        } else if (verification == IdentityVerification.Hackerone) {
-            return hash("Hackerone");
+    function hash(IdentityRequirements identity) internal pure returns (bytes32) {
+        if (identity == IdentityRequirements.Anonymous) {
+            return hash("Anonymous");
+        } else if (identity == IdentityRequirements.Pseudonymous) {
+            return hash("Pseudonymous");
+        } else if (identity == IdentityRequirements.Named) {
+            return hash("Named");
         } else {
-            revert("Invalid verification service");
+            revert("Invalid identity");
         }
     }
 
@@ -286,14 +286,14 @@ enum ChildContractScope {
     All
 }
 
-/// @notice Whitehat identity verification methods. If Retainable, the Whitehat's
-// identity is not verified. If set to a verification service, the Whitehat's
-// identity is verified by that service. The provided services are those selected by SEAL.
-enum IdentityVerification {
-    Retainable,
-    Immunefi,
-    Bugcrowd,
-    Hackerone
+/// @notice Whitehat identity verification requirements.
+/// - If Anonymous, the whitehat will be subject to no KYC requirements.
+/// - If Pseudonymous, the whitehat must provide a pseudonym.
+/// - If Named, the whitehat must confirm their legal name.
+enum IdentityRequirements {
+    Anonymous,
+    Pseudonymous,
+    Named
 }
 
 /// @notice Struct that contains the terms of the bounty for the agreement.
@@ -302,8 +302,11 @@ struct BountyTerms {
     uint256 bountyPercentage;
     // The maximum bounty in USD.
     uint256 bountyCapUSD;
-    // The method by which the Whitehat's identity is verified. If Retainable,
-    // the Whitehat's identity is not verified. If set to a verification service,
-    // the Whitehat's identity is verified by that service.
-    IdentityVerification verification;
+    // Whether the whitehat can retain their bounty or must return all funds to
+    // the asset recovery address.
+    bool retainable;
+    // The identity verification requirements on the whitehat.
+    IdentityRequirements identity;
+    // The diligence requirements placed on eligible whitehats. Only applicable for Named whitehats.
+    string diligenceRequirements;
 }
