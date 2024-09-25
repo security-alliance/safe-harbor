@@ -2,9 +2,9 @@
 
 This directory houses the "Safe Harbor Registry". This is a smart contract written in Solidity which serves three main purposes:
 
-1. Allow protocols to officially adopt the agreement.
-2. Store the agreement details on-chain for Whitehat ease-of-use.
-3. Allow for future updates to the agreement terms.
+1. Allow protocols to officially adopt the SEAL Whitehat Safe Harbor Agreement.
+2. Store the agreement details on-chain as a permanent record.
+3. Allow for future updates to the agreement terms by adopters.
 
 These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and seperately deployed.
 
@@ -12,34 +12,32 @@ These registry contracts were designed for EVM-compatible chains. For non-EVM ch
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation). To test the contracts, use `forge test`.
 
-There are 3 contracts in this system:
+There are 2 contracts in this system:
 
--   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreement factories are enabled / disabled.
--   `AgreementV1Factory` - Where protocols adopt new agreement contracts.
+-   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreements are validated.
 -   `AgreementV1` - Adopted agreements created by protocols.
 
 ## Setup
 
-1. The `SafeHarborRegistry` contract is deployed with the `AgreementV1Factory`'s address and the fallback registry as constructor arguments.
-2. The `AgreementV1Factory` contract is deployed with the `SafeHarborRegistry` address as a constructor argument.
+1. The `SafeHarborRegistry` contract is deployed with the fallback registry as constructor arguments.
 
-In the future SEAL may create new versions of this agreement. When this happens a new factory (e.g. `AgreementV2Factory`) and registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details.
+In the future SEAL may create new versions of this agreement. When this happens a new registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details. Old registries will always remain functional.
 
 ## Adoption
 
-1. A protocol calls `adoptSafeHarbor()` on an `AgreementFactory` with their agreement details.
-2. The factory creates an `Agreement` contract containing the provided agreement details.
-3. The factory adds the `Agreement` contract address to the `SafeHarborRegistry`.
+1. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement details.
+2. The registry deploys an `Agreement` contract containing the provided agreement details.
+3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
 
-A protocol may update their agreement details using any enabled factory. To do so, the protocol calls `adoptSafeHarbor()` on an agreement factory with their new agreement details. This will create a new `Agreement` contract and update the `SafeHarborRegistry`.
+A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and update the `SafeHarborRegistry`.
 
-Calling `adoptSafeHarbor()` is considered the legally binding action in the agreement. The `msg.sender` should represent the decision-making authority of the protocol.
+Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
 ### Signed Accounts
 
-For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the agreement's factory. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
+For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the registry. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
 
-AccountDetails use EIP-712 hashing for both EOA and ERC-1271 signatures for a better client-side experience.
+`AccountDetails` use EIP-712 hashing for a better client-side experience.
 
 #### Signing the Agreement Details
 
@@ -49,16 +47,18 @@ When preparing the final agreement details, prior to deploying on-chain, the pro
 forge script GenerateAccountSignatureV1.s.sol --fork-url <YOUR_RPC_URL> -vvvv
 ```
 
+For ERC-1271 contracts, a case-by-case signing solution will be required.
+
 #### Verification of Signed Accounts
 
-Whitehats may use the agreement factory's `validateAccount()` method to verify that a given Account has consented to the agreement details.
+Whitehats may use the registy's `validateAccount()` method to verify that a given Account has consented to the agreement details.
 
 ## Querying Agreements
 
 1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV1` address.
-2. Query the protocol's `Agreement` contract with `getDetails()` to get the structured agreement details.
+2. Query the protocol's `Agreement` contract with `getDetails()` to get the address of the structured agreement details.
 
-Different versions may have different `AgreementDetails` structs. All `Agreement` and `AgreementFactory` contracts will include a `version()` method that can be used to infer the `AgreementDetails` structure.
+Different versions may have different `AgreementDetails` structs. All `Agreement` and `SafeHarborRegistry` contracts will include a `version()` method which can be used to infer the `AgreementDetails` structure.
 
 # Deployment
 
