@@ -30,16 +30,11 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
         AgreementV1 agreementDetails = new AgreementV1(details);
         address agreementAddress = address(agreementDetails);
+        address adopter = msg.sender;
 
-        recordAdoption(msg.sender, agreementAddress);
-    }
-
-    /// @notice Officially adopt the agreement, or modify its terms if already adopted.
-    /// @param details The new details of the agreement.
-    function recordAdoption(address adopter, address details) internal {
         address oldDetails = agreements[adopter];
-        agreements[adopter] = details;
-        emit SafeHarborAdoption(adopter, oldDetails, details);
+        agreements[adopter] = agreementAddress;
+        emit SafeHarborAdoption(adopter, oldDetails, agreementAddress);
     }
 
     /// @notice Get the agreement address for the adopter.  Recursively queries fallback registries.
