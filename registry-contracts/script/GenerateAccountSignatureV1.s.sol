@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {console} from "forge-std/console.sol";
 import {ScriptBase} from "forge-std/Base.sol";
 import {
-    AgreementV1Factory,
+    AgreementValidatorV1,
     AgreementDetailsV1,
     Chain,
     Contact,
@@ -45,15 +45,15 @@ contract GenerateAccountSignatureV1 is ScriptBase {
         }
 
         // Generate the signature
-        AgreementV1Factory factory = new AgreementV1Factory(address(0));
-        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        AgreementValidatorV1 validator = new AgreementValidatorV1();
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // Assert that the signature is valid
         Account memory account =
             Account({accountAddress: signerAddress, childContractScope: signerScope, signature: signature});
-        assert(factory.validateAccount(details, account));
+        assert(validator.validateAccount(details, account));
 
         console.log("Account Address:");
         console.logAddress(vm.addr(signerPrivateKey));

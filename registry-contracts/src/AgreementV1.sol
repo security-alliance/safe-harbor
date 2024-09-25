@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./SafeHarborRegistry.sol";
 import "./SignatureValidator.sol";
 
 string constant _version = "1.0.0";
@@ -29,10 +28,8 @@ contract AgreementV1 {
     }
 }
 
-/// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
-contract AgreementV1Factory is SignatureValidator {
-    SafeHarborRegistry public registry;
-
+/// @notice Validator contract that validates safe harbor agreements.
+contract AgreementValidatorV1 is SignatureValidator {
     /// @notice https://eips.ethereum.org/EIPS/eip-712
     struct EIP712Domain {
         string name;
@@ -62,23 +59,14 @@ contract AgreementV1Factory is SignatureValidator {
     bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
     uint256 private immutable _CACHED_CHAIN_ID;
 
-    /// @notice Constructor that sets the SafeHarborRegistry address.
-    /// @param registryAddress The address of the SafeHarborRegistry contract.
-    constructor(address registryAddress) {
-        registry = SafeHarborRegistry(registryAddress);
+    /// @notice Constructor sets the domain seperator.
+    constructor() {
         _CACHED_CHAIN_ID = block.chainid;
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
     }
 
     function version() external pure returns (string memory) {
         return _version;
-    }
-
-    /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry.
-    /// @param details The details of the agreement.
-    function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
-        AgreementV1 agreementDetails = new AgreementV1(details);
-        registry.recordAdoption(msg.sender, address(agreementDetails));
     }
 
     /// @notice Function that validates an account's signature for the agreement.

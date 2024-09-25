@@ -7,54 +7,57 @@ import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "../src/SafeHarborRegistry.sol";
+import "./mock.sol";
 
 contract SafeHarborRegistryTest is TestBase, DSTest {
-    address factory;
     SafeHarborRegistry registry;
     SafeHarborRegistry registryV2;
+    AgreementDetailsV1 details;
 
     function setUp() public {
-        factory = address(0xff);
-        registry = new SafeHarborRegistry(factory, SafeHarborRegistry(address(0)));
-        registryV2 = new SafeHarborRegistry(factory, registry);
+        registry = new SafeHarborRegistry(address(0));
+        registryV2 = new SafeHarborRegistry(address(registry));
+        details = getMockAgreementDetails(address(100));
     }
 
-    function test_recordAdoption() public {
-        address agreement = address(0xbb);
+    function test_adoptSafeHarbor() public {
+        address newDetails = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
         address entity = address(0xee);
+
+        assertEq(registry.agreements(entity), address(0));
 
         vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), agreement);
-        vm.prank(factory);
-        registry.recordAdoption(entity, agreement);
-        assertEq(registry.agreements(entity), agreement);
-    }
-
-    function test_recordAdoption_fakefactory() public {
-        address fakeFactory = address(0x11);
-        address agreement = address(0xbb);
-        address entity = address(0xee);
-
-        vm.expectRevert(SafeHarborRegistry.OnlyFactories.selector);
-        vm.prank(fakeFactory);
-        registry.recordAdoption(entity, agreement);
+        emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), newDetails);
+        vm.prank(entity);
+        registry.adoptSafeHarbor(details);
+        assertEq(registry.agreements(entity), newDetails);
     }
 
     function test_getDetails() public {
-        address agreement = address(0xbb);
         address entity = address(0xee);
 
-        vm.prank(factory);
-        registry.recordAdoption(entity, agreement);
-        assertEq(registry.getDetails(entity), agreement);
+        vm.prank(entity);
+        registry.adoptSafeHarbor(details);
+        AgreementV1 agreement = AgreementV1(registry.getAgreement(entity));
+        AgreementDetailsV1 memory gotDetails = agreement.getDetails();
+        assertEq(registry.hash(details), registry.hash(gotDetails));
     }
 
     function test_getDetails_fallback() public {
-        address agreement = address(0xbb);
         address entity = address(0xee);
 
-        vm.prank(factory);
-        registry.recordAdoption(entity, agreement);
-        assertEq(registryV2.getDetails(entity), agreement);
+        vm.prank(entity);
+        registry.adoptSafeHarbor(details);
+        AgreementV1 agreement = AgreementV1(registryV2.getAgreement(entity));
+        AgreementDetailsV1 memory gotDetails = agreement.getDetails();
+        assertEq(registry.hash(details), registry.hash(gotDetails));
+    }
+
+    function test_getDetails_missing() public {
+        address entity = address(0xee);
+
+        vm.expectRevert(SafeHarborRegistry.NoAgreement.selector);
+        address agreement = registryV2.getAgreement(entity);
+        assertEq(agreement, address(0));
     }
 }

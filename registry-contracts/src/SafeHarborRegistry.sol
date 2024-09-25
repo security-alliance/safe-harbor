@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./AgreementV1.sol";
+
+interface IRegistry {
+    function getAgreement(address adopter) external view returns (address);
+}
+
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
-contract SafeHarborRegistry {
+contract SafeHarborRegistry is AgreementValidatorV1 {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
 
-    /// @notice The factory address which is approved to submit agreements.
-    address factory;
-
     /// @notice The fallback registry.
-    SafeHarborRegistry fallbackRegistry;
+    IRegistry fallbackRegistry;
 
     /// ----- EVENTS -----
 
@@ -18,45 +21,44 @@ contract SafeHarborRegistry {
     event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
 
     /// ----- ERRORS -----
-    error OnlyFactories();
-    error NoDetails();
-
-    /// ----- MODIFIERS -----
-    /// @notice Modifier to restrict access to admin-only functions.
-    modifier onlyFactory() {
-        if (msg.sender != factory) revert OnlyFactories();
-        _;
-    }
+    error NoAgreement();
 
     /// ----- METHODS -----
-
     /// @notice Sets the factory and fallback registry addresses
-    constructor(address _factory, SafeHarborRegistry _fallbackRegistry) {
-        factory = _factory;
-        fallbackRegistry = _fallbackRegistry;
+    constructor(address _fallbackRegistry) {
+        fallbackRegistry = IRegistry(_fallbackRegistry);
     }
 
-    /// @notice Officially adopt the agreement, or modify its terms if already adopted. Only callable by approved factories.
+    /// @notice Function that creates a new AgreementV1 contract and records it as an adoption by msg.sender.
+    /// @param details The details of the agreement.
+    function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
+        AgreementV1 agreementDetails = new AgreementV1(details);
+        address agreementAddress = address(agreementDetails);
+
+        recordAdoption(msg.sender, agreementAddress);
+    }
+
+    /// @notice Officially adopt the agreement, or modify its terms if already adopted.
     /// @param details The new details of the agreement.
-    function recordAdoption(address entity, address details) external onlyFactory {
-        address oldDetails = agreements[entity];
-        agreements[entity] = details;
-        emit SafeHarborAdoption(entity, oldDetails, details);
+    function recordAdoption(address adopter, address details) internal {
+        address oldDetails = agreements[adopter];
+        agreements[adopter] = details;
+        emit SafeHarborAdoption(adopter, oldDetails, details);
     }
 
-    /// @notice Get the details of an agreement.  Recursively queries fallback registries.
-    /// @param entity The entity to query.
-    function getDetails(address entity) external view returns (address) {
-        address details = agreements[entity];
+    /// @notice Get the agreement address for the adopter.  Recursively queries fallback registries.
+    /// @param adopter The adopter to query.
+    function getAgreement(address adopter) external view returns (address) {
+        address agreement = agreements[adopter];
 
-        if (details != address(0)) {
-            return details;
+        if (agreement != address(0)) {
+            return agreement;
         }
 
-        if (fallbackRegistry != SafeHarborRegistry(address(0))) {
-            return fallbackRegistry.getDetails(entity);
+        if (address(fallbackRegistry) != address(0)) {
+            return fallbackRegistry.getAgreement(adopter);
         }
 
-        revert NoDetails();
+        revert NoAgreement();
     }
 }

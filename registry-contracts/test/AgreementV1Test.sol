@@ -8,28 +8,17 @@ import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "../src/SafeHarborRegistry.sol";
 import "../src/AgreementV1.sol";
+import "./mock.sol";
 
 contract AgreementV1Test is TestBase, DSTest {
-    SafeHarborRegistry registry;
-    AgreementV1Factory factory;
+    AgreementValidatorV1 validator;
     AgreementDetailsV1 details;
 
     uint256 mockKey = 100;
 
     function setUp() public {
-        address deployer = address(0x11);
-        uint256 deployerNonce = vm.getNonce(deployer);
-
-        address registryAddress = vm.computeCreateAddress(deployer, deployerNonce + 1);
-
-        vm.prank(deployer);
-        factory = new AgreementV1Factory(registryAddress);
-
-        vm.prank(deployer);
-        registry = new SafeHarborRegistry(address(factory), SafeHarborRegistry(address(0)));
-
-        assertEq(registryAddress, address(registry));
-        details = getMockAgreementDetails();
+        validator = new AgreementValidatorV1();
+        details = getMockAgreementDetails(vm.addr(mockKey));
     }
 
     function assertEq(AgreementDetailsV1 memory expected, AgreementDetailsV1 memory actual) public {
@@ -39,56 +28,37 @@ contract AgreementV1Test is TestBase, DSTest {
         assertEq0(expectedBytes, actualBytes);
     }
 
-    function test_adoptSafeHarbor() public {
-        address newAgreementAddr = 0x681d27702F59b6805428eA152D6eDb91bC19E67A;
-        address entity = address(0xee);
-
-        vm.expectEmit();
-        emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), newAgreementAddr);
-        vm.prank(entity);
-        factory.adoptSafeHarbor(details);
-        assertEq(registry.agreements(entity), newAgreementAddr);
-
-        AgreementV1 newAgreement = AgreementV1(newAgreementAddr);
-        AgreementDetailsV1 memory newDetails = newAgreement.getDetails();
-        assertEq(details, newDetails);
-    }
-
     function test_validateAccount() public {
-        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         details.chains[0].accounts[0].signature = signature;
 
-        bool isValid = factory.validateAccount(details, details.chains[0].accounts[0]);
+        bool isValid = validator.validateAccount(details, details.chains[0].accounts[0]);
         assertTrue(isValid);
     }
 
     function test_validateAccount_invalid() public {
         uint256 fakeKey = 200;
 
-        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         details.chains[0].accounts[0].signature = signature;
 
-        bool isValid = factory.validateAccount(details, details.chains[0].accounts[0]);
+        bool isValid = validator.validateAccount(details, details.chains[0].accounts[0]);
         assertTrue(!isValid);
     }
 
     function test_validateAccountByAddress() public {
-        //* Deploy a new AgreementV1 via the factory
-        address entity = address(0xee);
-        vm.prank(entity);
-        factory.adoptSafeHarbor(details);
-
-        // Get the address of the newly created AgreementV1 contract
-        address newAgreementAddr = registry.agreements(entity);
+        //* Deploy a new AgreementV1
+        AgreementV1 newAgreement = new AgreementV1(details);
+        address newAgreementAddr = address(newAgreement);
 
         //* Sign the details with the mock key
-        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -96,24 +66,20 @@ contract AgreementV1Test is TestBase, DSTest {
         details.chains[0].accounts[0].signature = signature;
 
         //* Validate the signature using validateAccountByAddress
-        bool isValid = factory.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
+        bool isValid = validator.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
 
         //* Assert that the validation is successful
         assertTrue(isValid);
     }
 
     function test_validateAccountByAddress_invalid() public {
-        //* Deploy a new AgreementV1 via the factory
-        address entity = address(0xee);
-        vm.prank(entity);
-        factory.adoptSafeHarbor(details);
-
-        // Get the address of the newly created AgreementV1 contract
-        address newAgreementAddr = registry.agreements(entity);
+        //* Deploy a new AgreementV1
+        AgreementV1 newAgreement = new AgreementV1(details);
+        address newAgreementAddr = address(newAgreement);
 
         //* Sign the details with a fake key (to simulate an invalid signature)
         uint256 fakeKey = 200;
-        bytes32 digest = factory.encode(factory.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -121,42 +87,9 @@ contract AgreementV1Test is TestBase, DSTest {
         details.chains[0].accounts[0].signature = signature;
 
         //* Validate the signature using validateAccountByAddress
-        bool isValid = factory.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
+        bool isValid = validator.validateAccountByAddress(newAgreementAddr, details.chains[0].accounts[0]);
 
         //* Assert that the validation fails
         assertTrue(!isValid);
-    }
-
-    function getMockAgreementDetails() internal view returns (AgreementDetailsV1 memory mockDetails) {
-        Account memory account = Account({
-            accountAddress: vm.addr(mockKey),
-            childContractScope: ChildContractScope.All,
-            signature: new bytes(0)
-        });
-
-        Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: address(0x11), id: 1});
-        chain.accounts[0] = account;
-
-        Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
-
-        BountyTerms memory bountyTerms = BountyTerms({
-            bountyPercentage: 10,
-            bountyCapUSD: 100,
-            retainable: true,
-            identity: IdentityRequirements.Anonymous,
-            diligenceRequirements: "none"
-        });
-
-        mockDetails = AgreementDetailsV1({
-            protocolName: "testProtocol",
-            chains: new Chain[](1),
-            contactDetails: new Contact[](1),
-            bountyTerms: bountyTerms,
-            agreementURI: "ipfs://testHash"
-        });
-        mockDetails.chains[0] = chain;
-        mockDetails.contactDetails[0] = contact;
-
-        return mockDetails;
     }
 }
