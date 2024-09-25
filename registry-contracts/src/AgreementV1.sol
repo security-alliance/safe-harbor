@@ -17,7 +17,6 @@ contract AgreementV1 {
         details = _details;
     }
 
-    /// @notice Function that returns the version of the agreement.
     function version() external pure returns (string memory) {
         return _version;
     }
@@ -71,7 +70,6 @@ contract AgreementV1Factory is SignatureValidator {
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
     }
 
-    /// @notice Function that returns the version of the agreement.
     function version() external pure returns (string memory) {
         return _version;
     }
@@ -293,12 +291,12 @@ enum ChildContractScope {
 }
 
 /// @notice Whitehat identity verification requirements.
-/// - If Anonymous, the whitehat will be subject to no KYC requirements.
-/// - If Pseudonymous, the whitehat must provide a pseudonym.
-/// - If Named, the whitehat must confirm their legal name.
 enum IdentityRequirements {
+    // The whitehat will be subject to no KYC requirements.
     Anonymous,
+    // The whitehat must provide a pseudonym.
     Pseudonymous,
+    // The whitehat must confirm their legal name.
     Named
 }
 

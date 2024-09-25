@@ -30,7 +30,7 @@ contract SafeHarborRegistry {
 
     /// ----- METHODS -----
 
-    /// @notice Sets the admin address to the provided address.
+    /// @notice Sets the factory and fallback registry addresses
     constructor(address _factory, SafeHarborRegistry _fallbackRegistry) {
         factory = _factory;
         fallbackRegistry = _fallbackRegistry;
