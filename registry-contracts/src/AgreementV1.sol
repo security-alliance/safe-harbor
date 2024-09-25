@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import "./SafeHarborRegistry.sol";
 import "./SignatureValidator.sol";
 
+string constant _version = "1.0.0";
+
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 contract AgreementV1 {
     /// @notice The details of the agreement.
@@ -17,7 +19,7 @@ contract AgreementV1 {
 
     /// @notice Function that returns the version of the agreement.
     function version() external pure returns (string memory) {
-        return "1.0.0";
+        return _version;
     }
 
     /// @notice Function that returns the details of the agreement.
@@ -30,7 +32,6 @@ contract AgreementV1 {
 
 /// @notice Factory contract that creates new AgreementV1 contracts and records their adoption in the SafeHarborRegistry.
 contract AgreementV1Factory is SignatureValidator {
-    string public constant version = "1.0.0";
     SafeHarborRegistry public registry;
 
     /// @notice https://eips.ethereum.org/EIPS/eip-712
@@ -68,6 +69,11 @@ contract AgreementV1Factory is SignatureValidator {
         registry = SafeHarborRegistry(registryAddress);
         _CACHED_CHAIN_ID = block.chainid;
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
+    }
+
+    /// @notice Function that returns the version of the agreement.
+    function version() external pure returns (string memory) {
+        return _version;
     }
 
     /// @notice Function that creates a new AgreementV1 contract and records its adoption in the SafeHarborRegistry.
@@ -110,7 +116,7 @@ contract AgreementV1Factory is SignatureValidator {
         return hash(
             EIP712Domain({
                 name: "Safe Harbor",
-                version: version,
+                version: _version,
                 chainId: block.chainid,
                 verifyingContract: address(this)
             })
