@@ -40,6 +40,11 @@ contract SafeHarborRegistryDeploy is Script {
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
 
+        require(
+            deployedRegistryAddress.code.length != 0,
+            "Registry deployment failed. Check that Foundry is using the correct create2 factory."
+        );
+
         vm.stopBroadcast();
     }
 
