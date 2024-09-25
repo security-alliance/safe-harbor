@@ -22,7 +22,7 @@ contract AgreementV1 {
 
     /// @notice Function that returns the details of the agreement.
     /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
-    /// @return The details of the agreement.
+    /// @return AgreementDetailsV1 The details of the agreement.
     function getDetails() external view returns (AgreementDetailsV1 memory) {
         return details;
     }

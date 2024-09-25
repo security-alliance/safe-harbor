@@ -3,17 +3,13 @@ pragma solidity ^0.8.20;
 
 import "./AgreementV1.sol";
 
-interface IRegistry {
-    function getAgreement(address adopter) external view returns (address);
-}
-
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistry is AgreementValidatorV1 {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) public agreements;
 
     /// @notice The fallback registry.
-    IRegistry fallbackRegistry;
+    SafeHarborRegistry fallbackRegistry;
 
     /// ----- EVENTS -----
 
@@ -26,7 +22,7 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
     /// ----- METHODS -----
     /// @notice Sets the factory and fallback registry addresses
     constructor(address _fallbackRegistry) {
-        fallbackRegistry = IRegistry(_fallbackRegistry);
+        fallbackRegistry = SafeHarborRegistry(_fallbackRegistry);
     }
 
     /// @notice Function that creates a new AgreementV1 contract and records it as an adoption by msg.sender.
