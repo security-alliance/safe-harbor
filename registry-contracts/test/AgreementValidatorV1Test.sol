@@ -29,7 +29,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     }
 
     function test_validateAccount() public {
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -42,7 +42,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     function test_validateAccount_invalid() public {
         uint256 fakeKey = 200;
 
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -58,7 +58,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         address newAgreementAddr = address(newAgreement);
 
         //* Sign the details with the mock key
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -79,7 +79,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
 
         //* Sign the details with a fake key (to simulate an invalid signature)
         uint256 fakeKey = 200;
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 

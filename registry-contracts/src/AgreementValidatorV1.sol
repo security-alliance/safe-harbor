@@ -35,7 +35,7 @@ contract AgreementValidatorV1 is SignatureValidator {
     bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
     uint256 private immutable _CACHED_CHAIN_ID;
 
-    /// @notice Constructor sets the domain seperator.
+    /// @notice Constructor sets the domain separator.
     constructor() {
         _CACHED_CHAIN_ID = block.chainid;
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
@@ -46,7 +46,7 @@ contract AgreementValidatorV1 is SignatureValidator {
     /// @param account The account to validate.
     function validateAccount(AgreementDetailsV1 memory details, Account memory account) public view returns (bool) {
         // Hash the details with eip-712.
-        bytes32 digest = encode(DOMAIN_SEPERATOR(), details);
+        bytes32 digest = encode(DOMAIN_SEPARATOR(), details);
 
         return isSignatureValid(account.accountAddress, digest, account.signature);
     }
@@ -62,7 +62,7 @@ contract AgreementValidatorV1 is SignatureValidator {
     }
 
     /// ----- EIP-712 METHODS -----
-    function DOMAIN_SEPERATOR() public view returns (bytes32) {
+    function DOMAIN_SEPARATOR() public view returns (bytes32) {
         if (block.chainid == _CACHED_CHAIN_ID) {
             return _CACHED_DOMAIN_SEPARATOR;
         } else {

@@ -47,7 +47,7 @@ contract GenerateAccountSignatureV1 is ScriptBase {
 
         // Generate the signature
         AgreementValidatorV1 validator = new AgreementValidatorV1();
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPERATOR(), details);
+        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
