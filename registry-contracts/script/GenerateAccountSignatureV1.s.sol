@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import {console} from "forge-std/console.sol";
 import {ScriptBase} from "forge-std/Base.sol";
 import {
-    AgreementValidatorV1,
     AgreementDetailsV1,
     Chain,
     Contact,
@@ -13,6 +12,8 @@ import {
     ChildContractScope,
     IdentityRequirements
 } from "../src/AgreementV1.sol";
+
+import {AgreementValidatorV1} from "../src/AgreementValidatorV1.sol";
 
 // This function generates an account signature for EOAs. For ERC-1271 contracts
 // the method of signature generation may vary from contract to contract. Ensure

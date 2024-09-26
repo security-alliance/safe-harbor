@@ -10,7 +10,7 @@ import "../src/SafeHarborRegistry.sol";
 import "../src/AgreementV1.sol";
 import "./mock.sol";
 
-contract AgreementV1Test is TestBase, DSTest {
+contract AgreementValidatorV1Test is TestBase, DSTest {
     AgreementValidatorV1 validator;
     AgreementDetailsV1 details;
 
