@@ -65,10 +65,6 @@ contract AgreementValidatorV1 is SignatureValidator {
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator();
     }
 
-    function version() external pure returns (string memory) {
-        return _version;
-    }
-
     /// @notice Function that validates an account's signature for the agreement.
     /// @param details The details of the agreement.
     /// @param account The account to validate.

@@ -25,6 +25,10 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
         fallbackRegistry = SafeHarborRegistry(_fallbackRegistry);
     }
 
+    function version() external pure returns (string memory) {
+        return _version;
+    }
+
     /// @notice Function that creates a new AgreementV1 contract and records it as an adoption by msg.sender.
     /// @param details The details of the agreement.
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
