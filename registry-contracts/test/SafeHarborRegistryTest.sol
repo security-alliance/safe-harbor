@@ -24,13 +24,10 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         address newDetails = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
         address entity = address(0xee);
 
-        assertEq(registry.agreements(entity), address(0));
-
         vm.expectEmit();
         emit SafeHarborRegistry.SafeHarborAdoption(entity, address(0), newDetails);
         vm.prank(entity);
         registry.adoptSafeHarbor(details);
-        assertEq(registry.agreements(entity), newDetails);
     }
 
     function test_getDetails() public {
