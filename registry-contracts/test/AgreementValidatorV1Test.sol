@@ -92,4 +92,11 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         //* Assert that the validation fails
         assertTrue(!isValid);
     }
+
+    function test_hashAgreementDetails() public {
+        bytes32 expected = 0x3b37b2a5349fc1080a295fef85303e645162c1269002c2d06c03e5a187e5ecff;
+        bytes32 actual = validator.hash(details);
+
+        assertEq(expected, actual);
+    }
 }

@@ -15,22 +15,12 @@ contract AgreementValidatorV1 is SignatureValidator {
     }
 
     /// ----- eip-712 TYPEHASHES
-    bytes32 constant EIP712DOMAIN_TYPEHASH =
-        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
-
-    bytes32 constant AGREEMENTDETAILS_TYPEHASH = keccak256(
-        "AgreementDetailsV1(string protocolName,string contactDetails,Chain[] chains,BountyTerms bountyTerms,string agreementURI)"
-    );
-
-    bytes32 constant CONTACT_TYPEHASH = keccak256("Contact(string name,string contact)");
-
-    bytes32 constant CHAIN_TYPEHASH = keccak256("Chain(address assetRecoveryAddress,Account[] accounts,uint id)");
-
-    bytes32 constant ACCOUNT_TYPEHASH =
-        keccak256("Account(address accountAddress,ChildContractScope childContractScope,bytes signature)");
-
-    bytes32 constant BOUNTYTERMS_TYPEHASH =
-        keccak256("BountyTerms(uint bountyPercentage,uint bountyCapUSD,IdentityVerification verification)");
+    bytes32 constant EIP712DOMAIN_TYPEHASH = keccak256(eip712TypeHashStr);
+    bytes32 constant AGREEMENTDETAILS_TYPEHASH = keccak256(agreementDetailsTypeHashStr);
+    bytes32 constant CONTACT_TYPEHASH = keccak256(contactTypeHashStr);
+    bytes32 constant CHAIN_TYPEHASH = keccak256(chainTypeHashStr);
+    bytes32 constant ACCOUNT_TYPEHASH = keccak256(accountTypeHashStr);
+    bytes32 constant BOUNTYTERMS_TYPEHASH = keccak256(bountyTermsTypeHashStr);
 
     bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
     uint256 private immutable _CACHED_CHAIN_ID;
@@ -81,6 +71,9 @@ contract AgreementValidatorV1 is SignatureValidator {
         );
     }
 
+    bytes private constant eip712TypeHashStr =
+        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
+
     function hash(EIP712Domain memory eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
@@ -96,6 +89,9 @@ contract AgreementValidatorV1 is SignatureValidator {
     function encode(bytes32 domainSeperator, AgreementDetailsV1 memory details) public pure returns (bytes32) {
         return keccak256(abi.encodePacked("\x19\x01", domainSeperator, hash(details)));
     }
+
+    bytes private constant agreementDetailsTypeHashStr =
+        "AgreementDetailsV1(string protocolName,bytes32 contactDetails,bytes32 chains,bytes32 bountyTerms,string agreementURI)";
 
     function hash(AgreementDetailsV1 memory details) public pure returns (bytes32) {
         return keccak256(
@@ -121,6 +117,8 @@ contract AgreementValidatorV1 is SignatureValidator {
         return keccak256(encoded);
     }
 
+    bytes private constant contactTypeHashStr = "Contact(string name,string contact)";
+
     function hash(Contact memory contact) internal pure returns (bytes32) {
         return keccak256(abi.encode(CONTACT_TYPEHASH, hash(contact.name), hash(contact.contact)));
     }
@@ -135,6 +133,8 @@ contract AgreementValidatorV1 is SignatureValidator {
 
         return keccak256(encoded);
     }
+
+    bytes private constant chainTypeHashStr = "Chain(address assetRecoveryAddress,Account[] accounts,uint id)";
 
     function hash(Chain memory chain) internal pure returns (bytes32) {
         return keccak256(abi.encode(CHAIN_TYPEHASH, chain.assetRecoveryAddress, hash(chain.accounts), chain.id));
@@ -151,9 +151,13 @@ contract AgreementValidatorV1 is SignatureValidator {
         return keccak256(encoded);
     }
 
+    bytes private constant accountTypeHashStr =
+        "Account(address accountAddress,ChildContractScope childContractScope,bytes signature)";
+
     function hash(Account memory account) internal pure returns (bytes32) {
         // Account signatures are not included in the hash, avoiding circular dependancies.
-        return keccak256(abi.encode(ACCOUNT_TYPEHASH, account.accountAddress, hash(account.childContractScope)));
+        return
+            keccak256(abi.encode(ACCOUNT_TYPEHASH, account.accountAddress, hash(account.childContractScope), hash("")));
     }
 
     function hash(ChildContractScope childContractScope) internal pure returns (bytes32) {
@@ -167,6 +171,9 @@ contract AgreementValidatorV1 is SignatureValidator {
             revert("Invalid child contract scope");
         }
     }
+
+    bytes private constant bountyTermsTypeHashStr =
+        "BountyTerms(uint bountyPercentage,uint bountyCapUSD,bool retainable,IdentityRequirements identity,string diligenceRequirements)";
 
     function hash(BountyTerms memory bountyTerms) internal pure returns (bytes32) {
         return keccak256(
