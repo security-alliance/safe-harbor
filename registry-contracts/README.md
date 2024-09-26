@@ -29,7 +29,7 @@ In the future SEAL may create new versions of this agreement. When this happens 
 2. The registry deploys an `Agreement` contract containing the provided agreement details.
 3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
 
-A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and update the `SafeHarborRegistry`.
+A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`.
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
@@ -59,6 +59,8 @@ Whitehats may use the registy's `validateAccount()` method to verify that a give
 2. Query the protocol's `Agreement` contract with `getDetails()` to get the address of the structured agreement details.
 
 Different versions may have different `AgreementDetails` structs. All `Agreement` and `SafeHarborRegistry` contracts will include a `version()` method which can be used to infer the `AgreementDetails` structure.
+
+If no agreement is present for a given query address in a registry, the registry will check the fallback registry provided in its constructor. This allows SEAL to deploy new registries while remaining backwards-compatible.
 
 # Deployment
 
