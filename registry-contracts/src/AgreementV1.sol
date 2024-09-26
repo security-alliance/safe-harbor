@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./SignatureValidator.sol";
-
 string constant _version = "1.0.0";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
