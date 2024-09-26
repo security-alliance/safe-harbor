@@ -78,16 +78,6 @@ enum ChildContractScope {
     All
 }
 
-/// @notice Whitehat identity verification requirements.
-enum IdentityRequirements {
-    // The whitehat will be subject to no KYC requirements.
-    Anonymous,
-    // The whitehat must provide a pseudonym.
-    Pseudonymous,
-    // The whitehat must confirm their legal name.
-    Named
-}
-
 /// @notice Struct that contains the terms of the bounty for the agreement.
 struct BountyTerms {
     // Percentage of the recovered funds a Whitehat receives as their bounty (0-100).
@@ -101,4 +91,14 @@ struct BountyTerms {
     IdentityRequirements identity;
     // The diligence requirements placed on eligible whitehats. Only applicable for Named whitehats.
     string diligenceRequirements;
+}
+
+/// @notice Whitehat identity verification requirements.
+enum IdentityRequirements {
+    // The whitehat will be subject to no KYC requirements.
+    Anonymous,
+    // The whitehat must provide a pseudonym.
+    Pseudonymous,
+    // The whitehat must confirm their legal name.
+    Named
 }

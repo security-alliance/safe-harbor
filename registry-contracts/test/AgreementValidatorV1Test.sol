@@ -94,7 +94,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     }
 
     function test_hashAgreementDetails() public {
-        bytes32 expected = 0x3b37b2a5349fc1080a295fef85303e645162c1269002c2d06c03e5a187e5ecff;
+        bytes32 expected = 0xa7fbbda2d2b643ee109eb14536c19481de606f4653209a873e5d784c84e1c42a;
         bytes32 actual = validator.hash(details);
 
         assertEq(expected, actual);

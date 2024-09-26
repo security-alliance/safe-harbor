@@ -152,7 +152,7 @@ contract AgreementValidatorV1 is SignatureValidator {
     }
 
     bytes private constant accountTypeHashStr =
-        "Account(address accountAddress,ChildContractScope childContractScope,bytes signature)";
+        "Account(address accountAddress,string childContractScope,bytes signature)";
 
     function hash(Account memory account) internal pure returns (bytes32) {
         // Account signatures are not included in the hash, avoiding circular dependancies.
@@ -173,7 +173,7 @@ contract AgreementValidatorV1 is SignatureValidator {
     }
 
     bytes private constant bountyTermsTypeHashStr =
-        "BountyTerms(uint bountyPercentage,uint bountyCapUSD,bool retainable,IdentityRequirements identity,string diligenceRequirements)";
+        "BountyTerms(uint bountyPercentage,uint bountyCapUSD,bool retainable,string identity,string diligenceRequirements)";
 
     function hash(BountyTerms memory bountyTerms) internal pure returns (bytes32) {
         return keccak256(
