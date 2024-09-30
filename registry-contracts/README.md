@@ -1,33 +1,76 @@
-## Safe Harbor Registry
+# Safe Harbor Registry
 
-This directory houses the "Safe Harbor Registry". This is a simple smart contract written in Solidity which serves two main purposes:
+This directory houses the "Safe Harbor Registry". This is a smart contract written in Solidity which serves three main purposes:
 
-1. To provide a target for a protocol's governance to indicate their official acceptance of the agreement
-2. To store the agreement parameters on-chain for whitehat ease-of-use
+1. Allow protocols to officially adopt the SEAL Whitehat Safe Harbor Agreement.
+2. Store the agreement details on-chain as a permanent record.
+3. Allow for future updates to the agreement terms by adopters.
 
-### Technical Details
+These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and seperately deployed.
+
+# Technical Details
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation). To test the contracts, use `forge test`.
 
-The main contract is the `SafeHarborRegistry`. This contract has a single function:
+There are 2 contracts in this system:
 
-```solidity
-function adoptSafeHarbor(AgreementDetails calldata details) external {
-    // ...
-}
+-   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreements are validated.
+-   `AgreementV1` - Adopted agreements created by protocols.
+
+## Setup
+
+1. The `SafeHarborRegistry` contract is deployed with the fallback registry as constructor arguments.
+
+In the future SEAL may create new versions of this agreement. When this happens a new registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details. Old registries will always remain functional.
+
+## Adoption
+
+1. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement details.
+2. The registry deploys an `Agreement` contract containing the provided agreement details.
+3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
+
+A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`.
+
+Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
+
+### Signed Accounts
+
+For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the registry. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
+
+`AccountDetails` use EIP-712 hashing for a better client-side experience.
+
+#### Signing the Agreement Details
+
+When preparing the final agreement details, prior to deploying on-chain, the protocol may sign the agreement details for any or all of the accounts under scope and store these signatures within the agreement details. A helper script to generate these account signatures for EOA accounts has been provided. To use it set the `SIGNER_PRIVATE_KEY` environment variable. Then, run the script using:
+
+```
+forge script GenerateAccountSignatureV1.s.sol --fork-url <YOUR_RPC_URL> -vvvv
 ```
 
-As part of the official adoption of the SEAL Safe Harbor initiative, the `adoptSafeHarbor()` function should be called with the `details` that the protocol has chosen. This is considered the legally binding action in the agreement, so the `msg.sender` should represent the decision-making authority of the protocol. The agreement terms will also be saved in on-chain storage, so that anyone can inspect a Safe Harbor's adoption through the `agreements` mapping. Note that the `adoptSafeHarbor()` function can be called multiple times, so that terms can be updated if needed. 
+For ERC-1271 contracts, a case-by-case signing solution will be required.
 
-### Deployments
+#### Verification of Signed Accounts
 
-Since the Safe Harbor initiative will go through an initial RFC stage before becoming finalized, the registry has not yet been deployed. However, it is intended that the registry eventually exists (or can exist) on any EVM blockchain at the same address. This will be achieved using the deterministic deployment proxy described here: https://github.com/Arachnid/deterministic-deployment-proxy, which is built into Foundry by default.
+Whitehats may use the registy's `validateAccount()` method to verify that a given Account has consented to the agreement details.
 
-To deploy the registry to an EVM-compatible chain where it is not currently deployed: 
+## Querying Agreements
+
+1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV1` address.
+2. Query the protocol's `Agreement` contract with `getDetails()` to get the address of the structured agreement details.
+
+Different versions may have different `AgreementDetails` structs. All `Agreement` and `SafeHarborRegistry` contracts will include a `version()` method which can be used to infer the `AgreementDetails` structure.
+
+If no agreement is present for a given query address in a registry, the registry will check the fallback registry provided in its constructor. This allows SEAL to deploy new registries while remaining backwards-compatible.
+
+# Deployment
+
+The Safe Harbor Registry will be deployed using the deterministic deployment proxy described here: https://github.com/Arachnid/deterministic-deployment-proxy, which is built into Foundry by default.
+
+To deploy the registry to an EVM-compatible chain where it is not currently deployed:
 
 1. Ensure the deterministic-deployment-proxy is deployed at 0x4e59b44847b379578588920cA78FbF26c0B4956C, and if it's not, deploy it using [the process mentioned above](https://github.com/Arachnid/deterministic-deployment-proxy).
+2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/SafeHarborRegistryDeploy.s.sol`](script/SafeHarborRegistryDeploy.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs. Then, run the script using:
 
-2. Deploy the registry using the above proxy with salt `bytes32(0)`. The file [`script/SafeHarborRegistryDeploy.s.sol`](script/SafeHarborRegistryDeploy.s.sol) is a convenience script for this. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs. Then, run the script using:
-    ```
-    forge script script/SafeHarborRegistryDeploy.s.sol:SafeHarborRegistryDeploy --rpc-url <CHAIN_RPC_URL> --broadcast -vvvv
-    ``` 
+```
+forge script SafeHarborRegistryDeploy --rpc-url <CHAIN_RPC_URL> --verify --etherscan-api-key <ETHERSCAN_API_KEY> --broadcast -vvvv
+```

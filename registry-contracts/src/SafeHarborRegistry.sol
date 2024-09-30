@@ -1,36 +1,60 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title The Safe Harbor Registry. See www.securityalliance.org for details.
-contract SafeHarborRegistry {
+import "./AgreementValidatorV1.sol";
 
-    /// @notice Agreement details struct.
-    struct AgreementDetails {
-        // The name of the protocol adopting the agreement.
-        string protocolName;
-        // The assets in scope of the agreement.
-        string scope;
-        // The contact details (required for pre-notifying).
-        string contactDetails;
-        // The bounty terms (e.g. percentage bounty, cap, if payable immediately).
-        string bountyTerms;
-        // Address where recovered funds should be sent.
-        address assetRecoveryAddress;
-        // IPFS hash of the actual agreement document, which confirms all terms.
-        string agreementURI;
-    }
+/// @title The Safe Harbor Registry. See www.securityalliance.org for details.
+contract SafeHarborRegistry is AgreementValidatorV1 {
+    /// @notice A mapping which records the agreement details for a given governance/admin address.
+    mapping(address entity => address details) private agreements;
+
+    /// @notice The fallback registry.
+    SafeHarborRegistry fallbackRegistry;
+
+    /// ----- EVENTS -----
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
-    event SafeHarborAdoption(address indexed entity, AgreementDetails oldDetails, AgreementDetails newDetails);
+    event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
 
-    /// @notice A mapping which records the agreement details for a given governance/admin address.
-    mapping(address entity => AgreementDetails details) public agreements;
+    /// ----- ERRORS -----
+    error NoAgreement();
 
-    /// @notice Officially adopt the agreement, or modify its terms if already adopted.
-    /// @param details The new details of the agreement.
-    function adoptSafeHarbor(AgreementDetails calldata details) external {
-        AgreementDetails memory oldDetails = agreements[msg.sender];
-        agreements[msg.sender] = details;
-        emit SafeHarborAdoption(msg.sender, oldDetails, details);
+    /// ----- METHODS -----
+    /// @notice Sets the factory and fallback registry addresses
+    constructor(address _fallbackRegistry) {
+        fallbackRegistry = SafeHarborRegistry(_fallbackRegistry);
+    }
+
+    function version() external pure returns (string memory) {
+        return _version;
+    }
+
+    /// @notice Function that creates a new AgreementV1 contract and records it as an adoption by msg.sender.
+    /// @param details The details of the agreement.
+    function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
+        AgreementV1 agreementDetails = new AgreementV1(details);
+        address agreementAddress = address(agreementDetails);
+        address adopter = msg.sender;
+
+        address oldDetails = agreements[adopter];
+        agreements[adopter] = agreementAddress;
+        emit SafeHarborAdoption(adopter, oldDetails, agreementAddress);
+    }
+
+    /// @notice Get the agreement address for the adopter. Recursively queries fallback registries.
+    /// @param adopter The adopter to query.
+    /// @return address The agreement address.
+    function getAgreement(address adopter) external view returns (address) {
+        address agreement = agreements[adopter];
+
+        if (agreement != address(0)) {
+            return agreement;
+        }
+
+        if (address(fallbackRegistry) != address(0)) {
+            return fallbackRegistry.getAgreement(adopter);
+        }
+
+        revert NoAgreement();
     }
 }

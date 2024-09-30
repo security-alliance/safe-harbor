@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
-import {SafeHarborRegistry} from "src/SafeHarborRegistry.sol";
+import {console} from "forge-std/console.sol";
+import {SafeHarborRegistry} from "../src/SafeHarborRegistry.sol";
 
 contract SafeHarborRegistryDeploy is Script {
-
     // This is a create2 factory deployed by a one-time-use-account as described here:
     // https://github.com/Arachnid/deterministic-deployment-proxy. As a result, this factory
     // exists (or can exist) on any EVM compatible chain, and gives us a guaranteed way to deploy
@@ -16,37 +16,56 @@ contract SafeHarborRegistryDeploy is Script {
     // This could have been any value, but we choose zero.
     bytes32 constant DETERMINISTIC_DEPLOY_SALT = bytes32(0);
 
-    function run() public {
+    // This is the address of the fallback registry that has already been deployed.
+    // Set this to the zero address if no fallback registry exists.
+    address fallbackRegistry = address(0);
 
+    function run() public {
         require(
             DETERMINISTIC_CREATE2_FACTORY.code.length != 0,
             "Create2 factory not deployed yet, see https://github.com/Arachnid/deterministic-deployment-proxy."
         );
 
-        require(
-            getExpectedAddress().code.length == 0,
-            "Registry already deployed, nothing left to do."
-        );
+        address registryAddress = getExpectedAddress(fallbackRegistry);
+        require(registryAddress.code.length == 0, "Registry already deployed, nothing left to do.");
 
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
-        address deployedRegistry = address(new SafeHarborRegistry{salt : DETERMINISTIC_DEPLOY_SALT}());
-        vm.stopBroadcast();
+
+        SafeHarborRegistry registry = new SafeHarborRegistry{salt: DETERMINISTIC_DEPLOY_SALT}(fallbackRegistry);
+        address deployedRegistryAddress = address(registry);
 
         require(
-            deployedRegistry == getExpectedAddress(),
+            deployedRegistryAddress == registryAddress,
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
+
+        require(
+            deployedRegistryAddress.code.length != 0,
+            "Registry deployment failed. Check that Foundry is using the correct create2 factory."
+        );
+
+        vm.stopBroadcast();
     }
 
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
-    // and salt are used. 
-    function getExpectedAddress() public pure returns (address) {
-        return address(uint160(uint(keccak256(abi.encodePacked(
-            bytes1(0xff),
-            DETERMINISTIC_CREATE2_FACTORY,
-            DETERMINISTIC_DEPLOY_SALT,
-            keccak256(type(SafeHarborRegistry).creationCode)
-        )))));
+    // and salt are used.
+    function getExpectedAddress(address _fallbackRegistry) public pure returns (address) {
+        return address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes1(0xff),
+                            DETERMINISTIC_CREATE2_FACTORY,
+                            DETERMINISTIC_DEPLOY_SALT,
+                            keccak256(
+                                abi.encodePacked(type(SafeHarborRegistry).creationCode, abi.encode(_fallbackRegistry))
+                            )
+                        )
+                    )
+                )
+            )
+        );
     }
 }
