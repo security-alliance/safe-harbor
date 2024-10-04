@@ -39,16 +39,6 @@ For added security, protocols may choose to sign their agreement for the scoped 
 
 `AccountDetails` use EIP-712 hashing for a better client-side experience.
 
-#### Signing the Agreement Details
-
-When preparing the final agreement details, prior to deploying on-chain, the protocol may sign the agreement details for any or all of the accounts under scope and store these signatures within the agreement details. A helper script to generate these account signatures for EOA accounts has been provided. To use it set the `SIGNER_PRIVATE_KEY` environment variable. Then, run the script using:
-
-```
-forge script GenerateAccountSignatureV1.s.sol --fork-url <YOUR_RPC_URL> -vvvv
-```
-
-For ERC-1271 contracts, a case-by-case signing solution will be required.
-
 #### Verification of Signed Accounts
 
 Whitehats may use the registy's `validateAccount()` method to verify that a given Account has consented to the agreement details.

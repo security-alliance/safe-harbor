@@ -29,7 +29,8 @@ contract SafeHarborRegistryDeploy is Script {
         address registryAddress = getExpectedAddress(fallbackRegistry);
         require(registryAddress.code.length == 0, "Registry already deployed, nothing left to do.");
 
-        uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
+        // uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
         vm.startBroadcast(deployerPrivateKey);
 
         SafeHarborRegistry registry = new SafeHarborRegistry{salt: DETERMINISTIC_DEPLOY_SALT}(fallbackRegistry);
@@ -44,6 +45,9 @@ contract SafeHarborRegistryDeploy is Script {
             deployedRegistryAddress.code.length != 0,
             "Registry deployment failed. Check that Foundry is using the correct create2 factory."
         );
+
+        console.log("SafeHarborRegistry deployed to:");
+        console.logAddress(deployedRegistryAddress);
 
         vm.stopBroadcast();
     }

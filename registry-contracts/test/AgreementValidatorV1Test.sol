@@ -14,11 +14,15 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     AgreementValidatorV1 validator;
     AgreementDetailsV1 details;
 
-    uint256 mockKey = 100;
+    uint256 mockKey;
+    address mockAddress;
 
     function setUp() public {
+        mockKey = 0xA11CE;
+        mockAddress = vm.addr(mockKey);
+
         validator = new AgreementValidatorV1();
-        details = getMockAgreementDetails(vm.addr(mockKey));
+        details = getMockAgreementDetails(mockAddress);
     }
 
     function assertEq(AgreementDetailsV1 memory expected, AgreementDetailsV1 memory actual) public {
@@ -29,7 +33,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     }
 
     function test_validateAccount() public {
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
+        bytes32 digest = validator.getTypedDataHash(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -42,7 +46,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
     function test_validateAccount_invalid() public {
         uint256 fakeKey = 200;
 
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
+        bytes32 digest = validator.getTypedDataHash(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -58,7 +62,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         address newAgreementAddr = address(newAgreement);
 
         //* Sign the details with the mock key
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
+        bytes32 digest = validator.getTypedDataHash(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(mockKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -79,7 +83,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
 
         //* Sign the details with a fake key (to simulate an invalid signature)
         uint256 fakeKey = 200;
-        bytes32 digest = validator.encode(validator.DOMAIN_SEPARATOR(), details);
+        bytes32 digest = validator.getTypedDataHash(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(fakeKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -91,12 +95,5 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
 
         //* Assert that the validation fails
         assertTrue(!isValid);
-    }
-
-    function test_hashAgreementDetails() public {
-        bytes32 expected = 0xb0d48e6591024f6c821f27ddef44838dbc9451072ea2491f8e56e18b30a915a4;
-        bytes32 actual = validator.hash(details);
-
-        assertEq(expected, actual);
     }
 }
