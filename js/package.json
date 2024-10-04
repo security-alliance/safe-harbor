@@ -18,6 +18,7 @@
     "type": "module",
     "devDependencies": {
         "chai": "^5.1.1",
-        "mocha": "^10.7.3"
+        "mocha": "^10.7.3",
+        "wait-on": "^8.0.1"
     }
 }
