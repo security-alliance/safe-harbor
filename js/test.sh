@@ -14,6 +14,8 @@ trap cleanup EXIT
 # Change to the desired working directory for anvil and forge
 cd ../registry-contracts
 
+forge compile
+
 # Launch anvil in the background
 anvil --block-time 1 --port 8545 &
 anvil_pid=$!
