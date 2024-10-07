@@ -45,6 +45,9 @@ contract SafeHarborRegistryDeploy is Script {
             "Registry deployment failed. Check that Foundry is using the correct create2 factory."
         );
 
+        console.log("SafeHarborRegistry deployed to:");
+        console.logAddress(deployedRegistryAddress);
+
         vm.stopBroadcast();
     }
 

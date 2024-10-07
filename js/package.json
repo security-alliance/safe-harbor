@@ -1,0 +1,24 @@
+{
+    "name": "safe-harbor",
+    "version": "1.0.0",
+    "description": "<p align=\"center\">\r   <img src=\"assets/Security-Alliance-Logo-Blue.svg\" alt=\"SEAL\"/>\r </p>",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@metamask/eth-sig-util": "^7.0.3",
+        "eth-sig-util": "^3.0.1",
+        "ethers": "^6.13.3",
+        "web3": "^4.13.0"
+    },
+    "keywords": [],
+    "type": "module",
+    "devDependencies": {
+        "chai": "^5.1.1",
+        "mocha": "^10.7.3",
+        "wait-on": "^8.0.1"
+    }
+}
