@@ -33,6 +33,18 @@ A protocol may update their agreement details using any enabled registry. To do 
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
+#### Using the script to adopt Safe Harbor.
+
+1. Edit agreementDetails.json with the agreement details of your protocol.
+2. Create a .env file and set the `DEPLOYER_PRIVATE_KEY` environment variable to the private key of the EOA that will adopt the agreement.
+3. Run the script using:
+
+```
+forge script AdoptSafeHarbor --rpc-url <URL> --verify --etherscan-api-key <API_KEY> --broadcast
+```
+
+If you would like to deploy from the protocol multisig, please contact us directly.
+
 ### Signed Accounts
 
 For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the registry. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
