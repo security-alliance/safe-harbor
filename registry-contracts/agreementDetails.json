@@ -1,0 +1,85 @@
+{
+    "agreementURI": "https://bafybeiakxvysdvsvupqcibkpifugzwcnllzt2udjk3l4yhcix7dqxxqyp4.ipfs.w3s.link/agreement.pdf",
+    "bountyTerms": {
+        "bountyCapUSD": 100,
+        "bountyPercentage": 10,
+        "diligenceRequirements": "N/A",
+        "identity": 0,
+        "retainable": false
+    },
+    "chains": [
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0xaB45c5A4B0c941a2F231C04C3f49182e1A254052",
+                    "childContractScope": 2,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0xaacFeEa03eb1561C4e67d661e40682Bd20E3541b",
+                    "childContractScope": 2,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x71523d0f655B41E805Cec45b17163f528B59B820",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x3A3BD7bb9528E159577F7C2e685CC81A765002E2",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0xC5d563A36AE78145C45a50134d48A1215220f80a",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x78769D50Be1763ed1CA0D5E878D93f05aabff29e",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                },
+                {
+                    "accountAddress": "0x56C79347e95530c01A2FC76E732f9566dA16E113",
+                    "childContractScope": 0,
+                    "signature": "0x"
+                }
+            ],
+            "assetRecoveryAddress": "0x3dcE0a29139A851Da1dFCa56Af8e8a6440b4D952",
+            "id": 137
+        }
+    ],
+    "contactDetails": [
+        {
+            "contact": "mike@polymarket.com",
+            "name": "Mike Shrieve"
+        }
+    ],
+    "protocolName": "Polymarket"
+}
