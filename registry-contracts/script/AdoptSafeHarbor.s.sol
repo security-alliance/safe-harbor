@@ -45,16 +45,18 @@ contract AdoptSafeHarbor is ScriptBase {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-
-        // Read and parse the JSON file
+        SafeHarborRegistry registry = SafeHarborRegistry(0x272b19056d9fC77C8BD0998f3845fbbeCC035FeD);
         string memory json = vm.readFile("agreementDetails.json");
+
+        adopt(deployerPrivateKey, registry, json);
+    }
+
+    function adopt(uint256 deployerPrivateKey, SafeHarborRegistry registry, string memory json) public {
+        // Read and parse the JSON file
         bytes memory data = json.parseRaw(".");
 
         // Decode into the intermediary struct
-        AgreementDetailsV1Json memory jsonDetails = abi.decode(
-            data,
-            (AgreementDetailsV1Json)
-        );
+        AgreementDetailsV1Json memory jsonDetails = abi.decode(data, (AgreementDetailsV1Json));
 
         // Map intermediary structs to original structs
         // Map ContactJson[] to Contact[]
@@ -87,18 +89,12 @@ contract AdoptSafeHarbor is ScriptBase {
                 AccountJson memory aj = cj.accounts[j];
                 accounts[j] = Account({
                     accountAddress: aj.accountAddress,
-                    childContractScope: ChildContractScope(
-                        aj.childContractScope
-                    ),
+                    childContractScope: ChildContractScope(aj.childContractScope),
                     signature: aj.signature
                 });
             }
 
-            chains[i] = Chain({
-                accounts: accounts,
-                assetRecoveryAddress: cj.assetRecoveryAddress,
-                id: cj.id
-            });
+            chains[i] = Chain({accounts: accounts, assetRecoveryAddress: cj.assetRecoveryAddress, id: cj.id});
         }
 
         // Construct the AgreementDetailsV1 struct
@@ -113,13 +109,7 @@ contract AdoptSafeHarbor is ScriptBase {
         // Begin broadcast
         vm.startBroadcast(deployerPrivateKey);
 
-        // Instantiate the SafeHarborRegistry contract
-        SafeHarborRegistry factory = SafeHarborRegistry(
-            0x272b19056d9fC77C8BD0998f3845fbbeCC035FeD
-        );
-
-        // Call the adoptSafeHarbor function with the details
-        factory.adoptSafeHarbor(details);
+        registry.adoptSafeHarbor(details);
 
         // End broadcast
         vm.stopBroadcast();
