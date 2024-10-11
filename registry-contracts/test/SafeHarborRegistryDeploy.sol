@@ -15,7 +15,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
         vm.setEnv("REGISTRY_DEPLOYER_PRIVATE_KEY", fakePrivateKey);
     }
 
-    function testRun() public {
+    function test_run() public {
         SafeHarborRegistryDeploy script = new SafeHarborRegistryDeploy();
         script.run();
     }
