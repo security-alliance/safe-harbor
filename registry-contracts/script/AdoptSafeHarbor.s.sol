@@ -8,41 +8,6 @@ import "../src/SafeHarborRegistry.sol";
 contract AdoptSafeHarbor is ScriptBase {
     using stdJson for string;
 
-    // Define intermediary structs with fields in alphabetical order
-    // and enums replaced with uint8 for decoding
-    struct AgreementDetailsV1Json {
-        string agreementURI;
-        BountyTermsJson bountyTerms;
-        ChainJson[] chains;
-        ContactJson[] contactDetails;
-        string protocolName;
-    }
-
-    struct BountyTermsJson {
-        uint256 bountyCapUSD;
-        uint256 bountyPercentage;
-        string diligenceRequirements;
-        uint8 identity; // enum replaced with uint8
-        bool retainable;
-    }
-
-    struct ChainJson {
-        AccountJson[] accounts;
-        address assetRecoveryAddress;
-        uint256 id;
-    }
-
-    struct AccountJson {
-        address accountAddress;
-        uint8 childContractScope; // enum replaced with uint8
-        bytes signature;
-    }
-
-    struct ContactJson {
-        string contact;
-        string name;
-    }
-
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         SafeHarborRegistry registry = SafeHarborRegistry(0x272b19056d9fC77C8BD0998f3845fbbeCC035FeD);
@@ -56,55 +21,8 @@ contract AdoptSafeHarbor is ScriptBase {
         bytes memory data = json.parseRaw(".");
 
         // Decode into the intermediary struct
-        AgreementDetailsV1Json memory jsonDetails = abi.decode(data, (AgreementDetailsV1Json));
-
-        // Map intermediary structs to original structs
-        // Map ContactJson[] to Contact[]
-        uint256 contactCount = jsonDetails.contactDetails.length;
-        Contact[] memory contactDetails = new Contact[](contactCount);
-        for (uint256 i = 0; i < contactCount; i++) {
-            ContactJson memory cj = jsonDetails.contactDetails[i];
-            contactDetails[i] = Contact({name: cj.name, contact: cj.contact});
-        }
-
-        // Map BountyTermsJson to BountyTerms
-        BountyTerms memory bountyTerms = BountyTerms({
-            bountyPercentage: jsonDetails.bountyTerms.bountyPercentage,
-            bountyCapUSD: jsonDetails.bountyTerms.bountyCapUSD,
-            retainable: jsonDetails.bountyTerms.retainable,
-            identity: IdentityRequirements(jsonDetails.bountyTerms.identity),
-            diligenceRequirements: jsonDetails.bountyTerms.diligenceRequirements
-        });
-
-        // Map ChainJson[] to Chain[]
-        uint256 chainCount = jsonDetails.chains.length;
-        Chain[] memory chains = new Chain[](chainCount);
-        for (uint256 i = 0; i < chainCount; i++) {
-            ChainJson memory cj = jsonDetails.chains[i];
-
-            // Map AccountJson[] to Account[]
-            uint256 accountCount = cj.accounts.length;
-            Account[] memory accounts = new Account[](accountCount);
-            for (uint256 j = 0; j < accountCount; j++) {
-                AccountJson memory aj = cj.accounts[j];
-                accounts[j] = Account({
-                    accountAddress: aj.accountAddress,
-                    childContractScope: ChildContractScope(aj.childContractScope),
-                    signature: aj.signature
-                });
-            }
-
-            chains[i] = Chain({accounts: accounts, assetRecoveryAddress: cj.assetRecoveryAddress, id: cj.id});
-        }
-
-        // Construct the AgreementDetailsV1 struct
-        AgreementDetailsV1 memory details = AgreementDetailsV1({
-            protocolName: jsonDetails.protocolName,
-            contactDetails: contactDetails,
-            chains: chains,
-            bountyTerms: bountyTerms,
-            agreementURI: jsonDetails.agreementURI
-        });
+        agreementDetailsV1JSON memory jsonDetails = abi.decode(data, (agreementDetailsV1JSON));
+        AgreementDetailsV1 memory details = mapAgreementDetails(jsonDetails);
 
         // Begin broadcast
         vm.startBroadcast(deployerPrivateKey);
@@ -113,5 +31,104 @@ contract AdoptSafeHarbor is ScriptBase {
 
         // End broadcast
         vm.stopBroadcast();
+    }
+
+    // Helper function to map agreementDetailsV1JSON to AgreementDetailsV1
+    function mapAgreementDetails(agreementDetailsV1JSON memory jsonDetails)
+        internal
+        pure
+        returns (AgreementDetailsV1 memory)
+    {
+        return AgreementDetailsV1({
+            protocolName: jsonDetails.protocolName,
+            contactDetails: mapContacts(jsonDetails.contact),
+            chains: mapChains(jsonDetails.chains),
+            bountyTerms: mapBountyTerms(jsonDetails.bountyTerms),
+            agreementURI: jsonDetails.agreementURI
+        });
+    }
+
+    // Define intermediary structs with fields in alphabetical order
+    // and enums replaced with uint8 for decoding
+    struct agreementDetailsV1JSON {
+        string agreementURI;
+        bountyTermsJSON bountyTerms;
+        chainJSON[] chains;
+        contactJSON[] contact;
+        string protocolName;
+    }
+
+    struct bountyTermsJSON {
+        uint256 bountyCapUSD;
+        uint256 bountyPercentage;
+        string diligenceRequirements;
+        uint8 identity; // enum replaced with uint8
+        bool retainable;
+    }
+
+    struct chainJSON {
+        accountJSON[] accounts;
+        address assetRecoveryAddress;
+        uint256 id;
+    }
+
+    struct accountJSON {
+        address accountAddress;
+        uint8 childContractScope; // enum replaced with uint8
+        bytes signature;
+    }
+
+    struct contactJSON {
+        string contact;
+        string name;
+    }
+
+    // Helper function to map contactJSON[] to Contact[]
+    function mapContacts(contactJSON[] memory jsonContacts) internal pure returns (Contact[] memory) {
+        uint256 count = jsonContacts.length;
+        Contact[] memory contacts = new Contact[](count);
+        for (uint256 i = 0; i < count; i++) {
+            contacts[i] = Contact({contact: jsonContacts[i].contact, name: jsonContacts[i].name});
+        }
+        return contacts;
+    }
+
+    // Helper function to map bountyTermsJSON to BountyTerms
+    function mapBountyTerms(bountyTermsJSON memory jsonBountyTerms) internal pure returns (BountyTerms memory) {
+        return BountyTerms({
+            bountyPercentage: jsonBountyTerms.bountyPercentage,
+            bountyCapUSD: jsonBountyTerms.bountyCapUSD,
+            retainable: jsonBountyTerms.retainable,
+            identity: IdentityRequirements(jsonBountyTerms.identity),
+            diligenceRequirements: jsonBountyTerms.diligenceRequirements
+        });
+    }
+
+    // Helper function to map chainJSON[] to Chain[]
+    function mapChains(chainJSON[] memory jsonChains) internal pure returns (Chain[] memory) {
+        uint256 count = jsonChains.length;
+        Chain[] memory chains = new Chain[](count);
+        for (uint256 i = 0; i < count; i++) {
+            chains[i] = Chain({
+                accounts: mapAccounts(jsonChains[i].accounts),
+                assetRecoveryAddress: jsonChains[i].assetRecoveryAddress,
+                id: jsonChains[i].id
+            });
+        }
+        return chains;
+    }
+
+    // Helper function to map accountJSON[] to Account[]
+    function mapAccounts(accountJSON[] memory jsonAccounts) internal pure returns (Account[] memory) {
+        uint256 count = jsonAccounts.length;
+        Account[] memory accounts = new Account[](count);
+        for (uint256 i = 0; i < count; i++) {
+            accounts[i] = Account({
+                accountAddress: jsonAccounts[i].accountAddress,
+                childContractScope: ChildContractScope(jsonAccounts[i].childContractScope),
+                signature: jsonAccounts[i].signature
+            });
+        }
+        return accounts;
     }
 }
