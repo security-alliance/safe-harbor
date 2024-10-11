@@ -33,7 +33,7 @@ A protocol may update their agreement details using any enabled registry. To do 
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
-#### Using the script to adopt Safe Harbor.
+### Using the script to adopt Safe Harbor.
 
 1. Edit agreementDetails.json with the agreement details of your protocol.
 2. Create a .env file and set the `DEPLOYER_PRIVATE_KEY` environment variable to the private key of the EOA that will adopt the agreement.
