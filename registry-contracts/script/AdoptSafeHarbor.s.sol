@@ -10,7 +10,7 @@ contract AdoptSafeHarbor is ScriptBase {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        SafeHarborRegistry registry = SafeHarborRegistry(0x272b19056d9fC77C8BD0998f3845fbbeCC035FeD);
+        SafeHarborRegistry registry = SafeHarborRegistry(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6);
         string memory json = vm.readFile("agreementDetails.json");
 
         adopt(deployerPrivateKey, registry, json);
