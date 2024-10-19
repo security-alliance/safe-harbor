@@ -1,0 +1,30 @@
+{
+    "agreementURI": "https://bafybeiakxvysdvsvupqcibkpifugzwcnllzt2udjk3l4yhcix7dqxxqyp4.ipfs.w3s.link/agreement.pdf",
+    "bountyTerms": {
+        "bountyCapUSD": ,
+        "bountyPercentage": ,
+        "diligenceRequirements": "",
+        "identity": ,
+        "retainable":
+    },
+    "chains": [
+        {
+            "accounts": [
+                {
+                    "accountAddress": "",
+                    "childContractScope": ,
+                    "signature": "0x"
+                },
+            ],
+            "assetRecoveryAddress": "",
+            "id":
+        }
+    ],
+    "contactDetails": [
+        {
+            "contact": "",
+            "name": ""
+        }
+    ],
+    "protocolName": ""
+}

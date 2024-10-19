@@ -3,6 +3,9 @@ src = "src"
 out = "out"
 libs = ["lib"]
 via_ir = true
+fs_permissions = [{ access = "read", path = "./" }]
+
+
 
 [profile.default.optimizer_details]
 constantOptimizer = true

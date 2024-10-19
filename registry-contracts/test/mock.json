@@ -1,0 +1,30 @@
+{
+    "protocolName": "testProtocol",
+    "chains": [
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0x1111111111111111111111111111111111111111",
+                    "childContractScope": 2,
+                    "signature": ""
+                }
+            ],
+            "assetRecoveryAddress": "0x0000000000000000000000000000000000000011",
+            "id": 1
+        }
+    ],
+    "contactDetails": [
+        {
+            "name": "Test Name",
+            "contact": "test@mail.com"
+        }
+    ],
+    "bountyTerms": {
+        "bountyPercentage": 10,
+        "bountyCapUSD": 100,
+        "retainable": true,
+        "identity": 0,
+        "diligenceRequirements": "none"
+    },
+    "agreementURI": "ipfs://testHash"
+}
