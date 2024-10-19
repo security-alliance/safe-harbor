@@ -13,6 +13,13 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 -   [documents/FAQ.md](documents/FAQ.md) - answers to common questions about SEAL Safe Harbor.
 -   [registry-contracts/](registry-contracts/) - the smart contracts that on-chain governance can use to signal their official adoption of the agreement.
 
+## Registry Addresses
+
+| Chain | Address |
+| :-: | :-: |
+| Ethereum | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Polygon | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+
 ## How does it work?
 
 The Safe Harbor initiative is a preemptive security measure for protocols, similar to a bug bounty. It is a framework specifically for _active exploits_, i.e. situations where a vulnerability has begun to be exploited by a malicious actor. If a protocol has adopted Safe Harbor before such an incident occurs, whitehats will have clarity on how to act in a potential rescue, and will be more likely to help intervene.
