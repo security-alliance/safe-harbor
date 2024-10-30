@@ -19,6 +19,13 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 | :-: | :-: |
 | Ethereum | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
 | Polygon | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Arbitrum | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://arbiscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Optimism | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://optimistic.etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Base | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://basescan.org/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Avalanche C | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://snowtrace.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| Polygon zkEVM | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://zkevm.polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
+| BSC | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://bscscan.com/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6) |
+| Gnosis | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6) |
 
 ## How does it work?
 
