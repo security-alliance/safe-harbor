@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import "../src/SafeHarborRegistry.sol";
+import "../src/v1/SafeHarborRegistry.sol";
 
 contract AdoptSafeHarbor is ScriptBase {
     using stdJson for string;
