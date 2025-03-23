@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "../common/Registry.sol";
 import "../v1/AgreementValidatorV1.sol";
 import "./AgreementV2.sol" as V2;
 
@@ -10,7 +11,7 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
     mapping(address entity => address details) private agreements;
 
     /// @notice The fallback registry.
-    SafeHarborRegistry fallbackRegistry;
+    IRegistry fallbackRegistry;
 
     /// ----- EVENTS -----
 
@@ -23,19 +24,19 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
     /// ----- METHODS -----
     /// @notice Sets the factory and fallback registry addresses
     constructor(address _fallbackRegistry) {
-        fallbackRegistry = SafeHarborRegistry(_fallbackRegistry);
+        fallbackRegistry = IRegistry(_fallbackRegistry);
     }
 
     function version() external pure returns (string memory) {
         return _version;
     }
 
-    /// @notice Function that creates a new AgreementV1 contract and records it as an adoption by msg.sender.
+    /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.
     /// @param details The details of the agreement.
     function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
-        AgreementV1 agreementDetails = new AgreementV1(details);
-        address agreementAddress = address(agreementDetails);
         address adopter = msg.sender;
+        V2.AgreementV2 agreementDetails = new V2.AgreementV2(details, adopter);
+        address agreementAddress = address(agreementDetails);
 
         address oldDetails = agreements[adopter];
         agreements[adopter] = agreementAddress;

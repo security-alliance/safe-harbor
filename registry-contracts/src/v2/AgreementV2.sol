@@ -8,10 +8,13 @@ contract AgreementV2 {
     /// @notice The details of the agreement.
     AgreementDetailsV1 private details;
 
+    address public owner;
+
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
-    constructor(AgreementDetailsV1 memory _details) {
+    constructor(AgreementDetailsV1 memory _details, address _owner) {
         details = _details;
+        owner = _owner;
     }
 
     function version() external pure returns (string memory) {
