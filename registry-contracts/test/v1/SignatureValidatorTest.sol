@@ -6,7 +6,7 @@ import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import "../src/v1/SignatureValidator.sol";
+import "../../src/v1/SignatureValidator.sol";
 
 contract SignatureValidatorTest is TestBase, DSTest {
     SignatureValidator validator;

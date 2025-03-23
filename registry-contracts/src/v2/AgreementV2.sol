@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "../v1/AgreementV1.sol";
-import "openzeppelin-contracts/access/Ownable.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 /// @dev This contract is Ownable and mutable. It is intended to be used by entities adopting the

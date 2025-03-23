@@ -6,11 +6,11 @@ import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import "../src/v1/SafeHarborRegistry.sol";
-import "../script/SafeHarborRegistryDeploy.s.sol";
-import "../script/AdoptSafeHarbor.s.sol";
-import "../src/v1/AgreementV1.sol";
-import "./mock.sol";
+import "../../src/v1/SafeHarborRegistry.sol";
+import "../../script/SafeHarborRegistryDeploy.s.sol";
+import "../../script/AdoptSafeHarbor.s.sol";
+import "../../src/v1/AgreementV1.sol";
+import "../mock.sol";
 
 contract AgreementValidatorV1Test is TestBase, DSTest {
     uint256 mockKey;
@@ -32,7 +32,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         mockKey = 0xA11;
         mockAddress = vm.addr(mockKey);
         registry = SafeHarborRegistry(registryAddr);
-        json = vm.readFile("./test/mock.json");
+        json = vm.readFile("test/mock.json");
     }
 
     function test_run() public {
