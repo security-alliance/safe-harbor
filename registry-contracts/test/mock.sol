@@ -40,22 +40,24 @@ function logAgreementDetails(AgreementDetailsV1 memory details) view {
     console.log("Agreement URI:", details.agreementURI);
 
     // Print Contact Details
+    console.log("Contact Details:");
     for (uint256 i = 0; i < details.contactDetails.length; i++) {
         console.log("Contact Name:", details.contactDetails[i].name);
         console.log("Contact Information:", details.contactDetails[i].contact);
     }
 
     // Print Chain Details
+    console.log("Chain Details:");
     for (uint256 i = 0; i < details.chains.length; i++) {
-        console.log("Chain ID:", details.chains[i].id);
-        console.log("Asset Recovery Address:", details.chains[i].assetRecoveryAddress);
-        console.log("Number of Accounts in Scope:", details.chains[i].accounts.length);
+        console.log("  Chain ID:", details.chains[i].id);
+        console.log("  Asset Recovery Address:", details.chains[i].assetRecoveryAddress);
+        console.log("  Number of Accounts in Scope:", details.chains[i].accounts.length);
 
         // Print Account Details
         for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
-            console.log("  Account Address:", details.chains[i].accounts[j].accountAddress);
-            console.log("  Child Contract Scope:", uint256(details.chains[i].accounts[j].childContractScope));
-            console.logBytes(details.chains[i].accounts[j].signature); // Print signature as bytes
+            console.log("    Account Address:", details.chains[i].accounts[j].accountAddress);
+            console.log("    Child Contract Scope:", uint256(details.chains[i].accounts[j].childContractScope));
+            console.log("    Signature: ", string(details.chains[i].accounts[j].signature));
         }
     }
 
