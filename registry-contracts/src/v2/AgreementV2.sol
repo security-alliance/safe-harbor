@@ -22,7 +22,7 @@ contract AgreementV2 is Ownable {
     /// ----- EVENTS -----
 
     /// @notice An event that records when a safe harbor agreement is updated.
-    event SafeHarborUpdate();
+    event AgreementUpdated();
 
     /// ----- ERRORS -----
     error ChainNotFound();
@@ -42,17 +42,17 @@ contract AgreementV2 is Ownable {
 
     function setProtocolName(string memory _protocolName) external onlyOwner {
         details.protocolName = _protocolName;
-        emit SafeHarborUpdate();
+        emit AgreementUpdated();
     }
 
     function setContactDetails(V1.Contact[] memory _contactDetails) external onlyOwner {
         details.contactDetails = _contactDetails;
-        emit SafeHarborUpdate();
+        emit AgreementUpdated();
     }
 
     function addChain(V1.Chain memory _chain) external onlyOwner {
         details.chains.push(_chain);
-        emit SafeHarborUpdate();
+        emit AgreementUpdated();
     }
 
     function removeChain(uint256 _chainId) external onlyOwner {
@@ -63,7 +63,7 @@ contract AgreementV2 is Ownable {
 
             details.chains[i] = details.chains[details.chains.length - 1];
             details.chains.pop();
-            emit SafeHarborUpdate();
+            emit AgreementUpdated();
             return;
         }
 
@@ -77,7 +77,7 @@ contract AgreementV2 is Ownable {
             }
 
             details.chains[i].accounts.push(_account);
-            emit SafeHarborUpdate();
+            emit AgreementUpdated();
             return;
         }
 
@@ -97,7 +97,7 @@ contract AgreementV2 is Ownable {
 
                 details.chains[i].accounts[j] = details.chains[i].accounts[details.chains[i].accounts.length - 1];
                 details.chains[i].accounts.pop();
-                emit SafeHarborUpdate();
+                emit AgreementUpdated();
                 return;
             }
         }
@@ -107,7 +107,7 @@ contract AgreementV2 is Ownable {
 
     function setBountyTerms(V1.BountyTerms memory _bountyTerms) external onlyOwner {
         details.bountyTerms = _bountyTerms;
-        emit SafeHarborUpdate();
+        emit AgreementUpdated();
     }
 
     /// @notice Function that returns the details of the agreement.

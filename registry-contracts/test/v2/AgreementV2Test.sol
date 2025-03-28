@@ -46,7 +46,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.setProtocolName(newName);
 
         V1.AgreementDetailsV1 memory _details = agreement.getDetails();
@@ -65,7 +65,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.setContactDetails(newContacts);
 
         V1.AgreementDetailsV1 memory _details = agreement.getDetails();
@@ -90,7 +90,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.addChain(newChain);
         V1.AgreementDetailsV1 memory _details = agreement.getDetails();
         V1.Chain memory _chain = _details.chains[_details.chains.length - 1];
@@ -126,7 +126,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.removeChain(chainId);
 
         // Verify the change
@@ -155,7 +155,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.addAccount(1, newAccount);
 
         // Verify the change
@@ -196,7 +196,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.removeAccount(chainId, accountAddress);
 
         // Verify the change
@@ -222,7 +222,7 @@ contract AgreementV2Test is Test.Test {
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
-        emit V2.AgreementV2.SafeHarborUpdate();
+        emit V2.AgreementV2.AgreementUpdated();
         agreement.setBountyTerms(newTerms);
 
         // Verify the change
