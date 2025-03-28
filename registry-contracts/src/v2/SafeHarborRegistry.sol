@@ -28,15 +28,13 @@ contract SafeHarborRegistry is AgreementValidatorV1 {
     }
 
     function version() external pure returns (string memory) {
-        return _version;
+        return "1.1.0";
     }
 
     /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.
-    /// @param details The details of the agreement.
-    function adoptSafeHarbor(AgreementDetailsV1 memory details) external {
+    /// @param agreementAddress The address of the agreement to adopt.
+    function adoptSafeHarbor(address agreementAddress) external {
         address adopter = msg.sender;
-        V2.AgreementV2 agreementDetails = new V2.AgreementV2(details, adopter);
-        address agreementAddress = address(agreementDetails);
 
         address oldDetails = agreements[adopter];
         agreements[adopter] = agreementAddress;
