@@ -6,7 +6,7 @@ import "../v1/AgreementValidatorV1.sol";
 import "./AgreementV2.sol" as V2;
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
-contract SafeHarborRegistry is AgreementValidatorV1 {
+contract SafeHarborRegistryV2 is AgreementValidatorV1 {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
 
