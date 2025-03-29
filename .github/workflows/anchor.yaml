@@ -3,45 +3,50 @@ name: Anchor Tests
 on:
     push:
         branches: [main]
+        paths:
+            - "registry-contracts-solana/**"
+            - ".github/workflows/anchor-test.yml"
     pull_request:
         branches: [main]
+    workflow_dispatch:
 
-env:
-    CARGO_TERM_COLOR: always
 jobs:
-    build:
+    test:
         runs-on: ubuntu-latest
-        container: projectserum/build:v0.24.2
 
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout repo
+              uses: actions/checkout@v3
 
-            - name: List rustup toolchains
-              run: rustup toolchain list
+            - name: Install Rust
+              run: |
+                  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+                  echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-            - name: Set default toolchain
-              run: rustup default stable
+            - name: Install Solana CLI
+              run: |
+                  sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+                  echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-            - name: List rustup toolchains
-              run: rustup toolchain list
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
 
-            - name: Generate new keygen
-              run: solana-keygen new
+            - name: Install Yarn
+              run: npm install -g yarn
 
-            - name: Set solana target cluster to local
-              run: solana config set --url http:localhost:8899
+            - name: Install AVM and Anchor CLI
+              run: |
+                  cargo install --git https://github.com/coral-xyz/anchor avm --force
+                  avm install 0.31.0
+                  avm use 0.31.0
+                  echo "$HOME/.avm/bin" >> $GITHUB_PATH
 
-            - name: Check solana config
-              run: solana config get
-
-            - name: Install yarn dependencies
+            - name: Install project dependencies
               working-directory: registry-contracts-solana
               run: yarn install
 
-            - name: Build
-              working-directory: registry-contracts-solana
-              run: anchor build
-
-            - name: Run tests
+            - name: Run Anchor tests
               working-directory: registry-contracts-solana
               run: anchor test

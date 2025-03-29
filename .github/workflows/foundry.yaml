@@ -3,8 +3,11 @@ name: Foundry Tests
 on:
     push:
         branches: [main]
+        paths:
+            - "registry-contracts/**"
     pull_request:
         branches: [main]
+    workflow_dispatch:
 
 jobs:
     unit:
@@ -19,9 +22,9 @@ jobs:
               uses: foundry-rs/foundry-toolchain@v1
 
             - name: Run tests
-              run: forge test -vvv
               working-directory: registry-contracts
+              run: forge test -vvv
 
             - name: Run snapshot
-              run: forge snapshot
               working-directory: registry-contracts
+              run: forge snapshot
