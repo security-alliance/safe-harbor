@@ -18,6 +18,11 @@ jobs:
             - name: Checkout repo
               uses: actions/checkout@v3
 
+            - name: Cache Rust dependencies
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: registry-contracts-solana
+
             - name: Install Rust
               run: |
                   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -46,6 +51,10 @@ jobs:
             - name: Install project dependencies
               working-directory: registry-contracts-solana
               run: yarn install
+
+            - name: Generate default Solana keypair
+              run: |
+                  solana-keygen new --no-bip39-passphrase --force
 
             - name: Run Anchor tests
               working-directory: registry-contracts-solana
