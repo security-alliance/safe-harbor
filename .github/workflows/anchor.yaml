@@ -1,0 +1,47 @@
+name: Anchor Tests
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+env:
+    CARGO_TERM_COLOR: always
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: projectserum/build:v0.24.2
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: List rustup toolchains
+              run: rustup toolchain list
+
+            - name: Set default toolchain
+              run: rustup default stable
+
+            - name: List rustup toolchains
+              run: rustup toolchain list
+
+            - name: Generate new keygen
+              run: solana-keygen new
+
+            - name: Set solana target cluster to local
+              run: solana config set --url http:localhost:8899
+
+            - name: Check solana config
+              run: solana config get
+
+            - name: Install yarn dependencies
+              working-directory: registry-contracts-solana
+              run: yarn install
+
+            - name: Build
+              working-directory: registry-contracts-solana
+              run: anchor build
+
+            - name: Run tests
+              working-directory: registry-contracts-solana
+              run: anchor test
