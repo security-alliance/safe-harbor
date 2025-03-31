@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct Agreement {
+    pub version: u8,
     pub owner: Pubkey,
     #[max_len(100)]
     pub protocol_name: String,

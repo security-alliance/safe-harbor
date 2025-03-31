@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { SafeHarborV2 } from "../target/types/safe_harbor_v2";
 
 export function expectAgreementEqual(actual: any, expected: any) {
+    expect(actual.version.toNumber()).to.equal(expected.version);
     expect(actual.owner.toBase58()).to.equal(expected.owner);
     expect(actual.protocolName).to.equal(expected.protocolName);
     expect(actual.agreementUri).to.equal(expected.agreementUri);
@@ -35,6 +36,7 @@ export function getAccountPda(
 
 export function createMockAgreement(owner: anchor.web3.PublicKey) {
     return {
+        version: 1,
         owner: owner.toBase58(),
         protocolName: "example",
         assetRecoveryAddress: new anchor.web3.PublicKey("5oNDL3swdJJF1g9DzJiZ4ynHXgszjAEpUkxVYejchzrY"),

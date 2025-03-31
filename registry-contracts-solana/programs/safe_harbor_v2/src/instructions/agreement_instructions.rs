@@ -17,6 +17,7 @@ pub fn create_agreement_handler(
 ) -> Result<()> {
     let agreement = &mut ctx.accounts.agreement;
 
+    agreement.version = 1;
     agreement.owner = owner;
     agreement.protocol_name = protocol_name;
     agreement.contact_details = contact_details;
