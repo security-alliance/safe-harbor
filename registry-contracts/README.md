@@ -17,13 +17,17 @@ There are 2 contracts in this system:
 -   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreements are validated.
 -   `AgreementV1` - Adopted agreements created by protocols.
 
-## Setup
+## Deployment
 
-1. The `SafeHarborRegistry` contract is deployed with the fallback registry as constructor arguments.
+The `SafeHarborRegistry*` contracts are using the `DeployRegistryV*.s.sol` scripts. The contract should be deployed with the fallback registry as constructor arguments.
 
 In the future SEAL may create new versions of this agreement. When this happens a new registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details. Old registries will always remain functional.
 
 ## Adoption
+
+Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
+
+### V1 (1.0.0)
 
 1. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement details.
 2. The registry deploys an `Agreement` contract containing the provided agreement details.
@@ -31,7 +35,15 @@ In the future SEAL may create new versions of this agreement. When this happens 
 
 A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`.
 
-Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
+### V2 (1.1.0)
+
+1. A protocol creates a new `Agreement` or `AgreementV2` smart contract with their agreement details.
+2. The protocol calls `adoptSafeHarbor` on the `SafeHarborRegistryV2`.
+3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
+
+#### Updating Agreements
+
+V2 Safe Harbor agreements are mutable and ownable. This allows protocols to update their agreement details in-place and delegate the responsibility of maintaining the agreement details to a third-party address. To facilitate this, the `AgreementV2` contract inherits from the OpenZepplin `Ownable` contract and implements `set*` methods for all its mutable fields.
 
 ### Using the script to adopt Safe Harbor.
 
@@ -40,10 +52,10 @@ Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.s
 3. Run the script using:
 
 ```
-forge script AdoptSafeHarbor --rpc-url <URL> --verify --etherscan-api-key <API_KEY> --broadcast
+forge script AdoptSafeHarbor --rpc-url <URL> --verify --etherscan-api-key <API_KEY>
 ```
 
-If you would like to deploy from the protocol multisig, please contact us directly.
+If you would like help with adopting safe harbor, please contact us.
 
 ### Signed Accounts
 

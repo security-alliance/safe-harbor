@@ -3,14 +3,16 @@ pragma solidity ^0.8.13;
 
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import "../src/v1/SafeHarborRegistry.sol";
+import "../../src/v1/SafeHarborRegistry.sol";
 
-contract AdoptSafeHarbor is ScriptBase {
+contract AdoptSafeHarborV1 is ScriptBase {
     using stdJson for string;
+
+    address constant REGISTRY_ADDRESS = address(0x00);
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        SafeHarborRegistry registry = SafeHarborRegistry(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6);
+        SafeHarborRegistry registry = SafeHarborRegistry(REGISTRY_ADDRESS);
         string memory json = vm.readFile("agreementDetails.json");
 
         adopt(deployerPrivateKey, registry, json);

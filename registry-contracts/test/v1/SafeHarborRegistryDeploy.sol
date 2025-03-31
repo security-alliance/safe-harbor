@@ -6,7 +6,7 @@ import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import "../../script/SafeHarborRegistryDeploy.s.sol";
+import "../../script/v1/DeployRegistryV1.s.sol";
 
 contract SafeHarborRegistryTest is TestBase, DSTest {
     // Set up the environment before each test
@@ -16,7 +16,7 @@ contract SafeHarborRegistryTest is TestBase, DSTest {
     }
 
     function test_run() public {
-        SafeHarborRegistryDeploy script = new SafeHarborRegistryDeploy();
+        DeployRegistryV1 script = new DeployRegistryV1();
         script.run();
     }
 }

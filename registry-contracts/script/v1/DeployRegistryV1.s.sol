@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {SafeHarborRegistry} from "../src/v1/SafeHarborRegistry.sol";
+import {SafeHarborRegistry} from "../../src/v1/SafeHarborRegistry.sol";
 
-contract SafeHarborRegistryDeploy is Script {
+contract DeployRegistryV1 is Script {
     // This is a create2 factory deployed by a one-time-use-account as described here:
     // https://github.com/Arachnid/deterministic-deployment-proxy. As a result, this factory
     // exists (or can exist) on any EVM compatible chain, and gives us a guaranteed way to deploy
@@ -31,8 +31,9 @@ contract SafeHarborRegistryDeploy is Script {
 
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
-
         SafeHarborRegistry registry = new SafeHarborRegistry{salt: DETERMINISTIC_DEPLOY_SALT}(fallbackRegistry);
+        vm.stopBroadcast();
+
         address deployedRegistryAddress = address(registry);
 
         require(
@@ -47,8 +48,6 @@ contract SafeHarborRegistryDeploy is Script {
 
         console.log("SafeHarborRegistry deployed to:");
         console.logAddress(deployedRegistryAddress);
-
-        vm.stopBroadcast();
     }
 
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
