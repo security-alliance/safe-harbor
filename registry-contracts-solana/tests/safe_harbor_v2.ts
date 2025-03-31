@@ -406,8 +406,14 @@ describe("safe_harbor_v2", () => {
         }
     });
 
-    it("emits SafeHarborAdoptionEvent on adoption", async () => {
-        return new Promise<void>(async (resolve, reject) => {
+    it("emits SafeHarborAdoptionEvent and creates an AdoptionRecord on adoption", async () => {
+        //* Arrange
+        const [adoptionRecordPda] = await anchor.web3.PublicKey.findProgramAddressSync(
+            [Buffer.from("adoption"), authority.publicKey.toBuffer()],
+            program.programId
+        );
+
+        let eventPromise = new Promise<void>((resolve, reject) => {
             const listener = program.addEventListener("safeHarborAdoptionEvent", (event, _slot) => {
                 try {
                     expect(event.agreement.toBase58()).to.equal(agreementAddress.toBase58());
@@ -420,18 +426,27 @@ describe("safe_harbor_v2", () => {
                 }
             });
 
-            try {
-                await program.methods
-                    .adoptSafeHarbor(agreementAddress)
-                    .accounts({
-                        authority: authority.publicKey,
-                    })
-                    .signers([authority])
-                    .rpc();
-            } catch (err) {
+            setTimeout(() => {
                 program.removeEventListener(listener);
-                reject(err);
-            }
+                reject(new Error("Event listener timeout"));
+            }, 10000);
         });
+
+        //* Act
+        await program.methods
+            .adoptSafeHarbor(agreementAddress)
+            .accounts({
+                authority: authority.publicKey,
+            })
+            .signers([authority])
+            .rpc();
+
+        //* Assert
+        await eventPromise;
+
+        const adoptionRecord = await program.account.adoptionRecord.fetch(adoptionRecordPda);
+        expect(adoptionRecord.authority.toBase58()).to.equal(authority.publicKey.toBase58());
+        expect(adoptionRecord.agreement.toBase58()).to.equal(agreementAddress.toBase58());
+        expect(adoptionRecord.timestamp.toNumber()).to.be.greaterThan(0);
     });
 });
