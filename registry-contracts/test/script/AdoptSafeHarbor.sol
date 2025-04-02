@@ -7,12 +7,11 @@ import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "../../src/v1/SafeHarborRegistry.sol";
-import "../../script/SafeHarborRegistryDeploy.s.sol";
-import "../../script/AdoptSafeHarbor.s.sol";
-import "../../src/v1/AgreementV1.sol";
-import "../mock.sol";
+import "../../script/v1/AdoptSafeHarborV1.s.sol";
+import "../../script/v1/DeployRegistryV1.s.sol";
+import {getMockAgreementDetails, logAgreementDetails} from "../v1/mock.sol";
 
-contract AgreementValidatorV1Test is TestBase, DSTest {
+contract AdoptSafeHarborV1Test is TestBase, DSTest {
     uint256 mockKey;
     address mockAddress;
     SafeHarborRegistry registry;
@@ -23,7 +22,7 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         string memory fakePrivateKey = "0xf0931a501a9b5fd5183d01f35526e5bc64d05d9d25d4005a8b1600ed6cd8d795";
         vm.setEnv("REGISTRY_DEPLOYER_PRIVATE_KEY", fakePrivateKey);
 
-        SafeHarborRegistryDeploy script = new SafeHarborRegistryDeploy();
+        DeployRegistryV1 script = new DeployRegistryV1();
         script.run();
 
         address fallbackRegistry = address(0);
@@ -32,11 +31,11 @@ contract AgreementValidatorV1Test is TestBase, DSTest {
         mockKey = 0xA11;
         mockAddress = vm.addr(mockKey);
         registry = SafeHarborRegistry(registryAddr);
-        json = vm.readFile("test/mock.json");
+        json = vm.readFile("test/v1/mock.json");
     }
 
     function test_run() public {
-        AdoptSafeHarbor script = new AdoptSafeHarbor();
+        AdoptSafeHarborV1 script = new AdoptSafeHarborV1();
         script.adopt(mockKey, registry, json);
 
         // Check if the agreement was adopted

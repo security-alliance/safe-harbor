@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptBase} from "forge-std/Base.sol";
-import "../src/v1/SafeHarborRegistry.sol";
+import "../../src/v1/SafeHarborRegistry.sol";
 
-contract AdoptSafeHarbor is ScriptBase {
+contract AdoptSafeHarborV1 is ScriptBase {
     using stdJson for string;
 
     function run() public {

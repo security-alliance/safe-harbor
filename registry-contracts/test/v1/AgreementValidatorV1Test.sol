@@ -8,7 +8,7 @@ import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "../../src/v1/SafeHarborRegistry.sol";
 import "../../src/v1/AgreementV1.sol";
-import "../mock.sol";
+import "./mock.sol";
 
 contract AgreementValidatorV1Test is TestBase, DSTest {
     AgreementValidatorV1 validator;

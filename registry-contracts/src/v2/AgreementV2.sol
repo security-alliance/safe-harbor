@@ -2,7 +2,15 @@
 pragma solidity ^0.8.20;
 
 import {console} from "forge-std/console.sol";
-import "../v1/AgreementV1.sol" as V1;
+import {
+    AgreementDetailsV2,
+    Chain,
+    Account,
+    Contact,
+    BountyTerms,
+    ChildContractScope,
+    IdentityRequirements
+} from "./AgreementDetailsV2.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 string constant _version = "1.1.0";
@@ -17,7 +25,7 @@ string constant _version = "1.1.0";
  */
 contract AgreementV2 is Ownable {
     /// @notice The details of the agreement.
-    V1.AgreementDetailsV1 private details;
+    AgreementDetailsV2 private details;
 
     /// ----- EVENTS -----
 
@@ -32,7 +40,7 @@ contract AgreementV2 is Ownable {
 
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
-    constructor(V1.AgreementDetailsV1 memory _details, address _owner) Ownable(_owner) {
+    constructor(AgreementDetailsV2 memory _details, address _owner) Ownable(_owner) {
         details = _details;
     }
 
@@ -45,12 +53,12 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
-    function setContactDetails(V1.Contact[] memory _contactDetails) external onlyOwner {
+    function setContactDetails(Contact[] memory _contactDetails) external onlyOwner {
         details.contactDetails = _contactDetails;
         emit AgreementUpdated();
     }
 
-    function addChain(V1.Chain memory _chain) external onlyOwner {
+    function addChain(Chain memory _chain) external onlyOwner {
         details.chains.push(_chain);
         emit AgreementUpdated();
     }
@@ -70,7 +78,7 @@ contract AgreementV2 is Ownable {
         revert ChainNotFound();
     }
 
-    function addAccount(uint256 _chainId, V1.Account memory _account) external onlyOwner {
+    function addAccount(uint256 _chainId, Account memory _account) external onlyOwner {
         for (uint256 i = 0; i < details.chains.length; i++) {
             if (details.chains[i].id != _chainId) {
                 continue;
@@ -84,14 +92,17 @@ contract AgreementV2 is Ownable {
         revert ChainNotFound();
     }
 
-    function removeAccount(uint256 _chainId, address _account) external onlyOwner {
+    function removeAccount(uint256 _chainId, string memory _account) external onlyOwner {
         for (uint256 i = 0; i < details.chains.length; i++) {
             if (details.chains[i].id != _chainId) {
                 continue;
             }
 
             for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
-                if (details.chains[i].accounts[j].accountAddress != _account) {
+                if (
+                    keccak256(abi.encodePacked(details.chains[i].accounts[j].accountAddress))
+                        != keccak256(abi.encodePacked(_account))
+                ) {
                     continue;
                 }
 
@@ -105,15 +116,15 @@ contract AgreementV2 is Ownable {
         revert AccountNotFound();
     }
 
-    function setBountyTerms(V1.BountyTerms memory _bountyTerms) external onlyOwner {
+    function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
         details.bountyTerms = _bountyTerms;
         emit AgreementUpdated();
     }
 
     /// @notice Function that returns the details of the agreement.
     /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
-    /// @return AgreementDetailsV1 The details of the agreement.
-    function getDetails() external view returns (V1.AgreementDetailsV1 memory) {
+    /// @return AgreementDetailsV2 The details of the agreement.
+    function getDetails() external view returns (AgreementDetailsV2 memory) {
         return details;
     }
 }

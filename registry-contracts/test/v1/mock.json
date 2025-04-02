@@ -13,7 +13,7 @@
             "id": 1
         }
     ],
-    "contactDetails": [
+    "contact": [
         {
             "name": "Test Name",
             "contact": "test@mail.com"

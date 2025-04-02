@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {console} from "forge-std/console.sol";
-import "../src/v1/AgreementV1.sol";
+import "../../src/v1/AgreementV1.sol";
 
 function getMockAgreementDetails(address accountAddress) pure returns (AgreementDetailsV1 memory mockDetails) {
     Account memory account =
