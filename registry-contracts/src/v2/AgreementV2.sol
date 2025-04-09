@@ -63,6 +63,7 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
+    /// @notice Function that removes a chain from the agreement.
     function removeChain(uint256 _chainId) external onlyOwner {
         for (uint256 i = 0; i < details.chains.length; i++) {
             if (details.chains[i].id != _chainId) {
@@ -92,25 +93,40 @@ contract AgreementV2 is Ownable {
         revert ChainNotFound();
     }
 
-    function removeAccount(uint256 _chainId, string memory _account) external onlyOwner {
+    function setAccount(uint256 _chainId, uint256 _accountId, Account memory _account) external onlyOwner {
         for (uint256 i = 0; i < details.chains.length; i++) {
             if (details.chains[i].id != _chainId) {
                 continue;
             }
 
-            for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
-                if (
-                    keccak256(abi.encodePacked(details.chains[i].accounts[j].accountAddress))
-                        != keccak256(abi.encodePacked(_account))
-                ) {
-                    continue;
-                }
-
-                details.chains[i].accounts[j] = details.chains[i].accounts[details.chains[i].accounts.length - 1];
-                details.chains[i].accounts.pop();
-                emit AgreementUpdated();
-                return;
+            if (details.chains[i].accounts.length <= _accountId) {
+                revert AccountNotFound();
             }
+            details.chains[i].accounts[_accountId] = _account;
+            emit AgreementUpdated();
+            return;
+        }
+
+        revert ChainNotFound();
+    }
+
+    /// @notice Function that removes an account from the agreement.
+    /// @dev This function will move the last account in the array to the index of
+    /// @dev the removed account, and then pop the last element. If calling this
+    /// @dev function multiple times, the order of the accounts will change.
+    function removeAccount(uint256 _chainId, uint256 _accountId) external onlyOwner {
+        for (uint256 i = 0; i < details.chains.length; i++) {
+            if (details.chains[i].id != _chainId) {
+                continue;
+            }
+
+            if (details.chains[i].accounts.length <= _accountId) {
+                revert AccountNotFound();
+            }
+            details.chains[i].accounts[_accountId] = details.chains[i].accounts[details.chains[i].accounts.length - 1];
+            details.chains[i].accounts.pop();
+            emit AgreementUpdated();
+            return;
         }
 
         revert AccountNotFound();

@@ -155,6 +155,40 @@ contract AgreementV2Test is Test.Test {
         assertEq(keccak256(abi.encode(newAccount)), keccak256(abi.encode(_account)));
     }
 
+    function testSetAccount() public {
+        string memory accountAddress = "0x02";
+        uint256 chainId = 1;
+
+        V2.Account memory newAccount =
+            V2.Account({accountAddress: accountAddress, childContractScope: V2.ChildContractScope.None});
+
+        // Should fail when called by non-owner
+        vm.prank(notOwner);
+        vm.expectRevert();
+        agreement.setAccount(chainId, 0, newAccount);
+
+        // should fail when setting to non-existent chain
+        vm.prank(owner);
+        vm.expectRevert(V2.AgreementV2.ChainNotFound.selector);
+        agreement.setAccount(999, 0, newAccount);
+
+        // should fail when setting to non-existent account
+        vm.prank(owner);
+        vm.expectRevert(V2.AgreementV2.AccountNotFound.selector);
+        agreement.setAccount(chainId, 999, newAccount);
+
+        // Should succeed when called by owner
+        vm.prank(owner);
+        vm.expectEmit();
+        emit V2.AgreementV2.AgreementUpdated();
+        agreement.setAccount(chainId, 0, newAccount);
+
+        // Verify the change
+        V2.AgreementDetailsV2 memory _details = agreement.getDetails();
+        V2.Account memory _account = _details.chains[0].accounts[0];
+        assertEq(keccak256(abi.encode(newAccount)), keccak256(abi.encode(_account)));
+    }
+
     function testRemoveAccount() public {
         string memory accountAddress = "0x05";
         uint256 chainId = 1;
@@ -168,23 +202,23 @@ contract AgreementV2Test is Test.Test {
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.removeAccount(chainId, accountAddress);
+        agreement.removeAccount(chainId, 1);
 
         // Should fail when removing from non-existent chain
         vm.prank(owner);
         vm.expectRevert(V2.AgreementV2.AccountNotFound.selector);
-        agreement.removeAccount(999, accountAddress);
+        agreement.removeAccount(999, 1);
 
         // Should fail when removing non-existent account
         vm.prank(owner);
         vm.expectRevert(V2.AgreementV2.AccountNotFound.selector);
-        agreement.removeAccount(chainId, "0x123456789");
+        agreement.removeAccount(chainId, 10);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.removeAccount(chainId, accountAddress);
+        agreement.removeAccount(chainId, 1);
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
