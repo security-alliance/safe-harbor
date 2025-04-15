@@ -50,9 +50,10 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         vm.prank(registryOwner);
         registry.addChains(chainNames);
 
-        assertEq(registry.chainCount(), 2);
-        assertEq(registry.chains(0), chainNames[0]);
-        assertEq(registry.chains(1), chainNames[1]);
+        string[] memory chains = registry.getChains();
+        assertEq(chains.length, 2);
+        assertEq(chains[0], chainNames[0]);
+        assertEq(chains[1], chainNames[1]);
 
         // Should fail if chain already exists
         vm.expectRevert();

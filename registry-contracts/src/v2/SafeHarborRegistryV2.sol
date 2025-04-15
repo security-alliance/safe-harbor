@@ -13,11 +13,7 @@ contract SafeHarborRegistryV2 is Ownable {
     mapping(address entity => address details) private agreements;
 
     /// @notice A mapping of Safe Harbor ChainIDs to their respective chain names.  Counts up from 1.
-    mapping(uint256 => string) public chains;
-    mapping(string => uint256) public chainIDs;
-
-    /// @notice The total number of registered chains.
-    uint256 public chainCount;
+    string[] public chains;
 
     /// @notice The fallback registry.
     IRegistry fallbackRegistry;
@@ -38,7 +34,6 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice Sets the factory and fallback registry addresses
     constructor(address _fallbackRegistry, address _owner) Ownable(_owner) {
         fallbackRegistry = IRegistry(_fallbackRegistry);
-        chainCount = 0;
     }
 
     function version() external pure returns (string memory) {
@@ -46,18 +41,22 @@ contract SafeHarborRegistryV2 is Ownable {
     }
 
     /// @notice Function that adds a list of chain names to the registry.
-    function addChains(string[] memory chainNames) external onlyOwner {
-        for (uint256 i = 0; i < chainNames.length; i++) {
-            string memory chainName = chainNames[i];
-            if (chainIDs[chainName] != 0) {
-                revert ChainAlreadyExists(chainName);
+    function addChains(string[] memory _chains) external onlyOwner {
+        for (uint256 i = 0; i < _chains.length; i++) {
+            for (uint256 j = 0; j < chains.length; j++) {
+                if (keccak256(abi.encodePacked(_chains[i])) == keccak256(abi.encodePacked(chains[j]))) {
+                    revert ChainAlreadyExists(_chains[i]);
+                }
             }
 
-            chains[chainCount] = chainName;
-            chainIDs[chainName] = chainCount + 1;
-            emit ChainAdded(chainName);
-            chainCount++;
+            chains.push(_chains[i]);
+            emit ChainAdded(_chains[i]);
         }
+    }
+
+    /// @notice Function that returns the list of chain names.
+    function getChains() external view returns (string[] memory) {
+        return chains;
     }
 
     /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.
