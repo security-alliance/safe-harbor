@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
+import {AgreementV2Factory} from "../../src/v2/AgreementV2Factory.sol";
 
 contract DeployRegistryV2 is Script {
     // This is a create2 factory deployed by a one-time-use-account as described here:
@@ -38,18 +39,39 @@ contract DeployRegistryV2 is Script {
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
         address deployerAddress = vm.addr(deployerPrivateKey);
 
-        address registryAddress = getExpectedAddress(fallbackRegistry, deployerAddress);
-        require(registryAddress.code.length == 0, "Registry already deployed, nothing left to do.");
+        // Deploy the Registry
+        address expectedRegistryAddress = getExpectedRegistryAddress(fallbackRegistry, deployerAddress);
+        if (expectedRegistryAddress.code.length == 0) {
+            deployRegistry(deployerPrivateKey, fallbackRegistry, deployerAddress, expectedRegistryAddress);
+        } else {
+            console.log("Registry already deployed at:");
+            console.logAddress(expectedRegistryAddress);
+        }
 
-        vm.startBroadcast(deployerPrivateKey);
+        // Deploy the Factory
+        address expectedFactoryAddress = getExpectedFactoryAddress();
+        if (expectedFactoryAddress.code.length == 0) {
+            deployFactory(deployerPrivateKey, expectedFactoryAddress);
+        } else {
+            console.log("Factory already deployed at:");
+            console.logAddress(expectedFactoryAddress);
+        }
+    }
+
+    function deployRegistry(
+        uint256 deployerPrivateKey,
+        address _fallbackRegistry,
+        address _owner,
+        address expectedAddress
+    ) internal {
+        vm.broadcast(deployerPrivateKey);
         SafeHarborRegistryV2 registry =
-            new SafeHarborRegistryV2{salt: DETERMINISTIC_DEPLOY_SALT}(fallbackRegistry, deployerAddress);
-        vm.stopBroadcast();
+            new SafeHarborRegistryV2{salt: DETERMINISTIC_DEPLOY_SALT}(_fallbackRegistry, _owner);
 
         address deployedRegistryAddress = address(registry);
 
         require(
-            deployedRegistryAddress == registryAddress,
+            deployedRegistryAddress == expectedAddress,
             "Deployed to unexpected address. Check that Foundry is using the correct create2 factory."
         );
 
@@ -62,9 +84,29 @@ contract DeployRegistryV2 is Script {
         console.logAddress(deployedRegistryAddress);
     }
 
+    function deployFactory(uint256 deployerPrivateKey, address expectedAddress) internal {
+        vm.broadcast(deployerPrivateKey);
+        AgreementV2Factory factory = new AgreementV2Factory{salt: DETERMINISTIC_DEPLOY_SALT}();
+
+        address deployedFactoryAddress = address(factory);
+
+        require(
+            deployedFactoryAddress == expectedAddress,
+            "Factory deployed to unexpected address. Check that Foundry is using the correct create2 factory."
+        );
+
+        require(
+            deployedFactoryAddress.code.length != 0,
+            "Factory deployment failed. Check that Foundry is using the correct create2 factory."
+        );
+
+        console.log("AgreementV2Factory deployed to:");
+        console.logAddress(deployedFactoryAddress);
+    }
+
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
     // and salt are used.
-    function getExpectedAddress(address _fallbackRegistry, address _owner) public pure returns (address) {
+    function getExpectedRegistryAddress(address _fallbackRegistry, address _owner) public pure returns (address) {
         return address(
             uint160(
                 uint256(
@@ -80,6 +122,24 @@ contract DeployRegistryV2 is Script {
                                     abi.encode(_owner)
                                 )
                             )
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    // Computes the address which the factory will be deployed to
+    function getExpectedFactoryAddress() public pure returns (address) {
+        return address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes1(0xff),
+                            DETERMINISTIC_CREATE2_FACTORY,
+                            DETERMINISTIC_DEPLOY_SALT,
+                            keccak256(abi.encodePacked(type(AgreementV2Factory).creationCode))
                         )
                     )
                 )
