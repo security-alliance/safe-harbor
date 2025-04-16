@@ -29,7 +29,8 @@ struct Chain {
     // The accounts in scope for the agreement.
     Account[] accounts;
     // The chain ID. Unique identifier that references the safe harbor chainID, located
-    // in the registry. WARNING: Not to be confused with the EVM ChainID (https://chainlist.org/).
+    // in the registry. In general this will corespond to the EVM ChainID,
+    // but for non-EVM chains random IDs will be selected.
     uint256 id;
 }
 

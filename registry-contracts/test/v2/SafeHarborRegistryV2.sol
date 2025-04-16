@@ -33,14 +33,18 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         agreementAddress = address(agreement);
     }
 
-    function test_addChains() public {
+    function test_setChains() public {
         string[] memory chainNames = new string[](2);
         chainNames[0] = "chain1";
         chainNames[1] = "chain2";
 
+        uint256[] memory chainIds = new uint256[](2);
+        chainIds[0] = 5;
+        chainIds[1] = 10;
+
         // Should fail if not called by owner
         vm.expectRevert();
-        registry.addChains(chainNames);
+        registry.setChains(chainIds, chainNames);
 
         // Should succeed if called by owner
         vm.expectEmit();
@@ -48,17 +52,20 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         vm.expectEmit();
         emit SafeHarborRegistryV2.ChainAdded(chainNames[1]);
         vm.prank(registryOwner);
-        registry.addChains(chainNames);
+        registry.setChains(chainIds, chainNames);
 
-        string[] memory chains = registry.getChains();
-        assertEq(chains.length, 2);
-        assertEq(chains[0], chainNames[0]);
-        assertEq(chains[1], chainNames[1]);
+        (uint256[] memory ids, string[] memory names) = registry.getChains();
+        assertEq(ids.length, 2);
+        assertEq(ids[0], chainIds[0]);
+        assertEq(ids[1], chainIds[1]);
+        assertEq(names.length, 2);
+        assertEq(names[0], chainNames[0]);
+        assertEq(names[1], chainNames[1]);
 
         // Should fail if chain already exists
         vm.expectRevert();
         vm.prank(registryOwner);
-        registry.addChains(chainNames);
+        registry.setChains(chainIds, chainNames);
     }
 
     function test_adoptSafeHarbor() public {

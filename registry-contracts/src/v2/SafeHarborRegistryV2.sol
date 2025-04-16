@@ -12,8 +12,10 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
 
-    /// @notice A mapping of Safe Harbor ChainIDs to their respective chain names.  Counts up from 1.
-    string[] public chains;
+    /// @notice A mapping of chainIDs to their names.  Uses EVM chainIDs where possible, and adds custom IDs for non-EVM chains.
+    mapping(uint256 => string) public chains;
+    /// @notice A list of chain IDs that are enabled.
+    uint256[] public chainIds;
 
     /// @notice The fallback registry.
     IRegistry fallbackRegistry;
@@ -41,22 +43,31 @@ contract SafeHarborRegistryV2 is Ownable {
     }
 
     /// @notice Function that adds a list of chain names to the registry.
-    function addChains(string[] memory _chains) external onlyOwner {
-        for (uint256 i = 0; i < _chains.length; i++) {
-            for (uint256 j = 0; j < chains.length; j++) {
-                if (keccak256(abi.encodePacked(_chains[i])) == keccak256(abi.encodePacked(chains[j]))) {
-                    revert ChainAlreadyExists(_chains[i]);
-                }
+    function setChains(uint256[] calldata _chainIds, string[] calldata _chainNames) external onlyOwner {
+        require(_chainIds.length == _chainNames.length, "Input arrays must have same length");
+
+        for (uint256 i = 0; i < _chainIds.length; i++) {
+            uint256 chainId = _chainIds[i];
+            if (bytes(chains[chainId]).length != 0) {
+                revert ChainAlreadyExists(_chainNames[i]);
             }
 
-            chains.push(_chains[i]);
-            emit ChainAdded(_chains[i]);
+            chains[chainId] = _chainNames[i];
+            chainIds.push(chainId);
+            emit ChainAdded(_chainNames[i]);
         }
     }
 
-    /// @notice Function that returns the list of chain names.
-    function getChains() external view returns (string[] memory) {
-        return chains;
+    /// @notice Returns all chain IDs and their names
+    function getChains() external view returns (uint256[] memory ids, string[] memory names) {
+        uint256 length = chainIds.length;
+        names = new string[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            names[i] = chains[chainIds[i]];
+        }
+
+        return (chainIds, names);
     }
 
     /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.

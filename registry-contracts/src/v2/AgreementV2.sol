@@ -58,56 +58,72 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
-    function addChain(Chain memory _chain) external onlyOwner {
-        details.chains.push(_chain);
+    function addChains(Chain[] memory _chains) external onlyOwner {
+        for (uint256 i = 0; i < _chains.length; i++) {
+            details.chains.push(_chains[i]);
+        }
         emit AgreementUpdated();
     }
 
-    /// @notice Function that removes a chain from the agreement.
+    function setChains(uint256[] memory _chainIds, Chain[] memory _chains) external onlyOwner {
+        require(_chainIds.length == _chains.length, "Input arrays must have same length");
+
+        for (uint256 i = 0; i < _chainIds.length; i++) {
+            if (details.chains.length <= _chainIds[i]) {
+                revert ChainNotFound();
+            }
+
+            details.chains[_chainIds[i]] = _chains[i];
+        }
+
+        emit AgreementUpdated();
+    }
+
+    /// @notice Removes chains from the agreement.
+    /// @notice This function will move the last chain in the array to the index of
+    /// @notice the removed chain, and then pop the last element. If calling this
+    /// @notice function multiple times, the order of the chains will change.
     function removeChain(uint256 _chainId) external onlyOwner {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (details.chains[i].id != _chainId) {
-                continue;
-            }
-
-            details.chains[i] = details.chains[details.chains.length - 1];
-            details.chains.pop();
-            emit AgreementUpdated();
-            return;
+        if (details.chains.length <= _chainId) {
+            revert ChainNotFound();
         }
 
-        revert ChainNotFound();
+        details.chains[_chainId] = details.chains[details.chains.length - 1];
+        details.chains.pop();
+
+        emit AgreementUpdated();
     }
 
-    function addAccount(uint256 _chainId, Account memory _account) external onlyOwner {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (details.chains[i].id != _chainId) {
-                continue;
-            }
-
-            details.chains[i].accounts.push(_account);
-            emit AgreementUpdated();
-            return;
+    function addAccounts(uint256 _chainId, Account[] memory _accounts) external onlyOwner {
+        if (details.chains.length <= _chainId) {
+            revert ChainNotFound();
         }
 
-        revert ChainNotFound();
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            details.chains[_chainId].accounts.push(_accounts[i]);
+        }
+
+        emit AgreementUpdated();
     }
 
-    function setAccount(uint256 _chainId, uint256 _accountId, Account memory _account) external onlyOwner {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (details.chains[i].id != _chainId) {
-                continue;
-            }
+    function setAccounts(uint256 _chainId, uint256[] memory _accountIds, Account[] memory _accounts)
+        external
+        onlyOwner
+    {
+        if (details.chains.length <= _chainId) {
+            revert ChainNotFound();
+        }
 
-            if (details.chains[i].accounts.length <= _accountId) {
+        require(_accountIds.length == _accounts.length, "Input arrays must have same length");
+
+        for (uint256 i = 0; i < _accountIds.length; i++) {
+            if (details.chains[_chainId].accounts.length <= _accountIds[i]) {
                 revert AccountNotFound();
             }
-            details.chains[i].accounts[_accountId] = _account;
-            emit AgreementUpdated();
-            return;
+            details.chains[_chainId].accounts[_accountIds[i]] = _accounts[i];
         }
 
-        revert ChainNotFound();
+        emit AgreementUpdated();
     }
 
     /// @notice Function that removes an account from the agreement.
@@ -115,21 +131,18 @@ contract AgreementV2 is Ownable {
     /// @dev the removed account, and then pop the last element. If calling this
     /// @dev function multiple times, the order of the accounts will change.
     function removeAccount(uint256 _chainId, uint256 _accountId) external onlyOwner {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (details.chains[i].id != _chainId) {
-                continue;
-            }
-
-            if (details.chains[i].accounts.length <= _accountId) {
-                revert AccountNotFound();
-            }
-            details.chains[i].accounts[_accountId] = details.chains[i].accounts[details.chains[i].accounts.length - 1];
-            details.chains[i].accounts.pop();
-            emit AgreementUpdated();
-            return;
+        if (details.chains.length <= _chainId) {
+            revert ChainNotFound();
         }
 
-        revert AccountNotFound();
+        if (details.chains[_chainId].accounts.length <= _accountId) {
+            revert AccountNotFound();
+        }
+
+        uint256 lastAccountId = details.chains[_chainId].accounts.length - 1;
+        details.chains[_chainId].accounts[_accountId] = details.chains[_chainId].accounts[lastAccountId];
+        details.chains[_chainId].accounts.pop();
+        emit AgreementUpdated();
     }
 
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
