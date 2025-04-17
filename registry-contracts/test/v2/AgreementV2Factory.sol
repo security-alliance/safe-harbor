@@ -37,7 +37,7 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
 
     function test_createAndRegisterAgreemenr() public {
         vm.prank(protocol);
-        address agreementAddress = factory.createAndRegisterAgreement(agreementDetails, address(registry), protocol);
+        address agreementAddress = factory.create(agreementDetails, protocol);
 
         // Verify the agreement was created
         assertTrue(agreementAddress != address(0), "Agreement address should not be zero");
