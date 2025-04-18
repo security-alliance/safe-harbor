@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/Security-Alliance-Logo-Blue.svg" alt="SEAL"/>
+  <img src="assets/whitehat-full-logo-blue.svg" alt="SEAL Whitehat Safe Harbor" height=100/>
 </p>
 
-# Whitehat Safe Harbor
+# SEAL Whitehat Safe Harbor Agreement
 
 The Whitehat Safe Harbor initiative is a framework in which protocols can offer legal protection to whitehats who aid in the recovery of assets during an active exploit.
 
@@ -12,21 +12,30 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 -   [documents/summary.pdf](documents/summary.pdf) - a helper document that summarizes the official agreement.
 -   [documents/FAQ.md](documents/FAQ.md) - answers to common questions about SEAL Safe Harbor.
 -   [registry-contracts/](registry-contracts/) - the smart contracts that on-chain governance can use to signal their official adoption of the agreement.
+-   [releases](https://github.com/security-alliance/safe-harbor/releases) - release changelog for different versions of the seal whitehat safe harbor agreement.
 
 ## Registry Addresses
 
-| Chain | Address |
-| :-: | :-: |
-| Ethereum | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Polygon | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Arbitrum | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://arbiscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Optimism | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://optimistic.etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Base | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://basescan.org/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Avalanche C | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://snowtrace.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| Polygon zkEVM | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://zkevm.polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) |
-| BSC | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://bscscan.com/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6) |
-| Gnosis | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6) |
-| ZKsync | [0x5f5eEc1a37F42883Df9DacdAb11985467F813877](https://explorer.zksync.io/address/0x5f5eEc1a37F42883Df9DacdAb11985467F813877#contract#contract-info) |
+| Chain         | Address                                                                                                                          | Version |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Ethereum      | [0xca15fff400e853d497facc5456ec0231fdbcf20e](https://etherscan.io/address/0xca15fff400e853d497facc5456ec0231fdbcf20e)            | 2       |
+|               |                                                                                                                                  |         |
+| Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
+| Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
+| Arbitrum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://arbiscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)             | 1       |
+| Optimism      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://optimistic.etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6) | 1       |
+| Base          | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://basescan.org/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
+| Avalanche C   | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://snowtrace.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
+| Polygon zkEVM | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://zkevm.polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)   | 1       |
+| BSC           | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://bscscan.com/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)             | 1       |
+| Gnosis        | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)           | 1       |
+| ZKsync        | [0x5f5eEc1a37F42883Df9DacdAb11985467F813877](https://explorer.zksync.io/address/0x5f5eEc1a37F42883Df9DacdAb11985467F813877)      | 1       |
+
+## Factory Addresses
+
+| Chain    | Address                                                                                                               | Version |
+| -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
+| Ethereum | [0x9d211cac1ce390f676d1cb1d2eb681410ec47e47](https://etherscan.io/address/0x9d211cac1ce390f676d1cb1d2eb681410ec47e47) | 2       |
 
 ## How does it work?
 
@@ -66,4 +75,4 @@ If the whitehat decides to proceed with a whitehat rescue, they must follow the 
 
 ## How to Contribute
 
-To contribute to the discussion, please use [the discussions section](https://github.com/security-alliance/safe-harbor/discussions) of this GitHub repo.  You can also reach out to robert@skylock.xyz or join SEAL's [discord](https://discord.gg/securityalliance) and ask for @trebor_ahw.  
+To contribute to the discussion, please use [the discussions section](https://github.com/security-alliance/safe-harbor/discussions) of this GitHub repo. You can also reach out to robert@skylock.xyz or join SEAL's [discord](https://discord.gg/securityalliance) and ask for @trebor_ahw.
