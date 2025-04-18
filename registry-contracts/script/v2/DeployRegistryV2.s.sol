@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
-import {AgreementV2Factory} from "../../src/v2/AgreementV2Factory.sol";
+import {AgreementFactoryV2} from "../../src/v2/AgreementFactoryV2.sol";
 
 contract DeployRegistryV2 is Script {
     // This is a create2 factory deployed by a one-time-use-account as described here:
@@ -86,7 +86,7 @@ contract DeployRegistryV2 is Script {
 
     function deployFactory(uint256 deployerPrivateKey, address expectedAddress) internal {
         vm.broadcast(deployerPrivateKey);
-        AgreementV2Factory factory = new AgreementV2Factory{salt: DETERMINISTIC_DEPLOY_SALT}();
+        AgreementFactoryV2 factory = new AgreementFactoryV2{salt: DETERMINISTIC_DEPLOY_SALT}();
 
         address deployedFactoryAddress = address(factory);
 
@@ -100,7 +100,7 @@ contract DeployRegistryV2 is Script {
             "Factory deployment failed. Check that Foundry is using the correct create2 factory."
         );
 
-        console.log("AgreementV2Factory deployed to:");
+        console.log("AgreementFactoryV2 deployed to:");
         console.logAddress(deployedFactoryAddress);
     }
 
@@ -139,7 +139,7 @@ contract DeployRegistryV2 is Script {
                             bytes1(0xff),
                             DETERMINISTIC_CREATE2_FACTORY,
                             DETERMINISTIC_DEPLOY_SALT,
-                            keccak256(abi.encodePacked(type(AgreementV2Factory).creationCode))
+                            keccak256(abi.encodePacked(type(AgreementFactoryV2).creationCode))
                         )
                     )
                 )

@@ -7,14 +7,14 @@ import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 import "../../src/v2/SafeHarborRegistryV2.sol";
-import "../../src/v2/AgreementV2Factory.sol";
+import "../../src/v2/AgreementFactoryV2.sol";
 import {AgreementV2} from "../../src/v2/AgreementV2.sol";
 import "../../src/v2/AgreementDetailsV2.sol";
 import {getMockAgreementDetails} from "./mock.sol";
 
 contract AgreementFactoryV2Test is TestBase, DSTest {
     SafeHarborRegistryV2 registry;
-    AgreementV2Factory factory;
+    AgreementFactoryV2 factory;
 
     address deployer;
     address protocol;
@@ -29,7 +29,7 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         owner = address(0xDEF);
 
         registry = new SafeHarborRegistryV2(address(0), deployer);
-        factory = new AgreementV2Factory();
+        factory = new AgreementFactoryV2();
 
         // Set up mock agreement details
         agreementDetails = getMockAgreementDetails("0xAABB");
