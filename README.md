@@ -18,7 +18,7 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum      | [0xca15fff400e853d497facc5456ec0231fdbcf20e](https://etherscan.io/address/0xca15fff400e853d497facc5456ec0231fdbcf20e)            | 2       |
+| Ethereum      | [0xca15Fff400e853d497Facc5456ec0231FdBcf20E](https://etherscan.io/address/0xca15Fff400e853d497Facc5456ec0231FdBcf20E)            | 2       |
 |               |                                                                                                                                  |         |
 | Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
 | Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
@@ -35,7 +35,7 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain    | Address                                                                                                               | Version |
 | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x9d211cac1ce390f676d1cb1d2eb681410ec47e47](https://etherscan.io/address/0x9d211cac1ce390f676d1cb1d2eb681410ec47e47) | 2       |
+| Ethereum | [0x9d211CaC1ce390F676d1cB1D2Eb681410EC47E47](https://etherscan.io/address/0x9d211CaC1ce390F676d1cB1D2Eb681410EC47E47) | 2       |
 
 ## How does it work?
 
