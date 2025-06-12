@@ -72,19 +72,19 @@ This \textbf{WHITEHAT SAFE HARBOR AGREEMENT (this \textit{Agreement})} sets fort
           \begin{enumerate}
               \item the '\textbf{protocolName}', being a string specifying the name of the Protocol governed by such DAO, for which this Agreement is being adopted by such DAO;
 
-              \item the '\textbf{chains}', being a struct specifying, for each chainon which an Eligible Funds Rescue from the Protocol is intended to beauthorized:
+              \item the '\textbf{chains}', being a struct specifying, for each chain on which an Eligible Funds Rescue from the Protocol is intended to be authorized:
 
                     \begin{enumerate}
                         \item the '\textbf{chainID}' of such chain;
 
                         \item the '\textbf{assetRecoveryAddress}' on such chain (which shall be the Asset Recovery Address with respect to the instance of theProtocol on such chain for Eligible Protocol Rescues pursuant to this Agreement); and
 
-                        \item the '\textbf{accounts}' scope (being a struct specifying, for each blockchain account (which may be an 'externally owned' or 'smart contract' account) included in the Protocol on such chain forpurposes of Eligible Funds Rescues of the Protocol on such chain):
+                        \item the '\textbf{accounts}' scope (being a struct specifying, for each blockchain account (which may be an 'externally owned' or 'smart contract' account) included in the Protocol on such chain for purposes of Eligible Funds Rescues of the Protocol on such chain):
 
                               \begin{enumerate}
                                   \item the '\textbf{accountAddress}' of such account on such chain;
 
-                                  \item the '\textbf{childContractScope}' for such account,which specifies whether, with respect to the child contracts createdby the accountAddress:
+                                  \item the '\textbf{childContractScope}' for such account,which specifies whether, with respect to the child contracts created by the accountAddress:
 
                                         \begin{itemize}
                                             \item none of such contracts are in scope for Eligible Funds Rescues (the '\textbf{None}' parameter);
@@ -104,9 +104,9 @@ This \textbf{WHITEHAT SAFE HARBOR AGREEMENT (this \textit{Agreement})} sets fort
 
               \item the '\textbf{contactDetails}' (being a struct specifying, foreach individual or entity who should be contacted by Eligible Whitehats for notices to the Protocol Community pursuant to this Agreement, the name of such person within the Protocol Community and the contact details (e.g., email, phone, telegram handle, etc.) of such person for purposes of receiving notifications pursuant to this Agreement, including for purposes of receiving pre-rescue notifications pursuant to Section \ref{sec:eligibility});
 
-              \item the '\textbf{bountyTerms}' (being a struct specifying theBounty Percentage (the '\textbf{bountyPercentage}' string), the Bounty Cap (the '\textbf{bountyCapUSD}' integer), the Aggregate Bounty Cap (the '\textbf{aggregateBountyCapUSD}' integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehatsin connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the '\textbf{retainable}' boolean); if aggregateBountyCapUSD is specified, retainable must be set to false to ensure accurate enforcement of the AggregateBounty Cap), the IdentityRequirement identityRequirement struct (specifying whether the Eligible Whitehat can be '\textbf{Anonymous}' or '\textbf{Pseudonymous}' or rather must confirm their legal name ('\textbf{Named}')) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in orderto qualify for payment of the Bounty (the '\textbf{diligenceRequirements}' string);
+              \item the '\textbf{bountyTerms}' (being a struct specifying theBounty Percentage (the '\textbf{bountyPercentage}' string), the Bounty Cap (the '\textbf{bountyCapUSD}' integer), the Aggregate Bounty Cap (the '\textbf{aggregateBountyCapUSD}' integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehats in connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the '\textbf{retainable}' boolean); if aggregateBountyCapUSD is specified, retainable must be set to false to ensure accurate enforcement of the AggregateBounty Cap), the IdentityRequirement identityRequirement struct (specifying whether the Eligible Whitehat can be '\textbf{Anonymous}' or '\textbf{Pseudonymous}' or rather must confirm their legal name ('\textbf{Named}')) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in order to qualify for payment of the Bounty (the '\textbf{diligenceRequirements}' string);
 
-              \item the '\textbf{agreementURI}' (being the IPFS hash of the exact text of theofficial version of this Agreement as of the date of adoption).
+              \item the '\textbf{agreementURI}' (being the IPFS hash of the exact text of the official version of this Agreement as of the date of adoption).
 
           \end{enumerate}
 
@@ -405,7 +405,7 @@ This Section \ref{sec:warranties} does not: (a) contain any representation, warr
 
 \subsection{Release of Whitehat Liability to Protocol Community}\label{subsec:release_whitehat_liability_protocol_community}
 \begin{enumerate}[label=\Alph*.]
-    \item Release by Protocol Community. The Protocol Community and each Protocol Community Member, hereby, to the extent permitted at law, irrevocably, unconditionally, and completely exculpates, releases, acquits and forever discharges Whitehat from, and hereby irrevocably, unconditionally, and completely waives and relinquishes, every Claim, that any Protocol Community or Protocol Community Member may have had in the past, may now have, or may have in the future against Whitehat, relating to or arising out of each Eligible Funds Rescue successfully executed by or with the assistance of the Whitehat, including any Claim based on a theory of quantum meruit, promissory estoppel, or other equitable doctrine and any Claim contrary to any of the acknowledgements and assumptions of risk set forth in this Agreement; \textit{provided, however}, that Whitehat shall not be released from any breach or non-compliance with the terms and conditions of this Agreement and provided further that this release does not apply to any indemnity owed by the Whitehat under Section \ref{subsec:indemnity}(A).
+    \item Release by Protocol Community. The Protocol Community and each Protocol Community Member, hereby, to the extent permitted at law, irrevocably, unconditionally, and completely exculpates, releases, acquits and forever discharges Whitehat from, and hereby irrevocably, unconditionally, and completely waives and relinquishes, every Claim, that any Protocol Community or Protocol Community Member may have had in the past, may now have, or may have in the future against Whitehat, relating to or arising out of each Eligible Funds Rescue successfully executed by or with the assistance of the Whitehat, including any Claim based on a theory of quantum merit, promissory estoppel, or other equitable doctrine and any Claim contrary to any of the acknowledgements and assumptions of risk set forth in this Agreement; \textit{provided, however}, that Whitehat shall not be released from any breach or non-compliance with the terms and conditions of this Agreement and provided further that this release does not apply to any indemnity owed by the Whitehat under Section \ref{subsec:indemnity}(A).
 
     \item No-Litigation. The Protocol Community and each Protocol Community Member hereby agree not to assert or attempt to assert against the Whitehat any Claim from which such Whitehat has been released under Section \ref{subsec:release_whitehat_liability_protocol_community}.
 
