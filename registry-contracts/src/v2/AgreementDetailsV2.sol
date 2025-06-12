@@ -67,6 +67,9 @@ struct BountyTerms {
     IdentityRequirements identity;
     // The diligence requirements placed on eligible whitehats. Only applicable for Named whitehats.
     string diligenceRequirements;
+    // Optional. Caps the total USD value of bounties paid across all whitehats for a single exploit.
+    // If set to 0, no aggregate cap applies and each whitehat may receive up to bountyCapUSD individually.
+    uint256 aggregateBountyCapUSD;
 }
 
 /// @notice Whitehat identity verification requirements.

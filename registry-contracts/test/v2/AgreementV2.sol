@@ -264,7 +264,8 @@ contract AgreementV2Test is Test.Test {
             bountyCapUSD: 1000000,
             retainable: true,
             identity: V2.IdentityRequirements.Named,
-            diligenceRequirements: "Diligence"
+            diligenceRequirements: "Diligence",
+            aggregateBountyCapUSD: 0
         });
 
         // Should fail when called by non-owner
