@@ -283,4 +283,25 @@ contract AgreementV2Test is Test.Test {
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(newTerms)), keccak256(abi.encode(_details.bountyTerms)));
     }
+
+    // Test that setting both aggregateBountyCapUSD > 0 and retainable = true fails
+    function testCannotSetBothAggregateBountyCapUSDAndRetainable() public {
+        V2.BountyTerms memory invalidTerms = V2.BountyTerms({
+            bountyPercentage: 20,
+            bountyCapUSD: 1000000,
+            retainable: true,
+            identity: V2.IdentityRequirements.Named,
+            diligenceRequirements: "Diligence",
+            aggregateBountyCapUSD: 1000 // Set to > 0
+        });
+
+        // Should fail when both conditions are true
+        vm.prank(owner);
+        vm.expectRevert(V2.AgreementV2.CannotSetBothAggregateBountyCapUSDAndRetainable.selector);
+        agreement.setBountyTerms(invalidTerms);
+
+        // Verify the original terms are unchanged
+        V2.AgreementDetailsV2 memory _details = agreement.getDetails();
+        assertEq(keccak256(abi.encode(details.bountyTerms)), keccak256(abi.encode(_details.bountyTerms)));
+    }
 }
