@@ -15,13 +15,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo (on actual branch)
+      # 1. Checkout the merge commit (default behavior)—this always exists, even for forks
+      - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
           persist-credentials: true
 
+      # 2. Compile from documents/, so \import{exhibits/}{a.tex} resolves
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
@@ -33,8 +34,10 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      - name: Commit PDF back to branch (only if not from a fork)
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+      # 3. Only commit & push back to the branch if it's in *this* repo (not a fork)
+      - name: Commit PDF back to branch
+        if: github.event_name == 'push' ||
+            github.event.pull_request.head.repo.full_name == github.repository
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions[bot]
