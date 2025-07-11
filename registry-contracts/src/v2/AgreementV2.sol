@@ -35,6 +35,7 @@ contract AgreementV2 is Ownable {
     /// ----- ERRORS -----
     error ChainNotFound();
     error AccountNotFound();
+    error CannotSetBothAggregateBountyCapUSDAndRetainable();
 
     /// ----- METHODS -----
 
@@ -146,6 +147,9 @@ contract AgreementV2 is Ownable {
     }
 
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
+        if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
+            revert CannotSetBothAggregateBountyCapUSDAndRetainable();
+        }
         details.bountyTerms = _bountyTerms;
         emit AgreementUpdated();
     }
