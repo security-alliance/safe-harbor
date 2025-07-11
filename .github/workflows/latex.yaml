@@ -5,27 +5,29 @@ on:
     branches: [ main ]
     paths:
       - 'documents/agreement.tex'
+      - 'documents/exhibits/**/*.tex'    # rebuild if any exhibit changes
   pull_request:
     paths:
       - 'documents/agreement.tex'
+      - 'documents/exhibits/**/*.tex'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. Check out the repo
       - uses: actions/checkout@v3
 
-      # 2. Compile the single TeX file
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
           root_file: documents/agreement.tex
           compiler: latexmk
-          # Optional: enable shell-escape if needed
-          args: -pdf -latexoption=-file-line-error -latexoption=-interaction=nonstopmode
+          args: >
+            -pdf
+            -cd documents
+            -latexoption="-file-line-error"
+            -latexoption="-interaction=nonstopmode"
 
-      # 3. Upload the PDF as an artifact
       - name: Upload agreement.pdf
         uses: actions/upload-artifact@v4
         with:
