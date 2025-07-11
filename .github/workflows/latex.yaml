@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'documents/agreement.tex'
-      - 'documents/exhibits/**/*.tex'    # rebuild if any exhibit changes
+      - 'documents/exhibits/**/*.tex'
   pull_request:
     paths:
       - 'documents/agreement.tex'
@@ -20,11 +20,12 @@ jobs:
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
-          root_file: documents/agreement.tex
+          # tell the action where to cd into before compiling
+          working_directory: documents
+          root_file: agreement.tex
           compiler: latexmk
           args: >
             -pdf
-            -cd documents
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
