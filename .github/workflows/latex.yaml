@@ -13,18 +13,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1. Check out the repo
       - uses: actions/checkout@v3
 
+      # 2. Compile the single TeX file
       - name: Compile agreement.tex
-        uses: dante-ev/latex-action@v2
+        uses: dante-ev/latex-action@latest
         with:
           root_file: documents/agreement.tex
           compiler: latexmk
-          latexmk_use_shell_escape: true
-          cache: true
+          # Optional: enable shell-escape if needed
+          args: -pdf -latexoption=-file-line-error -latexoption=-interaction=nonstopmode
 
+      # 3. Upload the PDF as an artifact
       - name: Upload agreement.pdf
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agreement-pdf
           path: documents/agreement.pdf
