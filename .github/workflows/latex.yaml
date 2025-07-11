@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo (on the real branch)
+      - name: Checkout repo (on actual branch)
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref || github.ref }}
@@ -33,7 +33,8 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      - name: Add & commit agreement.pdf
+      - name: Commit PDF back to branch (only if not from a fork)
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions[bot]
