@@ -51,4 +51,20 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         // Verify ownership is set to protocol
         assertEq(agreement.owner(), protocol, "Agreement owner should be protocol");
     }
+
+    function test_cannotSetBothAggregateBountyCapUSDAndRetainable() public {
+        // Create agreement details with both aggregateBountyCapUSD > 0 and retainable = true
+        AgreementDetailsV2 memory invalidDetails = getMockAgreementDetails(
+            "0xAABB"
+        );
+        invalidDetails.bountyTerms.aggregateBountyCapUSD = 1000; // Set to > 0
+        invalidDetails.bountyTerms.retainable = true; // Set to true
+
+        // Expect the transaction to revert with the specific error
+        vm.expectRevert(
+            CannotSetBothAggregateBountyCapUSDAndRetainable.selector
+        );
+        vm.prank(protocol);
+        factory.create(invalidDetails, protocol);
+    }
 }

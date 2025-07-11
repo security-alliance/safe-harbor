@@ -18,7 +18,8 @@ function getMockAgreementDetails(string memory accountAddress) pure returns (Agr
         bountyCapUSD: 100,
         retainable: true,
         identity: IdentityRequirements.Anonymous,
-        diligenceRequirements: "none"
+        diligenceRequirements: "none",
+        aggregateBountyCapUSD: 0
     });
 
     mockDetails = AgreementDetailsV2({
@@ -66,4 +67,5 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
     console.log("Is Retainable:", details.bountyTerms.retainable);
     console.log("Identity Requirement:", uint256(details.bountyTerms.identity));
     console.log("Diligence Requirements:", details.bountyTerms.diligenceRequirements);
+    console.log("Aggregate Bounty Cap USD:", details.bountyTerms.aggregateBountyCapUSD);
 }
