@@ -1,4 +1,4 @@
-name: Build Agreement PDF
+name: Build & Commit Agreement PDF
 
 on:
   push:
@@ -15,12 +15,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo (with write perms)
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true   # so later push uses GITHUB_TOKEN
+          fetch-depth: 0
 
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
-          # tell the action where to cd into before compiling
           working_directory: documents
           root_file: agreement.tex
           compiler: latexmk
@@ -29,8 +32,12 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      - name: Upload agreement.pdf
-        uses: actions/upload-artifact@v4
+      # commit & push the newly-built PDF back into the branch
+      - name: Add & commit agreement.pdf
+        uses: EndBug/add-and-commit@v9
         with:
-          name: agreement-pdf
-          path: documents/agreement.pdf
+          author_name: github-actions[bot]
+          author_email: github-actions[bot]@users.noreply.github.com
+          message: "ci: add compiled agreement.pdf"
+          add: "documents/agreement.pdf"
+          branch: ${{ github.head_ref || github.ref_name }}  # handles both PRs & direct pushes
