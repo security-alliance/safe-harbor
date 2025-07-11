@@ -6,8 +6,8 @@ import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import "../src/SafeHarborRegistry.sol";
-import "../src/AgreementV1.sol";
+import "../../src/v1/SafeHarborRegistry.sol";
+import "../../src/v1/AgreementV1.sol";
 import "./mock.sol";
 
 contract AgreementValidatorV1Test is TestBase, DSTest {

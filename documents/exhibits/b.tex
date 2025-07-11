@@ -1,0 +1,35 @@
+\textit{Note any Protocol-specific DAO Proposal procedures, such as sentiment checks, pre-proposal audit, etc.}
+
+DAO Proposal Components:
+
+\begin{enumerate}
+    \item \textbf{Title} - Post each proposal with a clear title around its objective, matching or referencing a unique identifier of the proposal that was submitted on-chain or will be submitted on-chain (for example, IPFS hash of pinned text for a prospective proposal, or transaction hash of a submitted proposal), and should follow any applicable ordering/numbering/categorization of the Protocol DAO.
+
+          \textit{Ex.} [Proposal No. \_\_] - Adopt Safe Harbor Agreement for Whitehats
+
+    \item \textbf{Overview} - Delineate the objectives of the proposal and what specific actions are being enacted (if on-chain governance) and suggested (for off-chain signaled actions). The summary should specify on-chain target contracts and methods, and off-chain agents/designees, and describe the motivation behind the proposal, including but not limited to the problem(s) it solves and the value it adds to the Protocol and Protocol Community.
+
+          \textit{Ex.} The Security Alliance has prepared a Safe Harbor Agreement for Whitehats (the "Agreement") to incentivize and give comfort to whitehats rescuing digital assets from active exploits of decentralized technologies (i.e., on-chain protocols), and to provide a safe harbor for assets that are the subject of an exploit. The text of the Agreement is [located/hosted/pinned at \_\_\_\_\_\_]. This Proposal's aim is to provide an on-chain indication of our Protocol Community's agreement to the Agreement as of the date of successful passing and execution.
+
+    \item \textbf{Specification} - Technical and (if applicable) legal specifications around the Proposal's intended effects and actions. Specify target method(s) and argument(s), and all necessary off-chain signaled effects, actions, key actors, and beneficiaries.
+
+          \begin{enumerate}[label=\alph*.]
+              \item Exercise care in entering the target contract address, target method signature, and target method arguments/parameters; if applicable, consult the Protocol documentation.
+          \end{enumerate}
+
+          \textit{Ex.} A successfully passed proposal will result in the Protocol and Protocol Community's revocable adoption of the Safe Harbor Agreement for Whitehats. The target is as follows: [Insert applicable function signature and params]
+
+    \item \textbf{Benefits} - Describe the reasonable, intended benefits to the Protocol and Protocol Community of the proposal's implementation in quantitative and qualitative terms.
+
+          \textit{Ex.} By adopting this Agreement, our protocol community would encourage Whitehats (as defined in the Agreement) to, pursuant to criteria set out in the Agreement, responsibly test, seek to penetrate, and otherwise exploit software which utilizes, incorporates, or is otherwise complementary to our protocol, and potentially receive a reward for conducting such exploits. Following our protocol community's adoption, only those Whitehats who agree to the terms of the Agreement and act accordingly would therefore be eligible for rewards; this way, the specific parameters of Eligible Funds Rescue and reward procedures are agreed in advance, so frenzied rescues and negotiations immediately after exploits can be substantially mitigated. Adoption of the Agreement could generally provide a strong complement to protocol audits for ongoing security.
+
+    \item \textbf{Detriments} - Disclose reasonably foreseeable harm, damages, risks, and liabilities to the Protocol and Protocol Community resulting from this proposal's implementation in quantitative and qualitative terms.
+
+          \textit{Ex.} While the Safe Harbor Agreement for Whitehats has been drafted and reviewed by numerous developers and lawyers, it may have unintentional or unanticipated legal consequences, loopholes, or other deficiencies for the Protocol, Protocol Community, or Whitehats. The length and relative complexity of the Safe Harbor Agreement for Whitehats may deter otherwise willing Whitehats from engaging in activity that would be beneficial to the Protocol.
+
+    \item \textbf{Summary of Options} - Clearly and succinctly summarize the vote options on this Proposal, especially if the options are more inclusive than simply \textit{For} or \textit{Against}.
+
+          \textit{Ex.} For: Adopt the Safe Harbor Agreement for Whitehats. Against: Take no action.
+
+    \item \textbf{Summary of Proposed DAO Adoption Procedures} - State the proposed parameterization of the adoptSafeHarbor function call for the DAO Adoption Procedures.
+\end{enumerate}

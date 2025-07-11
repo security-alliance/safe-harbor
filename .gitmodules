@@ -2,3 +2,6 @@
 	path = registry-contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
 	branch = v1.4.0
+[submodule "registry-contracts/lib/openzeppelin-contracts"]
+	path = registry-contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts

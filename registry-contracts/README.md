@@ -25,11 +25,11 @@ In the future SEAL may create new versions of this agreement. When this happens 
 
 ## Adoption
 
-1. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement details.
-2. The registry deploys an `Agreement` contract containing the provided agreement details.
+1. A protocol creates their agreement details contract using one of the provided `AgreementFactories`. This can be done using any address.
+2. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement contract. This must be done from a legally representative address of that protocol.
 3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
 
-A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`.
+A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`. Protocols may also update their details on any mutable Agreement.
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
@@ -57,7 +57,7 @@ Whitehats may use the registy's `validateAccount()` method to verify that a give
 
 ## Querying Agreements
 
-1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV1` address.
+1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV*` address.
 2. Query the protocol's `Agreement` contract with `getDetails()` to get the address of the structured agreement details.
 
 Different versions may have different `AgreementDetails` structs. All `Agreement` and `SafeHarborRegistry` contracts will include a `version()` method which can be used to infer the `AgreementDetails` structure.
