@@ -14,11 +14,13 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 -   [registry-contracts/](registry-contracts/) - the smart contracts that on-chain governance can use to signal their official adoption of the agreement.
 -   [releases](https://github.com/security-alliance/safe-harbor/releases) - release changelog for different versions of the seal whitehat safe harbor agreement.
 
+
 ## Registry Addresses
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum      | [0xca15Fff400e853d497Facc5456ec0231FdBcf20E](https://etherscan.io/address/0xca15Fff400e853d497Facc5456ec0231FdBcf20E)            | 2       |
+| Ethereum      | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://etherscan.io/address/0xca15Fff400e853d497Facc5456ec0231FdBcf20E)            | 2       |
+| BSC           | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://etherscan.io/address/0xca15Fff400e853d497Facc5456ec0231FdBcf20E)            | 2       |
 |               |                                                                                                                                  |         |
 | Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
 | Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
@@ -35,7 +37,7 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain    | Address                                                                                                               | Version |
 | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x9d211CaC1ce390F676d1cB1D2Eb681410EC47E47](https://etherscan.io/address/0x9d211CaC1ce390F676d1cB1D2Eb681410EC47E47) | 2       |
+| Ethereum | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://etherscan.io/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 2       |
 
 ## How does it work?
 
