@@ -1,12 +1,12 @@
 name: Build & Commit Agreement PDF
 
 on:
-  push:
-    branches: [ main ]
+  pull_request:
     paths:
       - 'documents/agreement.tex'
       - 'documents/exhibits/**/*.tex'
-  pull_request:
+  push:
+    branches: [ main ]
     paths:
       - 'documents/agreement.tex'
       - 'documents/exhibits/**/*.tex'
@@ -15,11 +15,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo (with write perms)
+      - name: Checkout repo (on the real branch)
         uses: actions/checkout@v3
         with:
-          persist-credentials: true   # so later push uses GITHUB_TOKEN
+          ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
@@ -32,7 +33,6 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      # commit & push the newly-built PDF back into the branch
       - name: Add & commit agreement.pdf
         uses: EndBug/add-and-commit@v9
         with:
@@ -40,4 +40,4 @@ jobs:
           author_email: github-actions[bot]@users.noreply.github.com
           message: "ci: add compiled agreement.pdf"
           add: "documents/agreement.pdf"
-          branch: ${{ github.head_ref || github.ref_name }}  # handles both PRs & direct pushes
+          push: true
