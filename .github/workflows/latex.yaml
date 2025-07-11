@@ -1,0 +1,30 @@
+name: Build Agreement PDF
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'documents/agreement.tex'
+  pull_request:
+    paths:
+      - 'documents/agreement.tex'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Compile agreement.tex
+        uses: dante-ev/latex-action@v2
+        with:
+          root_file: documents/agreement.tex
+          compiler: latexmk
+          latexmk_use_shell_escape: true
+          cache: true
+
+      - name: Upload agreement.pdf
+        uses: actions/upload-artifact@v3
+        with:
+          name: agreement-pdf
+          path: documents/agreement.pdf
