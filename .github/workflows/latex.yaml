@@ -1,10 +1,7 @@
-name: Build & Commit Agreement PDF
+permissions:
+  contents: write     # allow the action to push commits
 
 on:
-  pull_request:
-    paths:
-      - 'documents/agreement.tex'
-      - 'documents/exhibits/**/*.tex'
   push:
     branches: [ main ]
     paths:
@@ -14,15 +11,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      # 1. Checkout the merge commit (default behavior)—this always exists, even for forks
+      # 1. Check out the repo with write perms
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
           persist-credentials: true
 
-      # 2. Compile from documents/, so \import{exhibits/}{a.tex} resolves
+      # 2. Compile the agreement.tex inside documents/
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
@@ -34,10 +33,8 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      # 3. Only commit & push back to the branch if it's in *this* repo (not a fork)
-      - name: Commit PDF back to branch
-        if: github.event_name == 'push' ||
-            github.event.pull_request.head.repo.full_name == github.repository
+      # 3. Commit & push the generated PDF back to main
+      - name: Commit generated PDF
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions[bot]
