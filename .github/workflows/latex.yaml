@@ -1,11 +1,13 @@
+# .github/workflows/build-documents.yml
 permissions:
-  contents: write     # allow the action to push commits
+  contents: write
 
 on:
   push:
     branches: [ main ]
     paths:
       - 'documents/agreement.tex'
+      - 'documents/summary.tex'
       - 'documents/exhibits/**/*.tex'
 
 jobs:
@@ -13,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out the repo with write perms
+      # 1. Checkout with write perms
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
@@ -21,7 +23,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      # 2. Compile the agreement.tex inside documents/
+      # 2. Compile agreement.tex
       - name: Compile agreement.tex
         uses: dante-ev/latex-action@latest
         with:
@@ -33,12 +35,24 @@ jobs:
             -latexoption="-file-line-error"
             -latexoption="-interaction=nonstopmode"
 
-      # 3. Commit & push the generated PDF back to main
-      - name: Commit generated PDF
+      # 3. Compile summary.tex
+      - name: Compile summary.tex
+        uses: dante-ev/latex-action@latest
+        with:
+          working_directory: documents
+          root_file: summary.tex
+          compiler: latexmk
+          args: >
+            -pdf
+            -latexoption="-file-line-error"
+            -latexoption="-interaction=nonstopmode"
+
+      # 4. Commit & push both PDFs back to main
+      - name: Commit generated PDFs
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions[bot]
           author_email: github-actions[bot]@users.noreply.github.com
-          message: "ci: add compiled agreement.pdf"
-          add: "documents/agreement.pdf"
+          message: "ci: add compiled agreement.pdf & summary.pdf"
+          add: "documents/*.pdf"
           push: true
