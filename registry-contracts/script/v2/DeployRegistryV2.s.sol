@@ -21,7 +21,7 @@ contract DeployRegistryV2 is Script {
     // Set this to the zero address if no fallback registry exists.
     //? 0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6 // mainnet
     //? 0x5f5eEc1a37F42883Df9DacdAb11985467F813877 // zksync
-    address fallbackRegistry = address(0);
+    address fallbackRegistry = address(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6);
 
     function run() public {
         require(
@@ -38,6 +38,9 @@ contract DeployRegistryV2 is Script {
 
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
         address deployerAddress = vm.addr(deployerPrivateKey);
+
+        console.log("Deploying from");
+        console.logAddress(deployerAddress);
 
         // Deploy the Registry
         address expectedRegistryAddress = getExpectedRegistryAddress(fallbackRegistry, deployerAddress);

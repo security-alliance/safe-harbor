@@ -4,9 +4,7 @@ out = "out"
 libs = ["lib"]
 via_ir = true
 fs_permissions = [{ access = "read", path = "./" }]
-
-[profile.default.optimizer_details]
-constantOptimizer = true
-yul = false
+optimizer = true
+optimizer_runs = 10
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
