@@ -1,0 +1,52 @@
+{
+    "agreementURI": "ipfs://QmExampleHashForSafeHarborAgreementDocument123456789",
+    "bountyTerms": {
+        "aggregateBountyCapUSD": 1000000,
+        "bountyCapUSD": 1000000,
+        "bountyPercentage": 10,
+        "diligenceRequirements": "The protocol requires all eligible whitehats to undergo Know Your Customer (KYC) verification and be screened against global sanctions lists, including OFAC, UK, and EU regulations. This process ensures that all bounty recipients are compliant with legal and regulatory standards before qualifying for payment.",
+        "identity": 2,
+        "retainable": false
+    },
+    "chains": [
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0x1234567890123456789012345678901234567890",
+                    "childContractScope": 0
+                },
+                {
+                    "accountAddress": "0xAbCdEf1234567890123456789012345678901234",
+                    "childContractScope": 3
+                }
+            ],
+            "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
+            "id": 1
+        },
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0x5555666677778888999900001111222233334444",
+                    "childContractScope": 3
+                },
+                {
+                    "accountAddress": "0xAABBCCDDEEFF112233445566778899001122334",
+                    "childContractScope": 0
+                }
+            ],
+            "assetRecoveryAddress": "0x1111222233334444555566667777888899990000",
+            "id": 56
+        }
+    ],
+    "contact": [
+        {
+            "contact": "security@exampleprotocol.com",
+            "name": "Example Protocol Security Team"
+        },
+        {
+            "contact": "emergency-security@exampleprotocol.com",
+            "name": "Emergency Response Team"
+        }
+    ],
+    "protocolName": "Example Protocol"
+}
