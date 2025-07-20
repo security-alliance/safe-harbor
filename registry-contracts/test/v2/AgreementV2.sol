@@ -219,42 +219,6 @@ contract AgreementV2Test is Test.Test {
         assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
     }
 
-    function testSetAccounts() public {
-        V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
-
-        string[] memory accountAddresses = new string[](1);
-        accountAddresses[0] = "0x01"; // Account that exists in mock data
-
-        // Should fail when called by non-owner
-        vm.prank(notOwner);
-        vm.expectRevert();
-        agreement.setAccounts("eip155:1", accountAddresses, accounts);
-
-        // should fail when setting to non-existent chain
-        vm.prank(owner);
-        vm.expectRevert();
-        agreement.setAccounts("eip155:999", accountAddresses, accounts);
-
-        // should fail when setting to non-existent account
-        vm.prank(owner);
-        vm.expectRevert();
-        string[] memory nonExistentAccounts = new string[](1);
-        nonExistentAccounts[0] = "0x999";
-        agreement.setAccounts("eip155:1", nonExistentAccounts, accounts);
-
-        // Should succeed when called by owner
-        vm.prank(owner);
-        vm.expectEmit();
-        emit V2.AgreementV2.AgreementUpdated();
-        agreement.setAccounts("eip155:1", accountAddresses, accounts);
-
-        // Verify the change
-        V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        V2.Account memory _account = _details.chains[0].accounts[0];
-        assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
-    }
-
     function testRemoveAccount() public {
         V2.Account[] memory accounts = new V2.Account[](1);
         accounts[0] = V2.Account({accountAddress: "0x02", childContractScope: V2.ChildContractScope.None});

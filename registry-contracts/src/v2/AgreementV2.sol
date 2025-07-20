@@ -126,22 +126,6 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
-    function setAccounts(string memory _caip2ChainId, string[] memory _accountAddresses, Account[] memory _accounts)
-        external
-        onlyOwner
-    {
-        uint256 chainIndex = _findChainIndex(_caip2ChainId);
-
-        require(_accountAddresses.length == _accounts.length, "Input arrays must have same length");
-
-        for (uint256 i = 0; i < _accountAddresses.length; i++) {
-            uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddresses[i]);
-            details.chains[chainIndex].accounts[accountIndex] = _accounts[i];
-        }
-
-        emit AgreementUpdated();
-    }
-
     /// @notice Function that removes multiple accounts from the agreement by addresses.
     /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
     /// @param _accountAddresses Array of addresses of the accounts to remove
