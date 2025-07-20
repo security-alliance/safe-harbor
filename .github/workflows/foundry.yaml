@@ -17,10 +17,6 @@ jobs:
 
             - name: Install Foundry
               uses: foundry-rs/foundry-toolchain@v1
-            
-            - name: Forge fmt
-              run: forge fmt
-              working-directory: registry-contracts
 
             - name: Run tests
               run: forge test -vvv
