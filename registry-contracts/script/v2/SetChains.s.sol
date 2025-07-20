@@ -6,13 +6,19 @@ import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 
 contract SetChains is Script {
-    address constant REGISTRY_ADDRESS = 0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
+    address constant REGISTRY_ADDRESS =
+        0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
 
     function run() public {
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
-        require(address(registry).code.length > 0, "No contract exists at the registry address.");
+        require(
+            address(registry).code.length > 0,
+            "No contract exists at the registry address."
+        );
 
-        uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint(
+            "REGISTRY_DEPLOYER_PRIVATE_KEY"
+        );
 
         // CAIP-2 chain IDs for various chains
         string[] memory caip2ChainIds = new string[](32);
@@ -48,6 +54,9 @@ contract SetChains is Script {
         caip2ChainIds[29] = "eip155:7777777"; // Zora
         caip2ChainIds[30] = "eip155:204"; // opBNB Mainnet
         caip2ChainIds[31] = "eip155:1088"; // Metis Andromeda Mainnet
+        caip2ChainIds[32] = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"; // Solana Mainnet
+        caip2ChainIds[33] = "stellar:pubnet"; // Stellar Mainnet
+        caip2ChainIds[34] = "bip122:000000000019d6689c085ae165831e93"; // Bitcoin Mainnet
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);
