@@ -7,6 +7,8 @@ import {AgreementDetailsV2} from "./AgreementDetailsV2.sol";
 
 /// @title Factory for creating AgreementV2 contracts
 contract AgreementFactoryV2 {
+    // ----- EXTERNAL FUNCTIONS -----
+
     /// @notice Creates an AgreementV2 contract.
     /// @param details The agreement details
     /// @param registry The Safe Harbor Registry V2 address

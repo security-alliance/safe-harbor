@@ -9,6 +9,8 @@ string constant _version = "1.1.0";
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistryV2 is Ownable {
+    // ----- STATE VARIABLES -----
+
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
 
@@ -18,7 +20,7 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice The fallback registry.
     IRegistry fallbackRegistry;
 
-    /// ----- EVENTS -----
+    // ----- EVENTS -----
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
     event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
@@ -26,14 +28,18 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice An event that records when a chain is set as valid or invalid.
     event ChainValiditySet(string caip2ChainId, bool valid);
 
-    /// ----- ERRORS -----
+    // ----- ERRORS -----
+
     error NoAgreement();
 
-    /// ----- METHODS -----
+    // ----- CONSTRUCTOR -----
+
     /// @notice Sets the factory and fallback registry addresses
     constructor(address _fallbackRegistry, address _owner) Ownable(_owner) {
         fallbackRegistry = IRegistry(_fallbackRegistry);
     }
+
+    // ----- EXTERNAL FUNCTIONS -----
 
     function version() external pure returns (string memory) {
         return _version;
