@@ -29,6 +29,7 @@ struct Chain {
     // The accounts in scope for the agreement.
     Account[] accounts;
     // The CAIP-2 chain ID. Please refer to the CAIP-2 standard for more details.
+    // https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
     string caip2ChainId;
 }
 
