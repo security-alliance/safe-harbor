@@ -42,7 +42,7 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         agreementDetails = getMockAgreementDetails("0xAABB");
     }
 
-    function test_createAndRegisterAgreemenr() public {
+    function test_createAndRegisterAgreement() public {
         vm.prank(protocol);
         address agreementAddress = factory.create(agreementDetails, address(registry), protocol);
 

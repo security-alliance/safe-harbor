@@ -33,6 +33,9 @@ contract AgreementV2 is Ownable {
     /// @notice The Safe Harbor Registry V2 contract
     SafeHarborRegistryV2 private registry;
 
+    /// @notice Temporary mapping used for duplicate chain ID validation
+    mapping(bytes32 => bool) private _tempChainIdSeen;
+
     // ----- EVENTS -----
 
     /// @notice An event that records when a safe harbor agreement is updated.
@@ -223,13 +226,26 @@ contract AgreementV2 is Ownable {
 
     /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
     /// @param _chains The chains to validate
-    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal pure {
+    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
+        // Clear the temporary mapping
         for (uint256 i = 0; i < _chains.length; i++) {
-            for (uint256 j = i + 1; j < _chains.length; j++) {
-                if (keccak256(bytes(_chains[i].caip2ChainId)) == keccak256(bytes(_chains[j].caip2ChainId))) {
-                    revert DuplicateChainId(_chains[i].caip2ChainId);
-                }
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            delete _tempChainIdSeen[chainIdHash];
+        }
+
+        // Check for duplicates
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            if (_tempChainIdSeen[chainIdHash]) {
+                revert DuplicateChainId(_chains[i].caip2ChainId);
             }
+            _tempChainIdSeen[chainIdHash] = true;
+        }
+
+        // Clean up the temporary mapping
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            delete _tempChainIdSeen[chainIdHash];
         }
     }
 
