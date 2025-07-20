@@ -21,11 +21,7 @@ contract SafeHarborRegistryV2 is Ownable {
     /// ----- EVENTS -----
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
-    event SafeHarborAdoption(
-        address indexed entity,
-        address oldDetails,
-        address newDetails
-    );
+    event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
 
     /// @notice An event that records when a chain is set as valid or invalid.
     event ChainValiditySet(string caip2ChainId, bool valid);
@@ -45,9 +41,7 @@ contract SafeHarborRegistryV2 is Ownable {
 
     /// @notice Function that sets a list of chains as valid in the registry.
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
-    function setValidChains(
-        string[] calldata _caip2ChainIds
-    ) external onlyOwner {
+    function setValidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
             validChains[_caip2ChainIds[i]] = true;
             emit ChainValiditySet(_caip2ChainIds[i], true);
@@ -56,9 +50,7 @@ contract SafeHarborRegistryV2 is Ownable {
 
     /// @notice Function that marks a list of chains as invalid in the registry.
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as invalid.
-    function setInvalidChains(
-        string[] calldata _caip2ChainIds
-    ) external onlyOwner {
+    function setInvalidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
             validChains[_caip2ChainIds[i]] = false;
             emit ChainValiditySet(_caip2ChainIds[i], false);
@@ -95,9 +87,7 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice Function that returns if a chain is valid.
     /// @param _caip2ChainId The CAIP-2 ID of the chain to check.
     /// @return bool True if the chain is valid, false otherwise.
-    function isChainValid(
-        string calldata _caip2ChainId
-    ) external view returns (bool) {
+    function isChainValid(string calldata _caip2ChainId) external view returns (bool) {
         return validChains[_caip2ChainId];
     }
 }

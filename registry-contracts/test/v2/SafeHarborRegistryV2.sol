@@ -60,11 +60,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         address entity = address(0xee);
 
         vm.expectEmit();
-        emit SafeHarborRegistryV2.SafeHarborAdoption(
-            entity,
-            address(0),
-            agreementAddress
-        );
+        emit SafeHarborRegistryV2.SafeHarborAdoption(entity, address(0), agreementAddress);
         vm.prank(entity);
         registry.adoptSafeHarbor(agreementAddress);
     }
