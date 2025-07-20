@@ -12,10 +12,8 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
 
-    /// @notice A mapping of chainIDs to their names.  Uses EVM chainIDs where possible, and adds custom IDs for non-EVM chains.
-    mapping(uint256 => string) public chains;
-    /// @notice A list of chain IDs that are enabled.
-    uint256[] public chainIds;
+    /// @notice A mapping CAIP-2 IDs and if they are valid.
+    mapping(string => bool) private validChains;
 
     /// @notice The fallback registry.
     IRegistry fallbackRegistry;
@@ -23,14 +21,17 @@ contract SafeHarborRegistryV2 is Ownable {
     /// ----- EVENTS -----
 
     /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
-    event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
+    event SafeHarborAdoption(
+        address indexed entity,
+        address oldDetails,
+        address newDetails
+    );
 
-    /// @notice An event that records when a new chain is added to the registry.
-    event ChainAdded(string chainName);
+    /// @notice An event that records when a chain is set as valid or invalid.
+    event ChainValiditySet(string caip2ChainId, bool valid);
 
     /// ----- ERRORS -----
     error NoAgreement();
-    error ChainAlreadyExists(string chainName);
 
     /// ----- METHODS -----
     /// @notice Sets the factory and fallback registry addresses
@@ -42,32 +43,26 @@ contract SafeHarborRegistryV2 is Ownable {
         return _version;
     }
 
-    /// @notice Function that adds a list of chain names to the registry.
-    function setChains(uint256[] calldata _chainIds, string[] calldata _chainNames) external onlyOwner {
-        require(_chainIds.length == _chainNames.length, "Input arrays must have same length");
-
-        for (uint256 i = 0; i < _chainIds.length; i++) {
-            uint256 chainId = _chainIds[i];
-            if (bytes(chains[chainId]).length != 0) {
-                revert ChainAlreadyExists(_chainNames[i]);
-            }
-
-            chains[chainId] = _chainNames[i];
-            chainIds.push(chainId);
-            emit ChainAdded(_chainNames[i]);
+    /// @notice Function that sets a list of chains as valid in the registry.
+    /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
+    function setValidChains(
+        string[] calldata _caip2ChainIds
+    ) external onlyOwner {
+        for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
+            validChains[_caip2ChainIds[i]] = true;
+            emit ChainValiditySet(_caip2ChainIds[i], true);
         }
     }
 
-    /// @notice Returns all chain IDs and their names
-    function getChains() external view returns (uint256[] memory ids, string[] memory names) {
-        uint256 length = chainIds.length;
-        names = new string[](length);
-
-        for (uint256 i = 0; i < length; i++) {
-            names[i] = chains[chainIds[i]];
+    /// @notice Function that marks a list of chains as invalid in the registry.
+    /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as invalid.
+    function setInvalidChains(
+        string[] calldata _caip2ChainIds
+    ) external onlyOwner {
+        for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
+            validChains[_caip2ChainIds[i]] = false;
+            emit ChainValiditySet(_caip2ChainIds[i], false);
         }
-
-        return (chainIds, names);
     }
 
     /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.
@@ -95,5 +90,14 @@ contract SafeHarborRegistryV2 is Ownable {
         }
 
         revert NoAgreement();
+    }
+
+    /// @notice Function that returns if a chain is valid.
+    /// @param _caip2ChainId The CAIP-2 ID of the chain to check.
+    /// @return bool True if the chain is valid, false otherwise.
+    function isChainValid(
+        string calldata _caip2ChainId
+    ) external view returns (bool) {
+        return validChains[_caip2ChainId];
     }
 }

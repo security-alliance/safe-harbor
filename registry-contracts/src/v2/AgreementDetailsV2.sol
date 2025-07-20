@@ -28,10 +28,8 @@ struct Chain {
     string assetRecoveryAddress;
     // The accounts in scope for the agreement.
     Account[] accounts;
-    // The chain ID. Unique identifier that references the safe harbor chainID, located
-    // in the registry. WARNING: In general this will corespond to the EVM ChainID,
-    // but for non-EVM chains random IDs will be selected.
-    uint256 id;
+    // The CAIP-2 chain ID. Please refer to the CAIP-2 standard for more details.
+    string caip2ChainId;
 }
 
 /// @notice Struct that contains the details of an account in an agreement.

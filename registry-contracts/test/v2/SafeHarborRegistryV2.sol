@@ -33,46 +33,38 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         agreementAddress = address(agreement);
     }
 
-    function test_setChains() public {
-        string[] memory chainNames = new string[](2);
-        chainNames[0] = "chain1";
-        chainNames[1] = "chain2";
-
-        uint256[] memory chainIds = new uint256[](2);
-        chainIds[0] = 5;
-        chainIds[1] = 10;
+    function test_setValidChains() public {
+        string[] memory caip2ChainIds = new string[](2);
+        caip2ChainIds[0] = "eip155:1";
+        caip2ChainIds[1] = "eip155:137";
 
         // Should fail if not called by owner
         vm.expectRevert();
-        registry.setChains(chainIds, chainNames);
+        registry.setValidChains(caip2ChainIds);
 
         // Should succeed if called by owner
         vm.expectEmit();
-        emit SafeHarborRegistryV2.ChainAdded(chainNames[0]);
+        emit SafeHarborRegistryV2.ChainValiditySet(caip2ChainIds[0], true);
         vm.expectEmit();
-        emit SafeHarborRegistryV2.ChainAdded(chainNames[1]);
+        emit SafeHarborRegistryV2.ChainValiditySet(caip2ChainIds[1], true);
         vm.prank(registryOwner);
-        registry.setChains(chainIds, chainNames);
+        registry.setValidChains(caip2ChainIds);
 
-        (uint256[] memory ids, string[] memory names) = registry.getChains();
-        assertEq(ids.length, 2);
-        assertEq(ids[0], chainIds[0]);
-        assertEq(ids[1], chainIds[1]);
-        assertEq(names.length, 2);
-        assertEq(names[0], chainNames[0]);
-        assertEq(names[1], chainNames[1]);
-
-        // Should fail if chain already exists
-        vm.expectRevert();
-        vm.prank(registryOwner);
-        registry.setChains(chainIds, chainNames);
+        // Verify chains are valid
+        assertTrue(registry.isChainValid(caip2ChainIds[0]));
+        assertTrue(registry.isChainValid(caip2ChainIds[1]));
+        assertTrue(!registry.isChainValid("eip155:999")); // Non-existent chain
     }
 
     function test_adoptSafeHarbor() public {
         address entity = address(0xee);
 
         vm.expectEmit();
-        emit SafeHarborRegistryV2.SafeHarborAdoption(entity, address(0), agreementAddress);
+        emit SafeHarborRegistryV2.SafeHarborAdoption(
+            entity,
+            address(0),
+            agreementAddress
+        );
         vm.prank(entity);
         registry.adoptSafeHarbor(agreementAddress);
     }

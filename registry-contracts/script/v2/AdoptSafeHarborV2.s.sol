@@ -98,7 +98,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     struct chainJSON {
         accountJSON[] accounts;
         string assetRecoveryAddress; // Changed to string in V2
-        uint256 id;
+        string caip2ChainId; // Changed from id to caip2ChainId in V2
     }
 
     struct accountJSON {
@@ -152,7 +152,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
             chains[i] = V2Chain({
                 accounts: mapAccounts(jsonChains[i].accounts),
                 assetRecoveryAddress: jsonChains[i].assetRecoveryAddress, // Now a string
-                id: jsonChains[i].id
+                caip2ChainId: jsonChains[i].caip2ChainId // Now using CAIP-2 format
             });
         }
         return chains;

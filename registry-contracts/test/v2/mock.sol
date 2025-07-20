@@ -5,13 +5,25 @@ import {console} from "forge-std/console.sol";
 import "../../src/v2/AgreementV2.sol";
 import "../../src/v2/AgreementDetailsV2.sol";
 
-function getMockAgreementDetails(string memory accountAddress) pure returns (AgreementDetailsV2 memory mockDetails) {
-    Account memory account = Account({accountAddress: accountAddress, childContractScope: ChildContractScope.All});
+function getMockAgreementDetails(
+    string memory accountAddress
+) pure returns (AgreementDetailsV2 memory mockDetails) {
+    Account memory account = Account({
+        accountAddress: accountAddress,
+        childContractScope: ChildContractScope.All
+    });
 
-    Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: "0x01", id: 1});
+    Chain memory chain = Chain({
+        accounts: new Account[](1),
+        assetRecoveryAddress: "0x01",
+        caip2ChainId: "eip155:1"
+    });
     chain.accounts[0] = account;
 
-    Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
+    Contact memory contact = Contact({
+        name: "Test Name",
+        contact: "test@mail.com"
+    });
 
     BountyTerms memory bountyTerms = BountyTerms({
         bountyPercentage: 10,
@@ -50,14 +62,26 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
     // Print Chain Details
     console.log("Chain Details:");
     for (uint256 i = 0; i < details.chains.length; i++) {
-        console.log("  Chain ID:", details.chains[i].id);
-        console.log("  Asset Recovery Address:", details.chains[i].assetRecoveryAddress);
-        console.log("  Number of Accounts in Scope:", details.chains[i].accounts.length);
+        console.log("  Chain ID:", details.chains[i].caip2ChainId);
+        console.log(
+            "  Asset Recovery Address:",
+            details.chains[i].assetRecoveryAddress
+        );
+        console.log(
+            "  Number of Accounts in Scope:",
+            details.chains[i].accounts.length
+        );
 
         // Print Account Details
         for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
-            console.log("    Account Address:", details.chains[i].accounts[j].accountAddress);
-            console.log("    Child Contract Scope:", uint256(details.chains[i].accounts[j].childContractScope));
+            console.log(
+                "    Account Address:",
+                details.chains[i].accounts[j].accountAddress
+            );
+            console.log(
+                "    Child Contract Scope:",
+                uint256(details.chains[i].accounts[j].childContractScope)
+            );
         }
     }
 
@@ -66,6 +90,12 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
     console.log("Bounty Cap USD:", details.bountyTerms.bountyCapUSD);
     console.log("Is Retainable:", details.bountyTerms.retainable);
     console.log("Identity Requirement:", uint256(details.bountyTerms.identity));
-    console.log("Diligence Requirements:", details.bountyTerms.diligenceRequirements);
-    console.log("Aggregate Bounty Cap USD:", details.bountyTerms.aggregateBountyCapUSD);
+    console.log(
+        "Diligence Requirements:",
+        details.bountyTerms.diligenceRequirements
+    );
+    console.log(
+        "Aggregate Bounty Cap USD:",
+        details.bountyTerms.aggregateBountyCapUSD
+    );
 }

@@ -33,7 +33,10 @@ contract AgreementV2Test is Test.Test {
 
     function testGetDetails() public {
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(details)), keccak256(abi.encode(_details)));
+        assertEq(
+            keccak256(abi.encode(details)),
+            keccak256(abi.encode(_details))
+        );
     }
 
     function testSetProtocolName() public {
@@ -56,7 +59,10 @@ contract AgreementV2Test is Test.Test {
 
     function testSetContactDetails() public {
         V2.Contact[] memory newContacts = new V2.Contact[](2);
-        newContacts[0] = V2.Contact({name: "New Contact 1", contact: "@newcontact1"});
+        newContacts[0] = V2.Contact({
+            name: "New Contact 1",
+            contact: "@newcontact1"
+        });
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
@@ -70,15 +76,25 @@ contract AgreementV2Test is Test.Test {
         agreement.setContactDetails(newContacts);
 
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(newContacts)), keccak256(abi.encode(_details.contactDetails)));
+        assertEq(
+            keccak256(abi.encode(newContacts)),
+            keccak256(abi.encode(_details.contactDetails))
+        );
     }
 
     function testAddChains() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x04",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         V2.Chain[] memory newChains = new V2.Chain[](1);
-        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
+        newChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:2"
+        });
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
@@ -93,15 +109,25 @@ contract AgreementV2Test is Test.Test {
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
 
         V2.Chain memory _chain = _details.chains[_details.chains.length - 1];
-        assertEq(keccak256(abi.encode(newChains[0])), keccak256(abi.encode(_chain)));
+        assertEq(
+            keccak256(abi.encode(newChains[0])),
+            keccak256(abi.encode(_chain))
+        );
     }
 
     function testSetChains() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x04",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         V2.Chain[] memory chains = new V2.Chain[](1);
-        chains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
+        chains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:2"
+        });
         uint256[] memory chainIds = new uint256[](1);
 
         // Should fail when called by non-owner
@@ -125,15 +151,25 @@ contract AgreementV2Test is Test.Test {
 
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(_details.chains.length, 1);
-        assertEq(keccak256(abi.encode(chains[0])), keccak256(abi.encode(_details.chains[0])));
+        assertEq(
+            keccak256(abi.encode(chains[0])),
+            keccak256(abi.encode(_details.chains[0]))
+        );
     }
 
     function testRemoveChain() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x01",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         V2.Chain[] memory newChains = new V2.Chain[](1);
-        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
+        newChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:2"
+        });
 
         vm.prank(owner);
         agreement.addChains(newChains);
@@ -156,13 +192,19 @@ contract AgreementV2Test is Test.Test {
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(_details)), keccak256(abi.encode(details)));
+        assertEq(
+            keccak256(abi.encode(_details)),
+            keccak256(abi.encode(details))
+        );
     }
 
     // Test adding accounts to a chain
     function testAddAccounts() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x01",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
@@ -182,14 +224,22 @@ contract AgreementV2Test is Test.Test {
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        V2.Account memory _account = _details.chains[0].accounts[_details.chains[0].accounts.length - 1];
+        V2.Account memory _account = _details.chains[0].accounts[
+            _details.chains[0].accounts.length - 1
+        ];
 
-        assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
+        assertEq(
+            keccak256(abi.encode(accounts[0])),
+            keccak256(abi.encode(_account))
+        );
     }
 
     function testSetAccounts() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x01",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         uint256[] memory accountIds = new uint256[](1);
 
@@ -221,12 +271,18 @@ contract AgreementV2Test is Test.Test {
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         V2.Account memory _account = _details.chains[0].accounts[0];
-        assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
+        assertEq(
+            keccak256(abi.encode(accounts[0])),
+            keccak256(abi.encode(_account))
+        );
     }
 
     function testRemoveAccount() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({
+            accountAddress: "0x01",
+            childContractScope: V2.ChildContractScope.None
+        });
 
         vm.prank(owner);
         agreement.addAccounts(0, accounts);
@@ -254,7 +310,10 @@ contract AgreementV2Test is Test.Test {
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(_details)), keccak256(abi.encode(details)));
+        assertEq(
+            keccak256(abi.encode(_details)),
+            keccak256(abi.encode(details))
+        );
     }
 
     // Test setting bounty terms
@@ -281,7 +340,10 @@ contract AgreementV2Test is Test.Test {
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(newTerms)), keccak256(abi.encode(_details.bountyTerms)));
+        assertEq(
+            keccak256(abi.encode(newTerms)),
+            keccak256(abi.encode(_details.bountyTerms))
+        );
     }
 
     // Test that setting both aggregateBountyCapUSD > 0 and retainable = true fails
@@ -297,11 +359,19 @@ contract AgreementV2Test is Test.Test {
 
         // Should fail when both conditions are true
         vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.CannotSetBothAggregateBountyCapUSDAndRetainable.selector);
+        vm.expectRevert(
+            V2
+                .AgreementV2
+                .CannotSetBothAggregateBountyCapUSDAndRetainable
+                .selector
+        );
         agreement.setBountyTerms(invalidTerms);
 
         // Verify the original terms are unchanged
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        assertEq(keccak256(abi.encode(details.bountyTerms)), keccak256(abi.encode(_details.bountyTerms)));
+        assertEq(
+            keccak256(abi.encode(details.bountyTerms)),
+            keccak256(abi.encode(_details.bountyTerms))
+        );
     }
 }
