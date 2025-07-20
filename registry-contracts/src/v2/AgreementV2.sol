@@ -143,8 +143,8 @@ contract AgreementV2 is Ownable {
     /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
     /// @param _accountAddresses Array of addresses of the accounts to remove
     function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
+        uint256 chainIndex = _findChainIndex(_caip2ChainId);
         for (uint256 i = 0; i < _accountAddresses.length; i++) {
-            uint256 chainIndex = _findChainIndex(_caip2ChainId);
             uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddresses[i]);
 
             uint256 lastAccountId = details.chains[chainIndex].accounts.length - 1;
