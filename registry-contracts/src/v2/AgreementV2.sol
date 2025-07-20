@@ -172,6 +172,53 @@ contract AgreementV2 is Ownable {
 
     // ----- INTERNAL FUNCTIONS -----
 
+    /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
+    /// @param _chains The chains to validate
+    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
+        // Clear the temporary mapping
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            delete _tempChainIdSeen[chainIdHash];
+        }
+
+        // Check for duplicates
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            if (_tempChainIdSeen[chainIdHash]) {
+                revert DuplicateChainId(_chains[i].caip2ChainId);
+            }
+            _tempChainIdSeen[chainIdHash] = true;
+        }
+
+        // Clean up the temporary mapping
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            delete _tempChainIdSeen[chainIdHash];
+        }
+    }
+
+    /// @notice Internal function to validate that all chain IDs in the agreement are valid
+    /// @param _chains The chains to validate
+    function _validateChainIds(Chain[] memory _chains) internal view {
+        for (uint256 i = 0; i < _chains.length; i++) {
+            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
+                revert InvalidChainId(_chains[i].caip2ChainId);
+            }
+        }
+    }
+
+    /// @notice Internal function to check if a chain ID already exists
+    /// @param _caip2ChainId The CAIP-2 chain ID to check
+    /// @return exists True if the chain ID already exists
+    function _chainIdExists(string memory _caip2ChainId) internal view returns (bool exists) {
+        for (uint256 i = 0; i < details.chains.length; i++) {
+            if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes(_caip2ChainId))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// @notice Internal function to validate bounty terms
     /// @param _bountyTerms The bounty terms to validate
     function _validateBountyTerms(BountyTerms memory _bountyTerms) internal pure {
@@ -210,52 +257,5 @@ contract AgreementV2 is Ownable {
             }
         }
         revert AccountNotFoundByAddress(details.chains[_chainIndex].caip2ChainId, _accountAddress);
-    }
-
-    /// @notice Internal function to check if a chain ID already exists
-    /// @param _caip2ChainId The CAIP-2 chain ID to check
-    /// @return exists True if the chain ID already exists
-    function _chainIdExists(string memory _caip2ChainId) internal view returns (bool exists) {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes(_caip2ChainId))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
-    /// @param _chains The chains to validate
-    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
-        // Clear the temporary mapping
-        for (uint256 i = 0; i < _chains.length; i++) {
-            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
-            delete _tempChainIdSeen[chainIdHash];
-        }
-
-        // Check for duplicates
-        for (uint256 i = 0; i < _chains.length; i++) {
-            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
-            if (_tempChainIdSeen[chainIdHash]) {
-                revert DuplicateChainId(_chains[i].caip2ChainId);
-            }
-            _tempChainIdSeen[chainIdHash] = true;
-        }
-
-        // Clean up the temporary mapping
-        for (uint256 i = 0; i < _chains.length; i++) {
-            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
-            delete _tempChainIdSeen[chainIdHash];
-        }
-    }
-
-    /// @notice Internal function to validate that all chain IDs in the agreement are valid
-    /// @param _chains The chains to validate
-    function _validateChainIds(Chain[] memory _chains) internal view {
-        for (uint256 i = 0; i < _chains.length; i++) {
-            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
-                revert InvalidChainId(_chains[i].caip2ChainId);
-            }
-        }
     }
 }
