@@ -171,16 +171,14 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
-    /// @notice Removes a chain from the agreement by CAIP-2 ID.
-    /// @notice This function will move the last chain in the array to the index of
-    /// @notice the removed chain, and then pop the last element. If calling this
-    /// @notice function multiple times, the order of the chains will change.
-    /// @param _caip2ChainId The CAIP-2 ID of the chain to remove
-    function removeChain(string memory _caip2ChainId) external onlyOwner {
-        uint256 chainIndex = _findChainIndex(_caip2ChainId);
-        details.chains[chainIndex] = details.chains[details.chains.length - 1];
-        details.chains.pop();
-
+    /// @notice Removes multiple chains from the agreement by CAIP-2 IDs.
+    /// @param _caip2ChainIds Array of CAIP-2 IDs of the chains to remove
+    function removeChains(string[] memory _caip2ChainIds) external onlyOwner {
+        for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
+            uint256 chainIndex = _findChainIndex(_caip2ChainIds[i]);
+            details.chains[chainIndex] = details.chains[details.chains.length - 1];
+            details.chains.pop();
+        }
         emit AgreementUpdated();
     }
 
@@ -210,19 +208,18 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
-    /// @notice Function that removes an account from the agreement by address.
-    /// @dev This function will move the last account in the array to the index of
-    /// @dev the removed account, and then pop the last element. If calling this
-    /// @dev function multiple times, the order of the accounts will change.
-    /// @param _caip2ChainId The CAIP-2 ID of the chain containing the account
-    /// @param _accountAddress The address of the account to remove
-    function removeAccount(string memory _caip2ChainId, string memory _accountAddress) external onlyOwner {
-        uint256 chainIndex = _findChainIndex(_caip2ChainId);
-        uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddress);
+    /// @notice Function that removes multiple accounts from the agreement by addresses.
+    /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
+    /// @param _accountAddresses Array of addresses of the accounts to remove
+    function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
+        for (uint256 i = 0; i < _accountAddresses.length; i++) {
+            uint256 chainIndex = _findChainIndex(_caip2ChainId);
+            uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddresses[i]);
 
-        uint256 lastAccountId = details.chains[chainIndex].accounts.length - 1;
-        details.chains[chainIndex].accounts[accountIndex] = details.chains[chainIndex].accounts[lastAccountId];
-        details.chains[chainIndex].accounts.pop();
+            uint256 lastAccountId = details.chains[chainIndex].accounts.length - 1;
+            details.chains[chainIndex].accounts[accountIndex] = details.chains[chainIndex].accounts[lastAccountId];
+            details.chains[chainIndex].accounts.pop();
+        }
         emit AgreementUpdated();
     }
 

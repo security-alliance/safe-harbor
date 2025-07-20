@@ -169,18 +169,22 @@ contract AgreementV2Test is Test.Test {
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.removeChain("eip155:2");
+        string[] memory chainToRemove = new string[](1);
+        chainToRemove[0] = "eip155:2";
+        agreement.removeChains(chainToRemove);
 
         // Should fail when removing non-existent chain
         vm.prank(owner);
         vm.expectRevert();
-        agreement.removeChain("eip155:999");
+        string[] memory nonExistentChain = new string[](1);
+        nonExistentChain[0] = "eip155:999";
+        agreement.removeChains(nonExistentChain);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.removeChain("eip155:2");
+        agreement.removeChains(chainToRemove);
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
@@ -261,23 +265,27 @@ contract AgreementV2Test is Test.Test {
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.removeAccount("eip155:1", "0x02");
+        string[] memory accountToRemove = new string[](1);
+        accountToRemove[0] = "0x02";
+        agreement.removeAccounts("eip155:1", accountToRemove);
 
         // Should fail when removing from non-existent chain
         vm.prank(owner);
         vm.expectRevert();
-        agreement.removeAccount("eip155:999", "0x02");
+        agreement.removeAccounts("eip155:999", accountToRemove);
 
         // Should fail when removing non-existent account
         vm.prank(owner);
         vm.expectRevert();
-        agreement.removeAccount("eip155:1", "0x999");
+        string[] memory nonExistentAccount = new string[](1);
+        nonExistentAccount[0] = "0x999";
+        agreement.removeAccounts("eip155:1", nonExistentAccount);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.removeAccount("eip155:1", "0x02");
+        agreement.removeAccounts("eip155:1", accountToRemove);
 
         // Verify the change - should be back to original state
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
@@ -451,5 +459,82 @@ contract AgreementV2Test is Test.Test {
         // Verify the original terms are unchanged
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(details.bountyTerms)), keccak256(abi.encode(_details.bountyTerms)));
+    }
+
+    function testRemoveChains() public {
+        // First add the chain IDs to the registry as valid
+        string[] memory newValidChains = new string[](2);
+        newValidChains[0] = "eip155:137";
+        newValidChains[1] = "eip155:56";
+        vm.prank(owner);
+        registry.setValidChains(newValidChains);
+
+        // Add multiple chains first
+        V2.Chain[] memory newChains = new V2.Chain[](2);
+
+        newChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x1111111111111111111111111111111111111111",
+            accounts: new V2.Account[](0),
+            caip2ChainId: "eip155:137"
+        });
+
+        newChains[1] = V2.Chain({
+            assetRecoveryAddress: "0x2222222222222222222222222222222222222222",
+            accounts: new V2.Account[](0),
+            caip2ChainId: "eip155:56"
+        });
+
+        vm.prank(owner);
+        agreement.addChains(newChains);
+
+        // Verify chains were added
+        V2.AgreementDetailsV2 memory details = agreement.getDetails();
+        assertEq(details.chains.length, 3); // 1 original + 2 new
+
+        // Remove multiple chains
+        string[] memory chainIdsToRemove = new string[](2);
+        chainIdsToRemove[0] = "eip155:137";
+        chainIdsToRemove[1] = "eip155:56";
+
+        vm.prank(owner);
+        agreement.removeChains(chainIdsToRemove);
+
+        // Verify chains were removed
+        details = agreement.getDetails();
+        assertEq(details.chains.length, 1); // Back to original 1 chain
+    }
+
+    function testRemoveAccounts() public {
+        // Add multiple accounts to the existing chain first
+        V2.Account[] memory newAccounts = new V2.Account[](2);
+
+        newAccounts[0] = V2.Account({
+            accountAddress: "0x3333333333333333333333333333333333333333",
+            childContractScope: V2.ChildContractScope.None
+        });
+
+        newAccounts[1] = V2.Account({
+            accountAddress: "0x4444444444444444444444444444444444444444",
+            childContractScope: V2.ChildContractScope.None
+        });
+
+        vm.prank(owner);
+        agreement.addAccounts("eip155:1", newAccounts);
+
+        // Verify accounts were added
+        V2.AgreementDetailsV2 memory details = agreement.getDetails();
+        assertEq(details.chains[0].accounts.length, 3); // 1 original + 2 new
+
+        // Remove multiple accounts
+        string[] memory accountsToRemove = new string[](2);
+        accountsToRemove[0] = "0x3333333333333333333333333333333333333333";
+        accountsToRemove[1] = "0x4444444444444444444444444444444444444444";
+
+        vm.prank(owner);
+        agreement.removeAccounts("eip155:1", accountsToRemove);
+
+        // Verify accounts were removed
+        details = agreement.getDetails();
+        assertEq(details.chains[0].accounts.length, 1); // Back to original 1 account
     }
 }
