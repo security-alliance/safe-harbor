@@ -224,14 +224,12 @@ contract AgreementV2 is Ownable {
     /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
     /// @param _chains The chains to validate
     function _validateNoDuplicateChainIds(Chain[] memory _chains) internal pure {
-        mapping(bytes32=> bool) seen;
-        
         for (uint256 i = 0; i < _chains.length; i++) {
-            string id = keccak256(bytes(_chains[i].caip2ChainId));
-            if (seen[id]) {
-                revertDuplicateChainId(id);
+            for (uint256 j = i + 1; j < _chains.length; j++) {
+                if (keccak256(bytes(_chains[i].caip2ChainId)) == keccak256(bytes(_chains[j].caip2ChainId))) {
+                    revert DuplicateChainId(_chains[i].caip2ChainId);
+                }
             }
-            seen[id] = true;
         }
     }
 
