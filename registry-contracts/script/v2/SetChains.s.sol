@@ -6,19 +6,13 @@ import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 
 contract SetChains is Script {
-    address constant REGISTRY_ADDRESS =
-        0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
+    address constant REGISTRY_ADDRESS = 0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
 
     function run() public {
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
-        require(
-            address(registry).code.length > 0,
-            "No contract exists at the registry address."
-        );
+        require(address(registry).code.length > 0, "No contract exists at the registry address.");
 
-        uint256 deployerPrivateKey = vm.envUint(
-            "REGISTRY_DEPLOYER_PRIVATE_KEY"
-        );
+        uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
 
         // CAIP-2 chain IDs for various chains
         string[] memory caip2ChainIds = new string[](32);
