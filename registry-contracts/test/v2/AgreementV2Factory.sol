@@ -31,13 +31,20 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         registry = new SafeHarborRegistryV2(address(0), deployer);
         factory = new AgreementFactoryV2();
 
+        // Set valid chains in registry
+        string[] memory validChains = new string[](2);
+        validChains[0] = "eip155:1";
+        validChains[1] = "eip155:2";
+        vm.prank(deployer);
+        registry.setValidChains(validChains);
+
         // Set up mock agreement details
         agreementDetails = getMockAgreementDetails("0xAABB");
     }
 
     function test_createAndRegisterAgreemenr() public {
         vm.prank(protocol);
-        address agreementAddress = factory.create(agreementDetails, protocol);
+        address agreementAddress = factory.create(agreementDetails, address(registry), protocol);
 
         // Verify the agreement was created
         assertTrue(agreementAddress != address(0), "Agreement address should not be zero");
@@ -58,9 +65,9 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         invalidDetails.bountyTerms.aggregateBountyCapUSD = 1000; // Set to > 0
         invalidDetails.bountyTerms.retainable = true; // Set to true
 
-        // Expect the transaction to revert with the specific error
-        vm.expectRevert(CannotSetBothAggregateBountyCapUSDAndRetainable.selector);
+        // Expect the transaction to revert with the specific error from AgreementV2 constructor
+        vm.expectRevert(AgreementV2.CannotSetBothAggregateBountyCapUSDAndRetainable.selector);
         vm.prank(protocol);
-        factory.create(invalidDetails, protocol);
+        factory.create(invalidDetails, address(registry), protocol);
     }
 }

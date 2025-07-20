@@ -27,9 +27,17 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
 
         registry = new SafeHarborRegistryV2(address(0), registryOwner);
         registryV2 = new SafeHarborRegistryV2(address(registry), registryOwner);
+
+        // Set valid chains in registry
+        string[] memory validChains = new string[](2);
+        validChains[0] = "eip155:1";
+        validChains[1] = "eip155:2";
+        vm.prank(registryOwner);
+        registryV2.setValidChains(validChains);
+
         details = getMockAgreementDetails("0x0");
 
-        agreement = new AgreementV2(details, owner);
+        agreement = new AgreementV2(details, address(registryV2), owner);
         agreementAddress = address(agreement);
     }
 

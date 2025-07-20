@@ -53,7 +53,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
         vm.startBroadcast(deployerPrivateKey);
 
         // Create agreement using factory
-        address agreementAddress = factory.create(details, deployer);
+        address agreementAddress = factory.create(details, address(registry), deployer);
         console.log("Created agreement at:");
         console.logAddress(agreementAddress);
 
