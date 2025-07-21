@@ -19,6 +19,7 @@
         }
     ],
     "bountyTerms": {
+        "aggregateBountyCapUSD": 0,
         "bountyPercentage": 10,
         "bountyCapUSD": 100,
         "retainable": true,
