@@ -112,12 +112,6 @@ contract SafeHarborRegistryV2 is Ownable {
         return validChainsList;
     }
 
-    /// @notice Function that returns the number of currently valid chains.
-    /// @return uint256 The count of valid chains.
-    function getValidChainsCount() external view returns (uint256) {
-        return validChainsList.length;
-    }
-
     // ----- INTERNAL FUNCTIONS -----
 
     /// @notice Internal function to remove a chain ID from the valid chains list.

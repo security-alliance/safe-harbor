@@ -68,7 +68,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         // Initially should have 2 chains from setUp (eip155:1, eip155:2)
         string[] memory initialChains = registryV2.getValidChains();
         assertEq(initialChains.length, 2);
-        assertEq(registryV2.getValidChainsCount(), 2);
+        assertEq(registryV2.getValidChains().length, 2);
 
         // Add some new chains
         string[] memory chains = new string[](2);
@@ -81,7 +81,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         // Verify they're tracked (should now have 4 total)
         string[] memory validChains = registryV2.getValidChains();
         assertEq(validChains.length, 4);
-        assertEq(registryV2.getValidChainsCount(), 4);
+        assertEq(registryV2.getValidChains().length, 4);
 
         // Verify the chains are in the list (order may vary)
         bool foundEth = false;
@@ -115,7 +115,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         vm.prank(registryOwner);
         registryV2.setValidChains(chains);
 
-        assertEq(registryV2.getValidChainsCount(), 3);
+        assertEq(registryV2.getValidChains().length, 3);
 
         // Now mark some as invalid
         string[] memory invalidChains = new string[](2);
@@ -138,13 +138,13 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         // Verify they're removed from the list (should have 1 left)
         string[] memory remainingChains = registryV2.getValidChains();
         assertEq(remainingChains.length, 1);
-        assertEq(registryV2.getValidChainsCount(), 1);
+        assertEq(registryV2.getValidChains().length, 1);
         assertEq(remainingChains[0], "eip155:1");
     }
 
     function test_setValidChainsNoDuplicates() public {
         // Registry starts with 2 chains (eip155:1, eip155:2) from setUp
-        assertEq(registryV2.getValidChainsCount(), 2);
+        assertEq(registryV2.getValidChains().length, 2);
 
         // Add overlapping and new chains
         string[] memory chains = new string[](3);
@@ -156,7 +156,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         registryV2.setValidChains(chains);
 
         // Should only have 4 unique chains total (2 from setUp + 2 new)
-        assertEq(registryV2.getValidChainsCount(), 4);
+        assertEq(registryV2.getValidChains().length, 4);
 
         string[] memory validChains = registryV2.getValidChains();
         assertEq(validChains.length, 4);
@@ -164,7 +164,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
 
     function test_setInvalidNonexistentChains() public {
         // Registry starts with 2 chains from setUp
-        assertEq(registryV2.getValidChainsCount(), 2);
+        assertEq(registryV2.getValidChains().length, 2);
 
         // Try to invalidate chains that were never valid
         string[] memory invalidChains = new string[](2);
@@ -175,7 +175,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         registryV2.setInvalidChains(invalidChains);
 
         // Should still have the original 2 chains
-        assertEq(registryV2.getValidChainsCount(), 2);
+        assertEq(registryV2.getValidChains().length, 2);
         assertTrue(!registryV2.isChainValid("eip155:999"));
         assertTrue(!registryV2.isChainValid("eip155:1000"));
     }
@@ -188,7 +188,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
 
         vm.prank(registryOwner);
         registryV2.setValidChains(chains);
-        assertEq(registryV2.getValidChainsCount(), 4);
+        assertEq(registryV2.getValidChains().length, 4);
 
         // Remove some
         string[] memory invalidChains = new string[](2);
@@ -197,7 +197,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
 
         vm.prank(registryOwner);
         registryV2.setInvalidChains(invalidChains);
-        assertEq(registryV2.getValidChainsCount(), 2);
+        assertEq(registryV2.getValidChains().length, 2);
 
         // Add more (including one that was removed)
         string[] memory moreChains = new string[](3);
@@ -207,7 +207,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
 
         vm.prank(registryOwner);
         registryV2.setValidChains(moreChains);
-        assertEq(registryV2.getValidChainsCount(), 5);
+        assertEq(registryV2.getValidChains().length, 5);
 
         // Verify final state
         assertTrue(registryV2.isChainValid("eip155:1"));
