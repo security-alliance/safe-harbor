@@ -17,6 +17,9 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @notice A mapping CAIP-2 IDs and if they are valid.
     mapping(string => bool) private validChains;
 
+    /// @notice Array to keep track of all valid chain IDs
+    string[] private validChainsList;
+
     /// @notice The fallback registry.
     IRegistry fallbackRegistry;
 
@@ -49,7 +52,10 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
     function setValidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
-            validChains[_caip2ChainIds[i]] = true;
+            if (!validChains[_caip2ChainIds[i]]) {
+                validChains[_caip2ChainIds[i]] = true;
+                validChainsList.push(_caip2ChainIds[i]);
+            }
             emit ChainValiditySet(_caip2ChainIds[i], true);
         }
     }
@@ -58,7 +64,10 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as invalid.
     function setInvalidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
-            validChains[_caip2ChainIds[i]] = false;
+            if (validChains[_caip2ChainIds[i]]) {
+                validChains[_caip2ChainIds[i]] = false;
+                _removeFromValidChainsList(_caip2ChainIds[i]);
+            }
             emit ChainValiditySet(_caip2ChainIds[i], false);
         }
     }
@@ -95,5 +104,32 @@ contract SafeHarborRegistryV2 is Ownable {
     /// @return bool True if the chain is valid, false otherwise.
     function isChainValid(string calldata _caip2ChainId) external view returns (bool) {
         return validChains[_caip2ChainId];
+    }
+
+    /// @notice Function that returns all currently valid chain IDs.
+    /// @return string[] Array of all valid CAIP-2 chain IDs.
+    function getValidChains() external view returns (string[] memory) {
+        return validChainsList;
+    }
+
+    /// @notice Function that returns the number of currently valid chains.
+    /// @return uint256 The count of valid chains.
+    function getValidChainsCount() external view returns (uint256) {
+        return validChainsList.length;
+    }
+
+    // ----- INTERNAL FUNCTIONS -----
+
+    /// @notice Internal function to remove a chain ID from the valid chains list.
+    /// @param _caip2ChainId The CAIP-2 chain ID to remove.
+    function _removeFromValidChainsList(string calldata _caip2ChainId) internal {
+        for (uint256 i = 0; i < validChainsList.length; i++) {
+            if (keccak256(bytes(validChainsList[i])) == keccak256(bytes(_caip2ChainId))) {
+                // Replace with last element and pop
+                validChainsList[i] = validChainsList[validChainsList.length - 1];
+                validChainsList.pop();
+                break;
+            }
+        }
     }
 }

@@ -45,17 +45,11 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
 
     function test_run() public {
         // Get mock agreement details
-        AgreementDetailsV2 memory details = getMockAgreementDetailsV2(
-            vm.toString(mockAddress)
-        );
+        AgreementDetailsV2 memory details = getMockAgreementDetailsV2(vm.toString(mockAddress));
 
         // Create agreement using factory
         vm.prank(mockAddress);
-        address agreementAddr = factory.create(
-            details,
-            address(registry),
-            mockAddress
-        );
+        address agreementAddr = factory.create(details, address(registry), mockAddress);
 
         // Adopt the agreement
         vm.prank(mockAddress);
@@ -68,52 +62,30 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
         AgreementV2 agreement = AgreementV2(agreementAddr);
         AgreementDetailsV2 memory gotDetails = agreement.getDetails();
 
-        console.logString(
-            "--------------------------GOT--------------------------"
-        );
+        console.logString("--------------------------GOT--------------------------");
         logAgreementDetailsV2(gotDetails);
-        console.logString(
-            "--------------------------WANT--------------------------"
-        );
+        console.logString("--------------------------WANT--------------------------");
         logAgreementDetailsV2(details);
 
         // Compare the details
-        assertEq(
-            keccak256(abi.encode(details)),
-            keccak256(abi.encode(gotDetails)),
-            "Agreement details should match"
-        );
+        assertEq(keccak256(abi.encode(details)), keccak256(abi.encode(gotDetails)), "Agreement details should match");
 
         // Verify owner is set correctly
-        assertEq(
-            agreement.owner(),
-            mockAddress,
-            "Agreement owner should be the adopter"
-        );
+        assertEq(agreement.owner(), mockAddress, "Agreement owner should be the adopter");
 
         // Verify version
-        assertEq(
-            agreement.version(),
-            "1.1.0",
-            "Agreement version should be correct"
-        );
+        assertEq(agreement.version(), "1.1.0", "Agreement version should be correct");
     }
 
     function test_adoptWithCustomDetails() public {
         // Create custom agreement details
-        AgreementDetailsV2 memory customDetails = getMockAgreementDetailsV2(
-            vm.toString(mockAddress)
-        );
+        AgreementDetailsV2 memory customDetails = getMockAgreementDetailsV2(vm.toString(mockAddress));
         customDetails.protocolName = "Custom Protocol";
         customDetails.agreementURI = "ipfs://customhash";
 
         // Create agreement using factory
         vm.prank(mockAddress);
-        address agreementAddr = factory.create(
-            customDetails,
-            address(registry),
-            mockAddress
-        );
+        address agreementAddr = factory.create(customDetails, address(registry), mockAddress);
 
         // Adopt the agreement
         vm.prank(mockAddress);
@@ -121,58 +93,33 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
 
         // Verify adoption
         address adoptedAddr = registry.getAgreement(mockAddress);
-        assertEq(
-            adoptedAddr,
-            agreementAddr,
-            "Adopted agreement address should match"
-        );
+        assertEq(adoptedAddr, agreementAddr, "Adopted agreement address should match");
 
         AgreementV2 agreement = AgreementV2(adoptedAddr);
         AgreementDetailsV2 memory details = agreement.getDetails();
 
-        assertEq(
-            details.protocolName,
-            "Custom Protocol",
-            "Protocol name should be custom"
-        );
-        assertEq(
-            details.agreementURI,
-            "ipfs://customhash",
-            "Agreement URI should be custom"
-        );
+        assertEq(details.protocolName, "Custom Protocol", "Protocol name should be custom");
+        assertEq(details.agreementURI, "ipfs://customhash", "Agreement URI should be custom");
     }
 
     function test_factoryWithInvalidChain() public {
         // Create details with invalid chain
-        AgreementDetailsV2 memory invalidDetails = getMockAgreementDetailsV2(
-            vm.toString(mockAddress)
-        );
+        AgreementDetailsV2 memory invalidDetails = getMockAgreementDetailsV2(vm.toString(mockAddress));
         invalidDetails.chains[0].caip2ChainId = "eip155:999"; // Invalid chain
 
         // Should fail when creating agreement with invalid chain
         vm.prank(mockAddress);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AgreementV2.InvalidChainId.selector,
-                "eip155:999"
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AgreementV2.InvalidChainId.selector, "eip155:999"));
         factory.create(invalidDetails, address(registry), mockAddress);
     }
 
     function test_multipleAdoptions() public {
         // Create first agreement
-        AgreementDetailsV2 memory details1 = getMockAgreementDetailsV2(
-            vm.toString(mockAddress)
-        );
+        AgreementDetailsV2 memory details1 = getMockAgreementDetailsV2(vm.toString(mockAddress));
         details1.protocolName = "Protocol 1";
 
         vm.prank(mockAddress);
-        address agreement1 = factory.create(
-            details1,
-            address(registry),
-            mockAddress
-        );
+        address agreement1 = factory.create(details1, address(registry), mockAddress);
 
         vm.prank(mockAddress);
         registry.adoptSafeHarbor(agreement1);
@@ -181,17 +128,11 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
         assertEq(registry.getAgreement(mockAddress), agreement1);
 
         // Create second agreement
-        AgreementDetailsV2 memory details2 = getMockAgreementDetailsV2(
-            vm.toString(mockAddress)
-        );
+        AgreementDetailsV2 memory details2 = getMockAgreementDetailsV2(vm.toString(mockAddress));
         details2.protocolName = "Protocol 2";
 
         vm.prank(mockAddress);
-        address agreement2 = factory.create(
-            details2,
-            address(registry),
-            mockAddress
-        );
+        address agreement2 = factory.create(details2, address(registry), mockAddress);
 
         vm.prank(mockAddress);
         registry.adoptSafeHarbor(agreement2);
@@ -205,9 +146,7 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
     }
 
     // Helper function to log V2 agreement details
-    function logAgreementDetailsV2(
-        AgreementDetailsV2 memory details
-    ) internal view {
+    function logAgreementDetailsV2(AgreementDetailsV2 memory details) internal view {
         console.logString("Protocol Name:");
         console.logString(details.protocolName);
         console.logString("Agreement URI:");
@@ -215,21 +154,9 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
         console.logString("Chains:");
         for (uint256 i = 0; i < details.chains.length; i++) {
             console.logString(string.concat("  Chain ", vm.toString(i), ":"));
-            console.logString(
-                string.concat("    CAIP-2 ID: ", details.chains[i].caip2ChainId)
-            );
-            console.logString(
-                string.concat(
-                    "    Recovery Address: ",
-                    details.chains[i].assetRecoveryAddress
-                )
-            );
-            console.logString(
-                string.concat(
-                    "    Accounts: ",
-                    vm.toString(details.chains[i].accounts.length)
-                )
-            );
+            console.logString(string.concat("    CAIP-2 ID: ", details.chains[i].caip2ChainId));
+            console.logString(string.concat("    Recovery Address: ", details.chains[i].assetRecoveryAddress));
+            console.logString(string.concat("    Accounts: ", vm.toString(details.chains[i].accounts.length)));
         }
         console.logString("Bounty Terms:");
         console.logUint(details.bountyTerms.bountyPercentage);
