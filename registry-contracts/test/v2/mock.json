@@ -9,7 +9,7 @@
                 }
             ],
             "assetRecoveryAddress": "0x0000000000000000000000000000000000000011",
-            "id": 1
+            "caip2ChainId": "eip155:1"
         }
     ],
     "contact": [
@@ -19,6 +19,7 @@
         }
     ],
     "bountyTerms": {
+        "aggregateBountyCapUSD": 0,
         "bountyPercentage": 10,
         "bountyCapUSD": 100,
         "retainable": true,

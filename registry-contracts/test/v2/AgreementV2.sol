@@ -15,6 +15,7 @@ contract AgreementV2Test is Test.Test {
 
     V2.AgreementDetailsV2 details;
     V2.AgreementV2 agreement;
+    SafeHarborRegistryV2 registry;
 
     function setUp() public {
         mockKey = 0xA113;
@@ -22,8 +23,16 @@ contract AgreementV2Test is Test.Test {
         owner = address(0x1);
         notOwner = address(0x2);
 
+        // Create registry and set valid chains
+        registry = new SafeHarborRegistryV2(address(0), owner);
+        string[] memory validChains = new string[](2);
+        validChains[0] = "eip155:1";
+        validChains[1] = "eip155:2";
+        vm.prank(owner);
+        registry.setValidChains(validChains);
+
         details = getMockAgreementDetails("0x01");
-        agreement = new V2.AgreementV2(details, owner);
+        agreement = new V2.AgreementV2(details, address(registry), owner);
     }
 
     function testOwner() public {
@@ -78,7 +87,7 @@ contract AgreementV2Test is Test.Test {
         accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
 
         V2.Chain[] memory newChains = new V2.Chain[](1);
-        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
+        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:2"});
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
@@ -101,31 +110,50 @@ contract AgreementV2Test is Test.Test {
         accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
 
         V2.Chain[] memory chains = new V2.Chain[](1);
-        chains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
-        uint256[] memory chainIds = new uint256[](1);
+        chains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:1" // Update existing chain
+        });
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        chainIds[0] = 0;
-        agreement.setChains(chainIds, chains);
+        agreement.setChains(chains);
 
-        // Should fail when chainIds are greater than chains length
+        // Should fail when chain doesn't exist
         vm.prank(owner);
         vm.expectRevert();
-        chainIds[0] = 999;
-        agreement.setChains(chainIds, chains);
+        V2.Chain[] memory nonExistentChains = new V2.Chain[](1);
+        nonExistentChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:999" // Non-existent chain
+        });
+        agreement.setChains(nonExistentChains);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        chainIds[0] = 0;
-        agreement.setChains(chainIds, chains);
+        agreement.setChains(chains);
 
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(_details.chains.length, 1);
         assertEq(keccak256(abi.encode(chains[0])), keccak256(abi.encode(_details.chains[0])));
+    }
+
+    function testAddChainsPreventsDuplicates() public {
+        V2.Account[] memory accounts = new V2.Account[](1);
+        accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
+
+        // Test adding chain that already exists (conflicts with mock data)
+        V2.Chain[] memory existingChain = new V2.Chain[](1);
+        existingChain[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:1"});
+
+        vm.prank(owner);
+        vm.expectRevert();
+        agreement.addChains(existingChain);
     }
 
     function testRemoveChain() public {
@@ -133,7 +161,7 @@ contract AgreementV2Test is Test.Test {
         accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
 
         V2.Chain[] memory newChains = new V2.Chain[](1);
-        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, id: 2});
+        newChains[0] = V2.Chain({assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:2"});
 
         vm.prank(owner);
         agreement.addChains(newChains);
@@ -141,18 +169,22 @@ contract AgreementV2Test is Test.Test {
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.removeChain(1);
+        string[] memory chainToRemove = new string[](1);
+        chainToRemove[0] = "eip155:2";
+        agreement.removeChains(chainToRemove);
 
         // Should fail when removing non-existent chain
         vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.ChainNotFound.selector);
-        agreement.removeChain(999);
+        vm.expectRevert();
+        string[] memory nonExistentChain = new string[](1);
+        nonExistentChain[0] = "eip155:999";
+        agreement.removeChains(nonExistentChain);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.removeChain(1);
+        agreement.removeChains(chainToRemove);
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
@@ -167,18 +199,18 @@ contract AgreementV2Test is Test.Test {
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.addAccounts(0, accounts);
+        agreement.addAccounts("eip155:1", accounts);
 
         // Should fail when adding to non-existent chain
         vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.ChainNotFound.selector);
-        agreement.addAccounts(999, accounts);
+        vm.expectRevert();
+        agreement.addAccounts("eip155:999", accounts);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.addAccounts(0, accounts);
+        agreement.addAccounts("eip155:1", accounts);
 
         // Verify the change
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
@@ -187,72 +219,39 @@ contract AgreementV2Test is Test.Test {
         assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
     }
 
-    function testSetAccounts() public {
-        V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
-
-        uint256[] memory accountIds = new uint256[](1);
-
-        // Should fail when called by non-owner
-        vm.prank(notOwner);
-        vm.expectRevert();
-        accountIds[0] = 0;
-        agreement.setAccounts(0, accountIds, accounts);
-
-        // should fail when setting to non-existent chain
-        vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.ChainNotFound.selector);
-        accountIds[0] = 0;
-        agreement.setAccounts(999, accountIds, accounts);
-
-        // should fail when setting to non-existent account
-        vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.AccountNotFound.selector);
-        accountIds[0] = 999;
-        agreement.setAccounts(0, accountIds, accounts);
-
-        // Should succeed when called by owner
-        vm.prank(owner);
-        vm.expectEmit();
-        emit V2.AgreementV2.AgreementUpdated();
-        accountIds[0] = 0;
-        agreement.setAccounts(0, accountIds, accounts);
-
-        // Verify the change
-        V2.AgreementDetailsV2 memory _details = agreement.getDetails();
-        V2.Account memory _account = _details.chains[0].accounts[0];
-        assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
-    }
-
     function testRemoveAccount() public {
         V2.Account[] memory accounts = new V2.Account[](1);
-        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.None});
+        accounts[0] = V2.Account({accountAddress: "0x02", childContractScope: V2.ChildContractScope.None});
 
         vm.prank(owner);
-        agreement.addAccounts(0, accounts);
+        agreement.addAccounts("eip155:1", accounts);
 
         // Should fail when called by non-owner
         vm.prank(notOwner);
         vm.expectRevert();
-        agreement.removeAccount(0, 1);
+        string[] memory accountToRemove = new string[](1);
+        accountToRemove[0] = "0x02";
+        agreement.removeAccounts("eip155:1", accountToRemove);
 
         // Should fail when removing from non-existent chain
         vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.ChainNotFound.selector);
-        agreement.removeAccount(999, 1);
+        vm.expectRevert();
+        agreement.removeAccounts("eip155:999", accountToRemove);
 
         // Should fail when removing non-existent account
         vm.prank(owner);
-        vm.expectRevert(V2.AgreementV2.AccountNotFound.selector);
-        agreement.removeAccount(0, 999);
+        vm.expectRevert();
+        string[] memory nonExistentAccount = new string[](1);
+        nonExistentAccount[0] = "0x999";
+        agreement.removeAccounts("eip155:1", nonExistentAccount);
 
         // Should succeed when called by owner
         vm.prank(owner);
         vm.expectEmit();
         emit V2.AgreementV2.AgreementUpdated();
-        agreement.removeAccount(0, 1);
+        agreement.removeAccounts("eip155:1", accountToRemove);
 
-        // Verify the change
+        // Verify the change - should be back to original state
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(_details)), keccak256(abi.encode(details)));
     }
@@ -284,6 +283,127 @@ contract AgreementV2Test is Test.Test {
         assertEq(keccak256(abi.encode(newTerms)), keccak256(abi.encode(_details.bountyTerms)));
     }
 
+    // Test that constructor validation works for bounty terms
+    function testConstructorCannotSetBothAggregateBountyCapUSDAndRetainable() public {
+        V2.AgreementDetailsV2 memory invalidDetails = getMockAgreementDetails("0x01");
+        invalidDetails.bountyTerms.aggregateBountyCapUSD = 1000; // Set to > 0
+        invalidDetails.bountyTerms.retainable = true; // Set to true
+
+        // Should fail when both conditions are true in constructor
+        vm.expectRevert(V2.AgreementV2.CannotSetBothAggregateBountyCapUSDAndRetainable.selector);
+        new V2.AgreementV2(invalidDetails, address(registry), owner);
+    }
+
+    // Test that constructor validation works for duplicate chain IDs
+    function testConstructorDuplicateChainValidation() public {
+        V2.Account[] memory accounts = new V2.Account[](1);
+        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.All});
+
+        V2.Chain[] memory duplicateChains = new V2.Chain[](2);
+        duplicateChains[0] =
+            V2.Chain({accounts: new V2.Account[](1), assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1"});
+        duplicateChains[0].accounts[0] = accounts[0];
+        duplicateChains[1] =
+            V2.Chain({accounts: new V2.Account[](1), assetRecoveryAddress: "0x02", caip2ChainId: "eip155:1"}); // Duplicate!
+        duplicateChains[1].accounts[0] = accounts[0];
+
+        V2.Contact[] memory contacts = new V2.Contact[](1);
+        contacts[0] = V2.Contact({name: "Test Name", contact: "test@mail.com"});
+
+        V2.BountyTerms memory bountyTerms = V2.BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100,
+            retainable: true,
+            identity: V2.IdentityRequirements.Anonymous,
+            diligenceRequirements: "none",
+            aggregateBountyCapUSD: 0
+        });
+
+        V2.AgreementDetailsV2 memory invalidDetails = V2.AgreementDetailsV2({
+            protocolName: "testProtocol",
+            chains: duplicateChains,
+            contactDetails: contacts,
+            bountyTerms: bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        // Should fail when duplicate chain IDs are provided in constructor
+        vm.expectRevert();
+        new V2.AgreementV2(invalidDetails, address(registry), owner);
+    }
+
+    // Test that constructor validation works for invalid chain IDs
+    function testConstructorInvalidChainValidation() public {
+        V2.Account[] memory accounts = new V2.Account[](1);
+        accounts[0] = V2.Account({accountAddress: "0x01", childContractScope: V2.ChildContractScope.All});
+
+        V2.Chain[] memory invalidChains = new V2.Chain[](1);
+        invalidChains[0] = V2.Chain({
+            accounts: new V2.Account[](1),
+            assetRecoveryAddress: "0x01",
+            caip2ChainId: "eip155:999" // Invalid chain ID
+        });
+        invalidChains[0].accounts[0] = accounts[0];
+
+        V2.Contact[] memory contacts = new V2.Contact[](1);
+        contacts[0] = V2.Contact({name: "Test Name", contact: "test@mail.com"});
+
+        V2.BountyTerms memory bountyTerms = V2.BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100,
+            retainable: true,
+            identity: V2.IdentityRequirements.Anonymous,
+            diligenceRequirements: "none",
+            aggregateBountyCapUSD: 0
+        });
+
+        V2.AgreementDetailsV2 memory invalidDetails = V2.AgreementDetailsV2({
+            protocolName: "testProtocol",
+            chains: invalidChains,
+            contactDetails: contacts,
+            bountyTerms: bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        // Should fail when invalid chain ID is provided in constructor
+        vm.expectRevert(abi.encodeWithSelector(V2.AgreementV2.InvalidChainId.selector, "eip155:999"));
+        new V2.AgreementV2(invalidDetails, address(registry), owner);
+    }
+
+    // Test adding chains with invalid chain IDs
+    function testAddChainsInvalidChain() public {
+        V2.Account[] memory accounts = new V2.Account[](1);
+        accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
+
+        V2.Chain[] memory invalidChains = new V2.Chain[](1);
+        invalidChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:999" // Invalid chain ID
+        });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(V2.AgreementV2.InvalidChainId.selector, "eip155:999"));
+        agreement.addChains(invalidChains);
+    }
+
+    // Test setting chains with invalid chain IDs
+    function testSetChainsInvalidChain() public {
+        V2.Account[] memory accounts = new V2.Account[](1);
+        accounts[0] = V2.Account({accountAddress: "0x04", childContractScope: V2.ChildContractScope.None});
+
+        V2.Chain[] memory invalidChains = new V2.Chain[](1);
+        invalidChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:999" // Invalid chain ID - not in registry
+        });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(V2.AgreementV2.InvalidChainId.selector, "eip155:999"));
+        agreement.setChains(invalidChains);
+    }
+
     // Test that setting both aggregateBountyCapUSD > 0 and retainable = true fails
     function testCannotSetBothAggregateBountyCapUSDAndRetainable() public {
         V2.BountyTerms memory invalidTerms = V2.BountyTerms({
@@ -303,5 +423,82 @@ contract AgreementV2Test is Test.Test {
         // Verify the original terms are unchanged
         V2.AgreementDetailsV2 memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(details.bountyTerms)), keccak256(abi.encode(_details.bountyTerms)));
+    }
+
+    function testRemoveChains() public {
+        // First add the chain IDs to the registry as valid
+        string[] memory newValidChains = new string[](2);
+        newValidChains[0] = "eip155:137";
+        newValidChains[1] = "eip155:56";
+        vm.prank(owner);
+        registry.setValidChains(newValidChains);
+
+        // Add multiple chains first
+        V2.Chain[] memory newChains = new V2.Chain[](2);
+
+        newChains[0] = V2.Chain({
+            assetRecoveryAddress: "0x1111111111111111111111111111111111111111",
+            accounts: new V2.Account[](0),
+            caip2ChainId: "eip155:137"
+        });
+
+        newChains[1] = V2.Chain({
+            assetRecoveryAddress: "0x2222222222222222222222222222222222222222",
+            accounts: new V2.Account[](0),
+            caip2ChainId: "eip155:56"
+        });
+
+        vm.prank(owner);
+        agreement.addChains(newChains);
+
+        // Verify chains were added
+        V2.AgreementDetailsV2 memory updatedDetails = agreement.getDetails();
+        assertEq(updatedDetails.chains.length, 3); // 1 original + 2 new
+
+        // Remove multiple chains
+        string[] memory chainIdsToRemove = new string[](2);
+        chainIdsToRemove[0] = "eip155:137";
+        chainIdsToRemove[1] = "eip155:56";
+
+        vm.prank(owner);
+        agreement.removeChains(chainIdsToRemove);
+
+        // Verify chains were removed
+        details = agreement.getDetails();
+        assertEq(details.chains.length, 1); // Back to original 1 chain
+    }
+
+    function testRemoveAccounts() public {
+        // Add multiple accounts to the existing chain first
+        V2.Account[] memory newAccounts = new V2.Account[](2);
+
+        newAccounts[0] = V2.Account({
+            accountAddress: "0x3333333333333333333333333333333333333333",
+            childContractScope: V2.ChildContractScope.None
+        });
+
+        newAccounts[1] = V2.Account({
+            accountAddress: "0x4444444444444444444444444444444444444444",
+            childContractScope: V2.ChildContractScope.None
+        });
+
+        vm.prank(owner);
+        agreement.addAccounts("eip155:1", newAccounts);
+
+        // Verify accounts were added
+        V2.AgreementDetailsV2 memory updatedDetails = agreement.getDetails();
+        assertEq(updatedDetails.chains[0].accounts.length, 3); // 1 original + 2 new
+
+        // Remove multiple accounts
+        string[] memory accountsToRemove = new string[](2);
+        accountsToRemove[0] = "0x3333333333333333333333333333333333333333";
+        accountsToRemove[1] = "0x4444444444444444444444444444444444444444";
+
+        vm.prank(owner);
+        agreement.removeAccounts("eip155:1", accountsToRemove);
+
+        // Verify accounts were removed
+        details = agreement.getDetails();
+        assertEq(details.chains[0].accounts.length, 1); // Back to original 1 account
     }
 }

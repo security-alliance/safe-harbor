@@ -8,7 +8,7 @@ import "../../src/v2/AgreementDetailsV2.sol";
 function getMockAgreementDetails(string memory accountAddress) pure returns (AgreementDetailsV2 memory mockDetails) {
     Account memory account = Account({accountAddress: accountAddress, childContractScope: ChildContractScope.All});
 
-    Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: "0x01", id: 1});
+    Chain memory chain = Chain({accounts: new Account[](1), assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1"});
     chain.accounts[0] = account;
 
     Contact memory contact = Contact({name: "Test Name", contact: "test@mail.com"});
@@ -50,7 +50,7 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
     // Print Chain Details
     console.log("Chain Details:");
     for (uint256 i = 0; i < details.chains.length; i++) {
-        console.log("  Chain ID:", details.chains[i].id);
+        console.log("  Chain ID:", details.chains[i].caip2ChainId);
         console.log("  Asset Recovery Address:", details.chains[i].assetRecoveryAddress);
         console.log("  Number of Accounts in Scope:", details.chains[i].accounts.length);
 

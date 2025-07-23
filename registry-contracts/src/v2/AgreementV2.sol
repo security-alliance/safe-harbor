@@ -11,9 +11,8 @@ import {
     ChildContractScope,
     IdentityRequirements
 } from "./AgreementDetailsV2.sol";
+import {SafeHarborRegistryV2, VERSION} from "./SafeHarborRegistryV2.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-
-string constant _version = "1.1.0";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 /**
@@ -24,29 +23,50 @@ string constant _version = "1.1.0";
  * address than the deployer.
  */
 contract AgreementV2 is Ownable {
+    // ----- STATE VARIABLES -----
+
     /// @notice The details of the agreement.
     AgreementDetailsV2 private details;
 
-    /// ----- EVENTS -----
+    /// @notice The Safe Harbor Registry V2 contract
+    SafeHarborRegistryV2 private registry;
+
+    /// @notice Temporary mapping used for duplicate chain ID validation
+    mapping(bytes32 => bool) private _tempChainIdSeen;
+
+    // ----- EVENTS -----
 
     /// @notice An event that records when a safe harbor agreement is updated.
     event AgreementUpdated();
 
-    /// ----- ERRORS -----
+    // ----- ERRORS -----
+
     error ChainNotFound();
     error AccountNotFound();
     error CannotSetBothAggregateBountyCapUSDAndRetainable();
+    error ChainNotFoundByCaip2Id(string caip2ChainId);
+    error AccountNotFoundByAddress(string caip2ChainId, string accountAddress);
+    error DuplicateChainId(string caip2ChainId);
+    error InvalidChainId(string caip2ChainId);
 
-    /// ----- METHODS -----
+    // ----- CONSTRUCTOR -----
 
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
-    constructor(AgreementDetailsV2 memory _details, address _owner) Ownable(_owner) {
+    /// @param _registry The address of the Safe Harbor Registry V2 contract
+    /// @param _owner The owner of the agreement
+    constructor(AgreementDetailsV2 memory _details, address _registry, address _owner) Ownable(_owner) {
+        registry = SafeHarborRegistryV2(_registry);
+        _validateBountyTerms(_details.bountyTerms);
+        _validateNoDuplicateChainIds(_details.chains);
+        _validateChainIds(_details.chains);
         details = _details;
     }
 
+    // ----- EXTERNAL FUNCTIONS -----
+
     function version() external pure returns (string memory) {
-        return _version;
+        return VERSION;
     }
 
     function setProtocolName(string memory _protocolName) external onlyOwner {
@@ -60,96 +80,66 @@ contract AgreementV2 is Ownable {
     }
 
     function addChains(Chain[] memory _chains) external onlyOwner {
+        // Validate chain IDs are valid
+        _validateChainIds(_chains);
+        // Validate no duplicates with existing chains
         for (uint256 i = 0; i < _chains.length; i++) {
             details.chains.push(_chains[i]);
         }
+        _validateNoDuplicateChainIds(details.chains);
+
         emit AgreementUpdated();
     }
 
-    function setChains(uint256[] memory _chainIndexs, Chain[] memory _chains) external onlyOwner {
-        require(_chainIndexs.length == _chains.length, "Input arrays must have same length");
-
-        for (uint256 i = 0; i < _chainIndexs.length; i++) {
-            if (details.chains.length <= _chainIndexs[i]) {
-                revert ChainNotFound();
-            }
-
-            details.chains[_chainIndexs[i]] = _chains[i];
+    function setChains(Chain[] memory _chains) external onlyOwner {
+        // Validate chain IDs are valid
+        _validateChainIds(_chains);
+        for (uint256 i = 0; i < _chains.length; i++) {
+            uint256 chainIndex = _findChainIndex(_chains[i].caip2ChainId);
+            details.chains[chainIndex] = _chains[i];
         }
 
         emit AgreementUpdated();
     }
 
-    /// @notice Removes chains from the agreement.
-    /// @notice This function will move the last chain in the array to the index of
-    /// @notice the removed chain, and then pop the last element. If calling this
-    /// @notice function multiple times, the order of the chains will change.
-    function removeChain(uint256 _chainIndex) external onlyOwner {
-        if (details.chains.length <= _chainIndex) {
-            revert ChainNotFound();
+    /// @notice Removes multiple chains from the agreement by CAIP-2 IDs.
+    /// @param _caip2ChainIds Array of CAIP-2 IDs of the chains to remove
+    function removeChains(string[] memory _caip2ChainIds) external onlyOwner {
+        for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
+            uint256 chainIndex = _findChainIndex(_caip2ChainIds[i]);
+            details.chains[chainIndex] = details.chains[details.chains.length - 1];
+            details.chains.pop();
         }
-
-        details.chains[_chainIndex] = details.chains[details.chains.length - 1];
-        details.chains.pop();
-
         emit AgreementUpdated();
     }
 
-    function addAccounts(uint256 _chainIndex, Account[] memory _accounts) external onlyOwner {
-        if (details.chains.length <= _chainIndex) {
-            revert ChainNotFound();
-        }
+    function addAccounts(string memory _caip2ChainId, Account[] memory _accounts) external onlyOwner {
+        uint256 chainIndex = _findChainIndex(_caip2ChainId);
 
         for (uint256 i = 0; i < _accounts.length; i++) {
-            details.chains[_chainIndex].accounts.push(_accounts[i]);
+            details.chains[chainIndex].accounts.push(_accounts[i]);
         }
 
         emit AgreementUpdated();
     }
 
-    function setAccounts(uint256 _chainIndex, uint256[] memory _accountIndexs, Account[] memory _accounts)
-        external
-        onlyOwner
-    {
-        if (details.chains.length <= _chainIndex) {
-            revert ChainNotFound();
+    /// @notice Function that removes multiple accounts from the agreement by addresses.
+    /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
+    /// @param _accountAddresses Array of addresses of the accounts to remove
+    function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
+        uint256 chainIndex = _findChainIndex(_caip2ChainId);
+        for (uint256 i = 0; i < _accountAddresses.length; i++) {
+            uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddresses[i]);
+
+            uint256 lastAccountId = details.chains[chainIndex].accounts.length - 1;
+            details.chains[chainIndex].accounts[accountIndex] = details.chains[chainIndex].accounts[lastAccountId];
+            details.chains[chainIndex].accounts.pop();
         }
-
-        require(_accountIndexs.length == _accounts.length, "Input arrays must have same length");
-
-        for (uint256 i = 0; i < _accountIndexs.length; i++) {
-            if (details.chains[_chainIndex].accounts.length <= _accountIndexs[i]) {
-                revert AccountNotFound();
-            }
-            details.chains[_chainIndex].accounts[_accountIndexs[i]] = _accounts[i];
-        }
-
-        emit AgreementUpdated();
-    }
-
-    /// @notice Function that removes an account from the agreement.
-    /// @dev This function will move the last account in the array to the index of
-    /// @dev the removed account, and then pop the last element. If calling this
-    /// @dev function multiple times, the order of the accounts will change.
-    function removeAccount(uint256 _chainIndex, uint256 _accountIndex) external onlyOwner {
-        if (details.chains.length <= _chainIndex) {
-            revert ChainNotFound();
-        }
-
-        if (details.chains[_chainIndex].accounts.length <= _accountIndex) {
-            revert AccountNotFound();
-        }
-
-        uint256 lastAccountId = details.chains[_chainIndex].accounts.length - 1;
-        details.chains[_chainIndex].accounts[_accountIndex] = details.chains[_chainIndex].accounts[lastAccountId];
-        details.chains[_chainIndex].accounts.pop();
         emit AgreementUpdated();
     }
 
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
-        if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
-            revert CannotSetBothAggregateBountyCapUSDAndRetainable();
-        }
+        _validateBountyTerms(_bountyTerms);
         details.bountyTerms = _bountyTerms;
         emit AgreementUpdated();
     }
@@ -159,5 +149,76 @@ contract AgreementV2 is Ownable {
     /// @return AgreementDetailsV2 The details of the agreement.
     function getDetails() external view returns (AgreementDetailsV2 memory) {
         return details;
+    }
+
+    // ----- INTERNAL FUNCTIONS -----
+
+    /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
+    /// @param _chains The chains to validate
+    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
+        // Clean up the temporary mapping
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            delete _tempChainIdSeen[chainIdHash];
+        }
+
+        // Check for duplicates
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
+            if (_tempChainIdSeen[chainIdHash]) {
+                revert DuplicateChainId(_chains[i].caip2ChainId);
+            }
+            _tempChainIdSeen[chainIdHash] = true;
+        }
+    }
+
+    /// @notice Internal function to validate that all chain IDs in the agreement are valid
+    /// @param _chains The chains to validate
+    function _validateChainIds(Chain[] memory _chains) internal view {
+        for (uint256 i = 0; i < _chains.length; i++) {
+            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
+                revert InvalidChainId(_chains[i].caip2ChainId);
+            }
+        }
+    }
+
+    /// @notice Internal function to validate bounty terms
+    /// @param _bountyTerms The bounty terms to validate
+    function _validateBountyTerms(BountyTerms memory _bountyTerms) internal pure {
+        if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
+            revert CannotSetBothAggregateBountyCapUSDAndRetainable();
+        }
+    }
+
+    /// @notice Internal function to find chain index by CAIP-2 ID
+    /// @param _caip2ChainId The CAIP-2 chain ID to find
+    /// @return chainIndex The index of the chain in the array
+    function _findChainIndex(string memory _caip2ChainId) internal view returns (uint256 chainIndex) {
+        for (uint256 i = 0; i < details.chains.length; i++) {
+            if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes(_caip2ChainId))) {
+                return i;
+            }
+        }
+        revert ChainNotFoundByCaip2Id(_caip2ChainId);
+    }
+
+    /// @notice Internal function to find account index by address within a chain
+    /// @param _chainIndex The index of the chain
+    /// @param _accountAddress The account address to find
+    /// @return accountIndex The index of the account in the chain's accounts array
+    function _findAccountIndex(uint256 _chainIndex, string memory _accountAddress)
+        internal
+        view
+        returns (uint256 accountIndex)
+    {
+        for (uint256 i = 0; i < details.chains[_chainIndex].accounts.length; i++) {
+            if (
+                keccak256(bytes(details.chains[_chainIndex].accounts[i].accountAddress))
+                    == keccak256(bytes(_accountAddress))
+            ) {
+                return i;
+            }
+        }
+        revert AccountNotFoundByAddress(details.chains[_chainIndex].caip2ChainId, _accountAddress);
     }
 }
