@@ -452,8 +452,8 @@ contract AgreementV2Test is Test.Test {
         agreement.addChains(newChains);
 
         // Verify chains were added
-        V2.AgreementDetailsV2 memory details = agreement.getDetails();
-        assertEq(details.chains.length, 3); // 1 original + 2 new
+        V2.AgreementDetailsV2 memory updatedDetails = agreement.getDetails();
+        assertEq(updatedDetails.chains.length, 3); // 1 original + 2 new
 
         // Remove multiple chains
         string[] memory chainIdsToRemove = new string[](2);
@@ -486,8 +486,8 @@ contract AgreementV2Test is Test.Test {
         agreement.addAccounts("eip155:1", newAccounts);
 
         // Verify accounts were added
-        V2.AgreementDetailsV2 memory details = agreement.getDetails();
-        assertEq(details.chains[0].accounts.length, 3); // 1 original + 2 new
+        V2.AgreementDetailsV2 memory updatedDetails = agreement.getDetails();
+        assertEq(updatedDetails.chains[0].accounts.length, 3); // 1 original + 2 new
 
         // Remove multiple accounts
         string[] memory accountsToRemove = new string[](2);

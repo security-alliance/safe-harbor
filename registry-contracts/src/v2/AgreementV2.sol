@@ -11,10 +11,8 @@ import {
     ChildContractScope,
     IdentityRequirements
 } from "./AgreementDetailsV2.sol";
-import {SafeHarborRegistryV2} from "./SafeHarborRegistryV2.sol";
+import {SafeHarborRegistryV2, VERSION} from "./SafeHarborRegistryV2.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-
-string constant _agreementVersion = "1.1.0";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 /**
@@ -68,7 +66,7 @@ contract AgreementV2 is Ownable {
     // ----- EXTERNAL FUNCTIONS -----
 
     function version() external pure returns (string memory) {
-        return _agreementVersion;
+        return VERSION;
     }
 
     function setProtocolName(string memory _protocolName) external onlyOwner {

@@ -5,7 +5,7 @@ import "./AgreementV2.sol" as V2;
 import "../common/IRegistry.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-string constant _version = "1.1.0";
+string constant VERSION = "1.1.0";
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 contract SafeHarborRegistryV2 is Ownable {
@@ -45,7 +45,7 @@ contract SafeHarborRegistryV2 is Ownable {
     // ----- EXTERNAL FUNCTIONS -----
 
     function version() external pure returns (string memory) {
-        return _version;
+        return VERSION;
     }
 
     /// @notice Function that sets a list of chains as valid in the registry.
