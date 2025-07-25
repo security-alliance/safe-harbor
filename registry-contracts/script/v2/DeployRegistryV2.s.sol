@@ -19,9 +19,29 @@ contract DeployRegistryV2 is Script {
 
     // This is the address of the fallback registry that has already been deployed.
     // Set this to the zero address if no fallback registry exists.
-    address fallbackRegistry = block.chainid == 324
-        ? address(0x5f5eEc1a37F42883Df9DacdAb11985467F813877) // zksync
-        : address(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6); // other evm chains
+    address fallbackRegistry = getFallbackRegistryAddress();
+
+    function getFallbackRegistryAddress() internal view returns (address) {
+        uint256 chainId = block.chainid;
+
+        // Most chains use this address
+        address standardFallback = 0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6;
+
+        // Map chain IDs to their fallback registry addresses
+        if (chainId == 1) return standardFallback; // Ethereum
+        if (chainId == 137) return standardFallback; // Polygon
+        if (chainId == 42161) return standardFallback; // Arbitrum
+        if (chainId == 10) return standardFallback; // Optimism
+        if (chainId == 8453) return standardFallback; // Base
+        if (chainId == 43114) return standardFallback; // Avalanche C
+        if (chainId == 1101) return standardFallback; // Polygon zkEVM
+        if (chainId == 56) return standardFallback; // BSC
+        if (chainId == 100) return standardFallback; // Gnosis
+        if (chainId == 324) return 0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76; // ZKsync
+
+        // For any other chain, return zero address (no fallback registry)
+        return address(0);
+    }
 
     function run() public {
         require(
