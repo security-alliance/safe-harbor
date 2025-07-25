@@ -19,8 +19,8 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum      | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://etherscan.io/address/0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe)            | 2       |
-| BSC           | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://bscscan.com/address/0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe)            | 2       |
+| Ethereum      | [0xB4aaAfD63b78971BB0D3561d0577133b965A1704](https://etherscan.io/address/0xB4aaAfD63b78971BB0D3561d0577133b965A1704)            | 1.1       |
+| BSC           | [0xB4aaAfD63b78971BB0D3561d0577133b965A1704](https://bscscan.com/address/0xB4aaAfD63b78971BB0D3561d0577133b965A1704)            | 1.1       |
 |               |                                                                                                                                  |         |
 | Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
 | Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
@@ -31,14 +31,14 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 | Polygon zkEVM | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://zkevm.polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)   | 1       |
 | BSC           | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://bscscan.com/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)             | 1       |
 | Gnosis        | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)           | 1       |
-| ZKsync        | [0x5f5eEc1a37F42883Df9DacdAb11985467F813877](https://explorer.zksync.io/address/0x5f5eEc1a37F42883Df9DacdAb11985467F813877)      | 1       |
+| ZKsync        | [0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76](https://explorer.zksync.io/address/0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76)      | 1       |
 
 ## Factory Addresses
 
 | Chain    | Address                                                                                                               | Version |
 | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://etherscan.io/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 2       |
-| BSC      | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://bscscan.com/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 2       |
+| Ethereum | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://etherscan.io/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 1.1       |
+| BSC      | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://bscscan.com/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 1.1       |
 
 ## How does it work?
 
