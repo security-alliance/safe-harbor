@@ -20,8 +20,8 @@ contract AdoptSafeHarborV2 is ScriptBase {
     using stdJson for string;
 
     // Update these addresses to match your deployed contracts
-    address constant REGISTRY_ADDRESS = 0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
-    address constant FACTORY_ADDRESS = 0x8b466A706FbF1381fAf24a196C1e86928972B228;
+    address constant REGISTRY_ADDRESS = 0xB4aaAfD63b78971BB0D3561d0577133b965A1704;
+    address constant FACTORY_ADDRESS = 0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76;
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -42,12 +42,8 @@ contract AdoptSafeHarborV2 is ScriptBase {
         AgreementFactoryV2 factory,
         string memory json
     ) public {
-        // Read and parse the JSON file
-        bytes memory data = json.parseRaw(".");
-
-        // Decode into the intermediary struct
-        agreementDetailsV2JSON memory jsonDetails = abi.decode(data, (agreementDetailsV2JSON));
-        AgreementDetailsV2 memory details = mapAgreementDetails(jsonDetails);
+        // Parse the JSON file field by field
+        AgreementDetailsV2 memory details = parseAgreementDetails(json);
 
         // Begin broadcast
         vm.startBroadcast(deployerPrivateKey);
@@ -65,103 +61,113 @@ contract AdoptSafeHarborV2 is ScriptBase {
         vm.stopBroadcast();
     }
 
-    // Helper function to map agreementDetailsV2JSON to AgreementDetailsV2
-    function mapAgreementDetails(agreementDetailsV2JSON memory jsonDetails)
-        internal
-        pure
-        returns (AgreementDetailsV2 memory)
-    {
+    // Parse the JSON file field by field using stdJson
+    function parseAgreementDetails(string memory json) internal pure returns (AgreementDetailsV2 memory) {
         return AgreementDetailsV2({
-            protocolName: jsonDetails.protocolName,
-            contactDetails: mapContacts(jsonDetails.contact),
-            chains: mapChains(jsonDetails.chains),
-            bountyTerms: mapBountyTerms(jsonDetails.bountyTerms),
-            agreementURI: jsonDetails.agreementURI
+            protocolName: json.readString(".protocolName"),
+            contactDetails: parseContacts(json),
+            chains: parseChains(json),
+            bountyTerms: parseBountyTerms(json),
+            agreementURI: json.readString(".agreementURI")
         });
     }
 
-    // Define intermediary structs with fields in alphabetical order
-    // and enums replaced with uint8 for decoding
-    struct agreementDetailsV2JSON {
-        string agreementURI;
-        bountyTermsJSON bountyTerms;
-        chainJSON[] chains;
-        contactJSON[] contact;
-        string protocolName;
-    }
+    // Parse contact details
+    function parseContacts(string memory json) internal pure returns (Contact[] memory) {
+        // Use a try-catch approach to determine array length
+        uint256 contactCount = 0;
+        bool continueLoop = true;
 
-    struct bountyTermsJSON {
-        uint256 aggregateBountyCapUSD; // New in V2
-        uint256 bountyCapUSD;
-        uint256 bountyPercentage;
-        string diligenceRequirements;
-        uint8 identity; // enum replaced with uint8
-        bool retainable;
-    }
+        while (continueLoop) {
+            try vm.parseJsonString(json, string.concat(".contact[", vm.toString(contactCount), "].name")) returns (
+                string memory
+            ) {
+                contactCount++;
+            } catch {
+                continueLoop = false;
+            }
+        }
 
-    struct chainJSON {
-        accountJSON[] accounts;
-        string assetRecoveryAddress; // Changed to string in V2
-        string caip2ChainId; // Changed from id to caip2ChainId in V2
-    }
-
-    struct accountJSON {
-        string accountAddress; // Changed to string in V2
-        uint8 childContractScope; // enum replaced with uint8
-            // Note: signature field removed in V2
-    }
-
-    struct contactJSON {
-        string contact;
-        string name;
-    }
-
-    // Helper function to map contactJSON[] to Contact[]
-    function mapContacts(contactJSON[] memory jsonContacts) internal pure returns (Contact[] memory) {
-        uint256 count = jsonContacts.length;
-        Contact[] memory contacts = new Contact[](count);
-        for (uint256 i = 0; i < count; i++) {
-            contacts[i] = Contact({contact: jsonContacts[i].contact, name: jsonContacts[i].name});
+        Contact[] memory contacts = new Contact[](contactCount);
+        for (uint256 i = 0; i < contactCount; i++) {
+            string memory indexPath = string.concat(".contact[", vm.toString(i), "]");
+            contacts[i] = Contact({
+                name: json.readString(string.concat(indexPath, ".name")),
+                contact: json.readString(string.concat(indexPath, ".contact"))
+            });
         }
         return contacts;
     }
 
-    // Helper function to map bountyTermsJSON to BountyTerms
-    function mapBountyTerms(bountyTermsJSON memory jsonBountyTerms) internal pure returns (BountyTerms memory) {
+    // Parse bounty terms
+    function parseBountyTerms(string memory json) internal pure returns (BountyTerms memory) {
         return BountyTerms({
-            bountyPercentage: jsonBountyTerms.bountyPercentage,
-            bountyCapUSD: jsonBountyTerms.bountyCapUSD,
-            retainable: jsonBountyTerms.retainable,
-            identity: IdentityRequirements(jsonBountyTerms.identity),
-            diligenceRequirements: jsonBountyTerms.diligenceRequirements,
-            aggregateBountyCapUSD: jsonBountyTerms.aggregateBountyCapUSD // New in V2
+            bountyPercentage: json.readUint(".bountyTerms.bountyPercentage"),
+            bountyCapUSD: json.readUint(".bountyTerms.bountyCapUSD"),
+            retainable: json.readBool(".bountyTerms.retainable"),
+            identity: IdentityRequirements(json.readUint(".bountyTerms.identity")),
+            diligenceRequirements: json.readString(".bountyTerms.diligenceRequirements"),
+            aggregateBountyCapUSD: json.readUint(".bountyTerms.aggregateBountyCapUSD")
         });
     }
 
-    // Helper function to map chainJSON[] to V2Chain[]
-    function mapChains(chainJSON[] memory jsonChains) internal pure returns (V2Chain[] memory) {
-        uint256 count = jsonChains.length;
-        V2Chain[] memory chains = new V2Chain[](count);
-        for (uint256 i = 0; i < count; i++) {
+    // Parse chains
+    function parseChains(string memory json) internal pure returns (V2Chain[] memory) {
+        // Use a try-catch approach to determine array length
+        uint256 chainCount = 0;
+        bool continueLoop = true;
+
+        while (continueLoop) {
+            try vm.parseJsonString(json, string.concat(".chains[", vm.toString(chainCount), "].caip2ChainId")) returns (
+                string memory
+            ) {
+                chainCount++;
+            } catch {
+                continueLoop = false;
+            }
+        }
+
+        V2Chain[] memory chains = new V2Chain[](chainCount);
+        for (uint256 i = 0; i < chainCount; i++) {
+            string memory chainPath = string.concat(".chains[", vm.toString(i), "]");
             chains[i] = V2Chain({
-                accounts: mapAccounts(jsonChains[i].accounts),
-                assetRecoveryAddress: jsonChains[i].assetRecoveryAddress, // Now a string
-                caip2ChainId: jsonChains[i].caip2ChainId // Now using CAIP-2 format
+                accounts: parseAccountsForChainIndex(json, i),
+                assetRecoveryAddress: json.readString(string.concat(chainPath, ".assetRecoveryAddress")),
+                caip2ChainId: json.readString(string.concat(chainPath, ".caip2ChainId"))
             });
         }
         return chains;
     }
 
-    // Helper function to map accountJSON[] to V2Account[]
-    function mapAccounts(accountJSON[] memory jsonAccounts) internal pure returns (V2Account[] memory) {
-        uint256 count = jsonAccounts.length;
-        V2Account[] memory accounts = new V2Account[](count);
-        for (uint256 i = 0; i < count; i++) {
+    // Parse accounts for a specific chain by index
+    function parseAccountsForChainIndex(string memory json, uint256 chainIndex)
+        internal
+        pure
+        returns (V2Account[] memory)
+    {
+        string memory accountsPath = string.concat(".chains[", vm.toString(chainIndex), "].accounts");
+
+        // Use a try-catch approach to determine array length
+        uint256 accountCount = 0;
+        bool continueLoop = true;
+
+        while (continueLoop) {
+            try vm.parseJsonString(
+                json, string.concat(accountsPath, "[", vm.toString(accountCount), "].accountAddress")
+            ) returns (string memory) {
+                accountCount++;
+            } catch {
+                continueLoop = false;
+            }
+        }
+
+        V2Account[] memory accounts = new V2Account[](accountCount);
+        for (uint256 i = 0; i < accountCount; i++) {
+            string memory accountPath = string.concat(accountsPath, "[", vm.toString(i), "]");
             accounts[i] = V2Account({
-                accountAddress: jsonAccounts[i].accountAddress, // Now a string
-                childContractScope: ChildContractScope(jsonAccounts[i].childContractScope)
+                accountAddress: json.readString(string.concat(accountPath, ".accountAddress")),
+                childContractScope: ChildContractScope(json.readUint(string.concat(accountPath, ".childContractScope")))
             });
-            // Note: signature field removed in V2
         }
         return accounts;
     }

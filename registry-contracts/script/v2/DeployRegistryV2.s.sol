@@ -19,9 +19,9 @@ contract DeployRegistryV2 is Script {
 
     // This is the address of the fallback registry that has already been deployed.
     // Set this to the zero address if no fallback registry exists.
-    //? 0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6 // mainnet
-    //? 0x5f5eEc1a37F42883Df9DacdAb11985467F813877 // zksync
-    address fallbackRegistry = address(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6);
+    address fallbackRegistry = block.chainid == 324
+        ? address(0x5f5eEc1a37F42883Df9DacdAb11985467F813877) // zksync
+        : address(0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6); // other evm chains
 
     function run() public {
         require(
