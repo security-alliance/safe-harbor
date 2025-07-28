@@ -89,9 +89,7 @@ contract AgreementV2 is Ownable {
 
     /// @notice Function that adds multiple chains to the agreement.
     function addChains(Chain[] memory _chains) external onlyOwner {
-        // Validate chain IDs are valid
         _validateChainIds(_chains);
-        // Validate no duplicates with existing chains
         for (uint256 i = 0; i < _chains.length; i++) {
             details.chains.push(_chains[i]);
         }
