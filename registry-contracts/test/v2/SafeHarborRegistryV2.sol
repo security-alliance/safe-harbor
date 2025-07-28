@@ -9,35 +9,34 @@ import {Vm} from "forge-std/Vm.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 import {AgreementV2} from "../../src/v2/AgreementV2.sol";
 import "../../src/v2/AgreementDetailsV2.sol";
+import "../../script/v2/AdoptSafeHarborV2.s.sol";
 import "./mock.sol";
 
 contract SafeHarborRegistryV2Test is TestBase, DSTest {
-    address registryOwner;
     address owner;
 
-    SafeHarborRegistryV2 fallbackRegistry;
     SafeHarborRegistryV2 registry;
     AgreementDetailsV2 details;
-    AgreementV2 agreement;
     address agreementAddress;
 
     function setUp() public {
-        registryOwner = address(0x2);
         owner = address(0x1);
 
-        fallbackRegistry = new SafeHarborRegistryV2(address(0), registryOwner);
-        registry = new SafeHarborRegistryV2(address(fallbackRegistry), registryOwner);
+        registry = new SafeHarborRegistryV2(address(0), owner);
 
-        string[] memory validChains = new string[](2);
-        validChains[0] = "eip155:1";
-        validChains[1] = "eip155:2";
-        vm.prank(registryOwner);
-        registry.setValidChains(validChains);
+        {
+            string[] memory validChains = new string[](2);
+            validChains[0] = "eip155:1";
+            validChains[1] = "eip155:2";
+            vm.prank(owner);
+            registry.setValidChains(validChains);
+        }
 
+        //? NO clue why, but apparently this is needed to avoid a stack too deep
+        //? error?
+        AgreementFactoryV2 factory = new AgreementFactoryV2();
         details = getMockAgreementDetails("0xaabbccdd");
-
-        agreement = new AgreementV2(details, address(registry), owner);
-        agreementAddress = address(agreement);
+        agreementAddress = factory.create(details, address(registry), owner);
     }
 
     function test_setValidChains() public {
@@ -54,7 +53,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         emit SafeHarborRegistryV2.ChainValiditySet(caip2ChainIds[0], true);
         vm.expectEmit();
         emit SafeHarborRegistryV2.ChainValiditySet(caip2ChainIds[1], true);
-        vm.prank(registryOwner);
+        vm.prank(owner);
         registry.setValidChains(caip2ChainIds);
 
         // Verify chains are valid
@@ -84,7 +83,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
         emit SafeHarborRegistryV2.ChainValiditySet("eip155:137", false);
         vm.expectEmit();
         emit SafeHarborRegistryV2.ChainValiditySet("eip155:2", false);
-        vm.prank(registryOwner);
+        vm.prank(owner);
         registry.setInvalidChains(invalidChains);
 
         assertTrue(registry.isChainValid("eip155:1"));
@@ -117,9 +116,11 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
     function test_getDetails_fallback() public {
         address entity = address(0xee);
 
+        SafeHarborRegistryV2 newRegistry = new SafeHarborRegistryV2(address(registry), owner);
+
         vm.prank(entity);
-        fallbackRegistry.adoptSafeHarbor(agreementAddress);
-        address _agreement = registry.getAgreement(entity);
+        registry.adoptSafeHarbor(agreementAddress);
+        address _agreement = newRegistry.getAgreement(entity);
         assertEq(agreementAddress, _agreement);
     }
 
