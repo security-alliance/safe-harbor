@@ -17,6 +17,8 @@ contract DeployRegistryV2 is Script {
     // This could have been any value, but we choose zero.
     bytes32 constant DETERMINISTIC_DEPLOY_SALT = bytes32(0);
 
+    address constant EXPECTED_DEPLOYER_ADDRESS = 0x31d23affb90bCAfcAAe9f27903b151DCDC82569E;
+
     // This is the address of the fallback registry that has already been deployed.
     // Set this to the zero address if no fallback registry exists.
     address fallbackRegistry = getFallbackRegistryAddress();
@@ -36,6 +38,14 @@ contract DeployRegistryV2 is Script {
 
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
         address deployerAddress = vm.addr(deployerPrivateKey);
+
+        if (deployerAddress != EXPECTED_DEPLOYER_ADDRESS) {
+            console.log("WARNING: The deployer address does not match the expected address.");
+            console.log("Expected deployer address:");
+            console.logAddress(EXPECTED_DEPLOYER_ADDRESS);
+            console.log("Actual deployer address:");
+            console.logAddress(deployerAddress);
+        }
 
         console.log("Deploying from");
         console.logAddress(deployerAddress);
