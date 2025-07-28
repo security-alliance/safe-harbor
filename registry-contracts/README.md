@@ -40,7 +40,7 @@ Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.s
 3. Run the script using:
 
 ```
-forge script AdoptSafeHarbor --rpc-url <URL> --verify --etherscan-api-key <API_KEY> --broadcast
+forge script AdoptSafeHarborV2 --rpc-url <URL> --verify --broadcast
 ```
 
 If you would like to deploy from the protocol multisig, please contact us directly.
@@ -71,8 +71,10 @@ The Safe Harbor Registry will be deployed using the deterministic deployment pro
 To deploy the registry to an EVM-compatible chain where it is not currently deployed:
 
 1. Ensure the deterministic-deployment-proxy is deployed at 0x4e59b44847b379578588920cA78FbF26c0B4956C, and if it's not, deploy it using [the process mentioned above](https://github.com/Arachnid/deterministic-deployment-proxy).
-2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/SafeHarborRegistryDeploy.s.sol`](script/SafeHarborRegistryDeploy.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs. Then, run the script using:
+2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/SafeHarborRegistryDeploy.s.sol`](script/SafeHarborRegistryDeploy.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
 
 ```
-forge script SafeHarborRegistryDeploy --rpc-url <CHAIN_RPC_URL> --verify --etherscan-api-key <ETHERSCAN_API_KEY> --broadcast -vvvv
+forge script DeployRegistryV2 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
 ```
+
+*https://chainlist.org*
