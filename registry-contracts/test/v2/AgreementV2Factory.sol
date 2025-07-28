@@ -25,7 +25,7 @@ contract AgreementFactoryV2Test is TestBase, DSTest {
         deployer = address(0xD3);
         protocol = address(0xAB);
 
-        registry = new SafeHarborRegistryV2(address(0), deployer);
+        registry = new SafeHarborRegistryV2(deployer);
         factory = new AgreementFactoryV2();
 
         string[] memory validChains = new string[](2);

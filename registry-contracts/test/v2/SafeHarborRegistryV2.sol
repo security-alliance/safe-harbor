@@ -6,7 +6,7 @@ import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
+import {SafeHarborRegistryV2, IRegistry} from "../../src/v2/SafeHarborRegistryV2.sol";
 import {AgreementV2} from "../../src/v2/AgreementV2.sol";
 import "../../src/v2/AgreementDetailsV2.sol";
 import "../../script/v2/AdoptSafeHarborV2.s.sol";
@@ -22,7 +22,7 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
     function setUp() public {
         owner = address(0x1);
 
-        registry = new SafeHarborRegistryV2(address(0), owner);
+        registry = new SafeHarborRegistryV2(owner);
 
         {
             string[] memory validChains = new string[](2);
@@ -116,7 +116,10 @@ contract SafeHarborRegistryV2Test is TestBase, DSTest {
     function test_getDetails_fallback() public {
         address entity = address(0xee);
 
-        SafeHarborRegistryV2 newRegistry = new SafeHarborRegistryV2(address(registry), owner);
+        vm.prank(owner);
+        SafeHarborRegistryV2 newRegistry = new SafeHarborRegistryV2(owner);
+        vm.prank(owner);
+        newRegistry.setFallbackRegistry(IRegistry(address(registry)));
 
         vm.prank(entity);
         registry.adoptSafeHarbor(agreementAddress);

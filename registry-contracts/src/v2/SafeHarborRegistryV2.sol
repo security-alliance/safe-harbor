@@ -38,11 +38,12 @@ contract SafeHarborRegistryV2 is Ownable {
     // ----- CONSTRUCTOR -----
 
     /// @notice Sets the factory and fallback registry addresses
-    constructor(address _fallbackRegistry, address _owner) Ownable(_owner) {
-        fallbackRegistry = IRegistry(_fallbackRegistry);
-    }
+    constructor(address _owner) Ownable(_owner) {}
 
     // ----- EXTERNAL FUNCTIONS -----
+    function setFallbackRegistry(IRegistry _fallbackRegistry) external onlyOwner {
+        fallbackRegistry = _fallbackRegistry;
+    }
 
     function version() external pure returns (string memory) {
         return VERSION;

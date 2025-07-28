@@ -28,8 +28,7 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
         DeployRegistryV2 script = new DeployRegistryV2();
         script.run();
 
-        address fallbackRegistry = address(0);
-        address registryAddr = script.getExpectedRegistryAddress(fallbackRegistry, deployerAddress);
+        address registryAddr = script.getExpectedRegistryAddress(deployerAddress);
         address factoryAddr = script.getExpectedFactoryAddress();
 
         mockKey = 0xA11;

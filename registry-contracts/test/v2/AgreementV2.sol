@@ -22,7 +22,7 @@ contract AgreementV2Test is Test.Test {
         owner = address(0x1);
 
         // Create registry and set valid chains
-        registry = new SafeHarborRegistryV2(address(0), owner);
+        registry = new SafeHarborRegistryV2(owner);
         string[] memory validChains = new string[](2);
         validChains[0] = "eip155:1";
         validChains[1] = "eip155:2";

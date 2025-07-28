@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
+import {SafeHarborRegistryV2, IRegistry} from "../../src/v2/SafeHarborRegistryV2.sol";
 import {AgreementFactoryV2} from "../../src/v2/AgreementFactoryV2.sol";
 
 contract DeployRegistryV2 is Script {
@@ -41,7 +41,7 @@ contract DeployRegistryV2 is Script {
         console.logAddress(deployerAddress);
 
         // Deploy the Registry
-        address expectedRegistryAddress = getExpectedRegistryAddress(fallbackRegistry, deployerAddress);
+        address expectedRegistryAddress = getExpectedRegistryAddress(deployerAddress);
         if (expectedRegistryAddress.code.length == 0) {
             deployRegistry(deployerPrivateKey, fallbackRegistry, deployerAddress, expectedRegistryAddress);
         } else {
@@ -66,8 +66,12 @@ contract DeployRegistryV2 is Script {
         address expectedAddress
     ) internal {
         vm.broadcast(deployerPrivateKey);
-        SafeHarborRegistryV2 registry =
-            new SafeHarborRegistryV2{salt: DETERMINISTIC_DEPLOY_SALT}(_fallbackRegistry, _owner);
+        SafeHarborRegistryV2 registry = new SafeHarborRegistryV2{salt: DETERMINISTIC_DEPLOY_SALT}(_owner);
+
+        if (_fallbackRegistry != address(0)) {
+            vm.broadcast(deployerPrivateKey);
+            registry.setFallbackRegistry(IRegistry(_fallbackRegistry));
+        }
 
         address deployedRegistryAddress = address(registry);
 
@@ -129,7 +133,7 @@ contract DeployRegistryV2 is Script {
 
     // Computes the address which the registry will be deployed to, assuming the correct create2 factory
     // and salt are used.
-    function getExpectedRegistryAddress(address _fallbackRegistry, address _owner) public pure returns (address) {
+    function getExpectedRegistryAddress(address _owner) public pure returns (address) {
         return address(
             uint160(
                 uint256(
@@ -138,13 +142,7 @@ contract DeployRegistryV2 is Script {
                             bytes1(0xff),
                             DETERMINISTIC_CREATE2_FACTORY,
                             DETERMINISTIC_DEPLOY_SALT,
-                            keccak256(
-                                abi.encodePacked(
-                                    type(SafeHarborRegistryV2).creationCode,
-                                    abi.encode(_fallbackRegistry),
-                                    abi.encode(_owner)
-                                )
-                            )
+                            keccak256(abi.encodePacked(type(SafeHarborRegistryV2).creationCode, abi.encode(_owner)))
                         )
                     )
                 )
