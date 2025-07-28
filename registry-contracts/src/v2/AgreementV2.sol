@@ -103,8 +103,6 @@ contract AgreementV2 is Ownable {
     /// @notice Function that sets multiple chains in the agreement, keeping existing chains.
     /// @dev This function replaces the existing chains with the new ones.
     function setChains(Chain[] memory _chains) external onlyOwner {
-        // Validate chain IDs are valid
-        _validateChainIds(_chains);
         for (uint256 i = 0; i < _chains.length; i++) {
             uint256 chainIndex = _findChainIndex(_chains[i].caip2ChainId);
             details.chains[chainIndex] = _chains[i];
