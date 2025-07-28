@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'registry-contracts/**/*.sol'
+      - "registry-contracts/**/*.sol"
   pull_request:
     branches: [main]
     paths:
-      - 'registry-contracts/**/*.sol'
+      - "registry-contracts/**/*.sol"
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
   format:
     name: Format Solidity files
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,6 +48,6 @@ jobs:
         with:
           author_name: forge-fmt[bot]
           author_email: forge-fmt[bot]@users.noreply.github.com
-          message: 'style: auto-format Solidity files with forge fmt'
-          add: 'registry-contracts/**/*.sol'
-          push: true 
+          message: "style: auto-format Solidity files with forge fmt"
+          add: "registry-contracts/**/*.sol"
+          push: true

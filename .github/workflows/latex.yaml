@@ -1,14 +1,13 @@
-# .github/workflows/build-documents.yml
 permissions:
   contents: write
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'documents/agreement.tex'
-      - 'documents/summary.tex'
-      - 'documents/exhibits/**/*.tex'
+      - "documents/agreement.tex"
+      - "documents/summary.tex"
+      - "documents/exhibits/**/*.tex"
 
 jobs:
   build:

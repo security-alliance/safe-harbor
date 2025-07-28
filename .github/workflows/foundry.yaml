@@ -1,27 +1,27 @@
 name: Tests
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-    unit:
-        name: Foundry unit tests
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                  submodules: recursive
+  unit:
+    name: Foundry unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
-            - name: Run tests
-              run: forge test -vvv
-              working-directory: registry-contracts
+      - name: Run tests
+        run: forge test -vvv
+        working-directory: registry-contracts
 
-            - name: Run snapshot
-              run: forge snapshot
-              working-directory: registry-contracts
+      - name: Run snapshot
+        run: forge snapshot
+        working-directory: registry-contracts
