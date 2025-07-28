@@ -6,7 +6,7 @@ import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 
 contract SetChains is Script {
-    address constant REGISTRY_ADDRESS = 0xB4aaAfD63b78971BB0D3561d0577133b965A1704;
+    address constant REGISTRY_ADDRESS = 0x89e619e36C0d80C2f5A4f39509Da354a50FD4214;
 
     function run() public {
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);

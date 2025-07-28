@@ -121,7 +121,7 @@ contract DeployRegistryV2 is Script {
         if (chainId == 1101) return standardFallback; // Polygon zkEVM
         if (chainId == 56) return standardFallback; // BSC
         if (chainId == 100) return standardFallback; // Gnosis
-        if (chainId == 324) return 0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76; // ZKsync
+        if (chainId == 324) return 0x5f5eEc1a37F42883Df9DacdAb11985467F813877; // ZKsync
 
         // For any other chain, return zero address (no fallback registry)
         return address(0);

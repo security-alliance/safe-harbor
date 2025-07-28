@@ -20,8 +20,8 @@ contract AdoptSafeHarborV2 is ScriptBase {
     using stdJson for string;
 
     // Update these addresses to match your deployed contracts
-    address constant REGISTRY_ADDRESS = 0xB4aaAfD63b78971BB0D3561d0577133b965A1704;
-    address constant FACTORY_ADDRESS = 0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76;
+    address constant REGISTRY_ADDRESS = 0x89e619e36C0d80C2f5A4f39509Da354a50FD4214;
+    address constant FACTORY_ADDRESS = 0x64Ac35A1FA85128FC2EEda1528Ae4317c62EaC56;
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");

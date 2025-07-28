@@ -31,7 +31,7 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 | Polygon zkEVM | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://zkevm.polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)   | 1       |
 | BSC           | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://bscscan.com/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)             | 1       |
 | Gnosis        | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)           | 1       |
-| ZKsync        | [0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76](https://explorer.zksync.io/address/0xB8bf65D4D3CBDE4A082B991794DEa97398cD9f76)      | 1       |
+| ZKsync        | [0x5f5eEc1a37F42883Df9DacdAb11985467F813877](https://explorer.zksync.io/address/0x5f5eEc1a37F42883Df9DacdAb11985467F813877)      | 1       |
 
 ## Factory Addresses
 
