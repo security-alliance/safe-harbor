@@ -19,8 +19,8 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum      | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://etherscan.io/address/0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe)            | 2       |
-| BSC           | [0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe](https://bscscan.com/address/0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe)            | 2       |
+| Ethereum      | [0x89e619e36C0d80C2f5A4f39509Da354a50FD4214](https://etherscan.io/address/0x89e619e36C0d80C2f5A4f39509Da354a50FD4214)            | 1.1       |
+| BSC           | [0x89e619e36C0d80C2f5A4f39509Da354a50FD4214](https://bscscan.com/address/0x89e619e36C0d80C2f5A4f39509Da354a50FD4214)            | 1.1       |
 |               |                                                                                                                                  |         |
 | Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
 | Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
@@ -37,8 +37,8 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain    | Address                                                                                                               | Version |
 | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://etherscan.io/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 2       |
-| BSC      | [0x8b466A706FbF1381fAf24a196C1e86928972B228](https://bscscan.com/address/0x8b466A706FbF1381fAf24a196C1e86928972B228) | 2       |
+| Ethereum | [0x64Ac35A1FA85128FC2EEda1528Ae4317c62EaC56](https://etherscan.io/address/0x64Ac35A1FA85128FC2EEda1528Ae4317c62EaC56) | 1.1       |
+| BSC      | [0x64Ac35A1FA85128FC2EEda1528Ae4317c62EaC56](https://bscscan.com/address/0x64Ac35A1FA85128FC2EEda1528Ae4317c62EaC56) | 1.1       |
 
 ## How does it work?
 

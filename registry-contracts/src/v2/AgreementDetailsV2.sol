@@ -47,10 +47,10 @@ enum ChildContractScope {
     None,
     // Only child contracts that were created before the time of this agreement are included.
     ExistingOnly,
-    // Only child contracts that were created after the time of this agreement are included.
-    FutureOnly,
     // All child contracts, both existing and new, are included.
-    All
+    All,
+    // Only child contracts that were created after the time of this agreement are included.
+    FutureOnly
 }
 
 /// @notice Struct that contains the terms of the bounty for the agreement.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-/// @notice Imporing these packages directly due to naming conflicts between "Account" and "Chain" structs.
+/// @notice Importing these packages directly due to naming conflicts between "Account" and "Chain" structs.
 import {TestBase} from "forge-std/Test.sol";
 import {DSTest} from "ds-test/test.sol";
 import {console} from "forge-std/console.sol";

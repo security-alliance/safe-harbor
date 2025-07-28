@@ -6,7 +6,7 @@ import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 
 contract SetChains is Script {
-    address constant REGISTRY_ADDRESS = 0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe;
+    address constant REGISTRY_ADDRESS = 0x89e619e36C0d80C2f5A4f39509Da354a50FD4214;
 
     function run() public {
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
@@ -15,7 +15,7 @@ contract SetChains is Script {
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
 
         // CAIP-2 chain IDs for various chains
-        string[] memory caip2ChainIds = new string[](32);
+        string[] memory caip2ChainIds = new string[](51);
         caip2ChainIds[0] = "eip155:1"; // Ethereum
         caip2ChainIds[1] = "eip155:56"; // BSC
         caip2ChainIds[2] = "eip155:42161"; // Arbitrum
@@ -51,6 +51,22 @@ contract SetChains is Script {
         caip2ChainIds[32] = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"; // Solana Mainnet
         caip2ChainIds[33] = "stellar:pubnet"; // Stellar Mainnet
         caip2ChainIds[34] = "bip122:000000000019d6689c085ae165831e93"; // Bitcoin Mainnet
+        caip2ChainIds[35] = "eip155:999"; // HyperEVM
+        caip2ChainIds[36] = "eip155:25"; // Cronos
+        caip2ChainIds[37] = "eip155:1116"; // CORE
+        caip2ChainIds[38] = "eip155:747474"; // Katana
+        caip2ChainIds[39] = "eip155:369"; // Pulsechain
+        caip2ChainIds[40] = "eip155:30"; // Rootstock
+        caip2ChainIds[41] = "eip155:81457"; // Blast
+        caip2ChainIds[42] = "eip155:2222"; // Kava
+        caip2ChainIds[43] = "eip155:8217"; // Kaia
+        caip2ChainIds[44] = "eip155:200901"; // Bitlayer
+        caip2ChainIds[45] = "eip155:60808"; // Bob
+        caip2ChainIds[46] = "eip155:98866"; // Plume
+        caip2ChainIds[47] = "eip155:43111"; // Hemi
+        caip2ChainIds[48] = "eip155:14"; // Flare
+        caip2ChainIds[49] = "eip155:1868"; // Soneium
+        caip2ChainIds[50] = "eip155:295"; // Hedera
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);
