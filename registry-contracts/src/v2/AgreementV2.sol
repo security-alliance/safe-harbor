@@ -69,16 +69,25 @@ contract AgreementV2 is Ownable {
         return VERSION;
     }
 
+    /// @notice Function that returns the agreement details
+    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
+    function getDetails() external view returns (AgreementDetailsV2 memory) {
+        return details;
+    }
+
+    /// @notice Function that sets the protocol name
     function setProtocolName(string memory _protocolName) external onlyOwner {
         details.protocolName = _protocolName;
         emit AgreementUpdated();
     }
 
+    /// @notice Function that sets the agreement contact details.
     function setContactDetails(Contact[] memory _contactDetails) external onlyOwner {
         details.contactDetails = _contactDetails;
         emit AgreementUpdated();
     }
 
+    /// @notice Function that adds multiple chains to the agreement.
     function addChains(Chain[] memory _chains) external onlyOwner {
         // Validate chain IDs are valid
         _validateChainIds(_chains);
@@ -91,6 +100,8 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
+    /// @notice Function that sets multiple chains in the agreement, keeping existing chains.
+    /// @dev This function replaces the existing chains with the new ones.
     function setChains(Chain[] memory _chains) external onlyOwner {
         // Validate chain IDs are valid
         _validateChainIds(_chains);
@@ -113,6 +124,9 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
+    /// @notice Function that adds multiple accounts to the agreement.
+    /// @param _caip2ChainId The CAIP-2 ID of the chain
+    /// @param _accounts Array of accounts to add
     function addAccounts(string memory _caip2ChainId, Account[] memory _accounts) external onlyOwner {
         uint256 chainIndex = _findChainIndex(_caip2ChainId);
 
@@ -125,7 +139,7 @@ contract AgreementV2 is Ownable {
 
     /// @notice Function that removes multiple accounts from the agreement by addresses.
     /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
-    /// @param _accountAddresses Array of addresses of the accounts to remove
+    /// @param _accountAddresses Array of account addresses to remove
     function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
         uint256 chainIndex = _findChainIndex(_caip2ChainId);
         for (uint256 i = 0; i < _accountAddresses.length; i++) {
@@ -138,23 +152,16 @@ contract AgreementV2 is Ownable {
         emit AgreementUpdated();
     }
 
+    /// @notice Function that sets the bounty terms of the agreement.
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
         _validateBountyTerms(_bountyTerms);
         details.bountyTerms = _bountyTerms;
         emit AgreementUpdated();
     }
 
-    /// @notice Function that returns the details of the agreement.
-    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
-    /// @return AgreementDetailsV2 The details of the agreement.
-    function getDetails() external view returns (AgreementDetailsV2 memory) {
-        return details;
-    }
-
     // ----- INTERNAL FUNCTIONS -----
 
     /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
-    /// @param _chains The chains to validate
     function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
         // Clean up the temporary mapping
         for (uint256 i = 0; i < _chains.length; i++) {
@@ -173,7 +180,6 @@ contract AgreementV2 is Ownable {
     }
 
     /// @notice Internal function to validate that all chain IDs in the agreement are valid
-    /// @param _chains The chains to validate
     function _validateChainIds(Chain[] memory _chains) internal view {
         for (uint256 i = 0; i < _chains.length; i++) {
             if (!registry.isChainValid(_chains[i].caip2ChainId)) {
@@ -183,7 +189,6 @@ contract AgreementV2 is Ownable {
     }
 
     /// @notice Internal function to validate bounty terms
-    /// @param _bountyTerms The bounty terms to validate
     function _validateBountyTerms(BountyTerms memory _bountyTerms) internal pure {
         if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
             revert CannotSetBothAggregateBountyCapUSDAndRetainable();
@@ -191,8 +196,6 @@ contract AgreementV2 is Ownable {
     }
 
     /// @notice Internal function to find chain index by CAIP-2 ID
-    /// @param _caip2ChainId The CAIP-2 chain ID to find
-    /// @return chainIndex The index of the chain in the array
     function _findChainIndex(string memory _caip2ChainId) internal view returns (uint256 chainIndex) {
         for (uint256 i = 0; i < details.chains.length; i++) {
             if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes(_caip2ChainId))) {
@@ -203,9 +206,6 @@ contract AgreementV2 is Ownable {
     }
 
     /// @notice Internal function to find account index by address within a chain
-    /// @param _chainIndex The index of the chain
-    /// @param _accountAddress The account address to find
-    /// @return accountIndex The index of the account in the chain's accounts array
     function _findAccountIndex(uint256 _chainIndex, string memory _accountAddress)
         internal
         view
