@@ -65,16 +65,6 @@ contract AgreementV2 is Ownable {
 
     // ----- EXTERNAL FUNCTIONS -----
 
-    function version() external pure returns (string memory) {
-        return VERSION;
-    }
-
-    /// @notice Function that returns the agreement details
-    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
-    function getDetails() external view returns (AgreementDetailsV2 memory) {
-        return details;
-    }
-
     /// @notice Function that sets the protocol name
     function setProtocolName(string memory _protocolName) external onlyOwner {
         details.protocolName = _protocolName;
@@ -153,6 +143,12 @@ contract AgreementV2 is Ownable {
         _validateBountyTerms(_bountyTerms);
         details.bountyTerms = _bountyTerms;
         emit AgreementUpdated();
+    }
+
+    /// @notice Function that returns the agreement details
+    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
+    function getDetails() external view returns (AgreementDetailsV2 memory) {
+        return details;
     }
 
     // ----- INTERNAL FUNCTIONS -----
