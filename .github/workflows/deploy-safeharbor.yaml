@@ -30,7 +30,6 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Deploy Registry V2 (Simulation)
-        if: ${{ github.event.inputs.broadcast == 'false' }}
         run: forge script DeployRegistryV2 --rpc-url ${{ github.event.inputs.rpc_url }}
         working-directory: registry-contracts
         env:
