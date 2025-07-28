@@ -1,5 +1,5 @@
 {
-    "protocolName": "testProtocol",
+    "protocolName": "testProtocolV2",
     "chains": [
         {
             "accounts": [
@@ -8,21 +8,21 @@
                     "childContractScope": 2
                 }
             ],
-            "assetRecoveryAddress": "0x0000000000000000000000000000000000000011",
-            "caip2ChainId": "eip155:1"
+            "assetRecoveryAddress": "0x0000000000000000000000000000000000000022",
+            "id": "eip155:1"
         }
     ],
     "contact": [
         {
-            "name": "Test Name",
+            "name": "Test Name V2",
             "contact": "test@mail.com"
         }
     ],
     "bountyTerms": {
-        "aggregateBountyCapUSD": 0,
+        "aggregateBountyCapUSD": 1000,
         "bountyPercentage": 10,
         "bountyCapUSD": 100,
-        "retainable": true,
+        "retainable": false,
         "identity": 0,
         "diligenceRequirements": "none"
     },

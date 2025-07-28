@@ -153,7 +153,7 @@ contract DeployRegistryV2 is Script {
     }
 
     // Computes the address which the factory will be deployed to
-    function getExpectedFactoryAddress() internal pure returns (address) {
+    function getExpectedFactoryAddress() public pure returns (address) {
         return address(
             uint160(
                 uint256(
