@@ -37,8 +37,8 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain    | Address                                                                                                               | Version |
 | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x98d1594ba4f2115f75392ac92a7e3c8a81c67fed](https://etherscan.io/address/0x98d1594ba4f2115f75392ac92a7e3c8a81c67fed) | 1.1       |
-| BSC      | [0x98d1594ba4f2115f75392ac92a7e3c8a81c67fed](https://bscscan.com/address/0x98d1594ba4f2115f75392ac92a7e3c8a81c67fed) | 1.1       |
+| Ethereum | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://etherscan.io/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1       |
+| BSC      | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://bscscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1       |
 
 ## How does it work?
 
