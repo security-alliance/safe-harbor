@@ -24,12 +24,20 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Deploy Registry V2
-        run: forge script DeployRegistryV2 --rpc-url ${{ github.event.inputs.rpc_url }} ${{ github.event.inputs.broadcast == 'true' && '--broadcast' || '' }} --verify --retries 50
+      - name: Deploy Registry V2 (Simulation)
+        run: forge script DeployRegistryV2 --rpc-url ${{ github.event.inputs.rpc_url }}
+        working-directory: registry-contracts
+        env:
+          REGISTRY_DEPLOYER_PRIVATE_KEY: ${{ secrets.REGISTRY_DEPLOYER_PRIVATE_KEY }}
+
+      - name: Deploy Registry V2 (Broadcast)
+        if: ${{ github.event.inputs.broadcast == 'true' }}
+        run: forge script DeployRegistryV2 --rpc-url ${{ github.event.inputs.rpc_url }} --broadcast --verify --retries 50
         working-directory: registry-contracts
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
