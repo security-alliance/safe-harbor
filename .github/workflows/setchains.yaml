@@ -1,0 +1,44 @@
+name: Set Chains
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc_url:
+        description: "RPC URL"
+        required: true
+        type: string
+      broadcast:
+        description: "Include --broadcast flag"
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    name: Set Chains V2
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.rpc_url != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Set Chains V2 (Simulation)
+        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }}
+        working-directory: registry-contracts
+        env:
+          REGISTRY_DEPLOYER_PRIVATE_KEY: ${{ secrets.REGISTRY_DEPLOYER_PRIVATE_KEY }}
+
+      - name: Set Chains V2 (Broadcast)
+        if: ${{ github.event.inputs.broadcast == 'true' }}
+        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }} --broadcast --verify --retries 50
+        working-directory: registry-contracts
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          REGISTRY_DEPLOYER_PRIVATE_KEY: ${{ secrets.REGISTRY_DEPLOYER_PRIVATE_KEY }}
