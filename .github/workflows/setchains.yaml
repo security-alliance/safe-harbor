@@ -14,7 +14,7 @@ on:
         type: boolean
 
 jobs:
-  deploy:
+  set_chains:
     name: Set Chains V2
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.rpc_url != '' }}
