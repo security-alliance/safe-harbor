@@ -6,5 +6,6 @@ via_ir = true
 fs_permissions = [{ access = "read", path = "./" }]
 optimizer = true
 optimizer_runs = 10
+solc_version = "0.8.30"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
