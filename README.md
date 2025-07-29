@@ -19,8 +19,9 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum      | [0x1eaCD100B0546E433fbf4d773109cAD482c34686](https://etherscan.io/address/0x1eaCD100B0546E433fbf4d773109cAD482c34686)            | 1.1       |
-| BSC           | [0x1eaCD100B0546E433fbf4d773109cAD482c34686](https://bscscan.com/address/0x1eaCD100B0546E433fbf4d773109cAD482c34686)            | 1.1       |
+| Ethereum      | [0x1eaCD100B0546E433fbf4d773109cAD482c34686](https://etherscan.io/address/0x1eaCD100B0546E433fbf4d773109cAD482c34686)            | 1.1     |
+| BSC           | [0x1eaCD100B0546E433fbf4d773109cAD482c34686](https://bscscan.com/address/0x1eaCD100B0546E433fbf4d773109cAD482c34686)             | 1.1     |
+| Polygon       | [0x1eaCD100B0546E433fbf4d773109cAD482c34686](https://polygonscan.com/address/0x1eaCD100B0546E433fbf4d773109cAD482c34686)         | 1.1     |
 |               |                                                                                                                                  |         |
 | Ethereum      | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://etherscan.io/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)            | 1       |
 | Polygon       | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://polygonscan.com/address/0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6)         | 1       |
@@ -35,10 +36,11 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 
 ## Factory Addresses
 
-| Chain    | Address                                                                                                               | Version |
-| -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
-| Ethereum | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://etherscan.io/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1       |
-| BSC      | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://bscscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1       |
+| Chain    | Address                                                                                                                  | Version |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Ethereum | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://etherscan.io/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed)    | 1.1     |
+| BSC      | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://bscscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed)     | 1.1     |
+| Polygon  | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://polygonscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1     |
 
 ## How does it work?
 
