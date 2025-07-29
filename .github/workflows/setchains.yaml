@@ -37,7 +37,7 @@ jobs:
 
       - name: Set Chains V2 (Broadcast)
         if: ${{ github.event.inputs.broadcast == 'true' }}
-        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }} --broadcast --verify --retries 50
+        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }} --broadcast
         working-directory: registry-contracts
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
