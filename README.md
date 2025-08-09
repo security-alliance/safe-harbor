@@ -78,6 +78,8 @@ If the whitehat decides to proceed with a whitehat rescue, they must follow the 
 
 ![Safe Harbor Flowchart](assets/flowchart.png)
 
-## How to Contribute
+## How to Adopt Safe Harbor
 
-To contribute to the discussion, please use [the discussions section](https://github.com/security-alliance/safe-harbor/discussions) of this GitHub repo. You can also reach out to robert@skylock.xyz or join SEAL's [discord](https://discord.gg/securityalliance) and ask for @trebor_ahw.
+To find out more information about adopting Safe Harbor, please check out the [Safe Harbor SEAL Framework](https://frameworks.securityalliance.org/safe-harbor/index.html). Or reach out to us at [safe-harbor@securityalliance.org](mailto:safe-harbor@securityalliance.org).
+
+
