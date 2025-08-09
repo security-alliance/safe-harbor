@@ -15,6 +15,7 @@ import {
     ChildContractScope,
     IdentityRequirements
 } from "../../src/v2/AgreementDetailsV2.sol";
+import "./DeployRegistryV2.s.sol";
 
 contract AdoptSafeHarborV2 is ScriptBase {
     using stdJson for string;
@@ -26,8 +27,33 @@ contract AdoptSafeHarborV2 is ScriptBase {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 
-        SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
-        AgreementFactoryV2 factory = AgreementFactoryV2(FACTORY_ADDRESS);
+        // Check if we should deploy registry contracts
+        bool shouldDeployRegistry = false;
+        try vm.envBool("DEPLOY_REGISTRY") returns (bool deployFlag) {
+            shouldDeployRegistry = deployFlag;
+        } catch {
+            // Default to false if environment variable is not set
+            shouldDeployRegistry = false;
+        }
+
+        address registryAddress;
+        address factoryAddress;
+
+        if (shouldDeployRegistry) {
+            console.log("Deploying registry contracts...");
+            DeployRegistryV2 deployScript = new DeployRegistryV2();
+            deployScript.run();
+
+            address deployerAddress = vm.addr(deployerPrivateKey);
+            registryAddress = deployScript.getExpectedRegistryAddress(deployerAddress);
+            factoryAddress = deployScript.getExpectedFactoryAddress();
+        } else {
+            registryAddress = REGISTRY_ADDRESS;
+            factoryAddress = FACTORY_ADDRESS;
+        }
+
+        SafeHarborRegistryV2 registry = SafeHarborRegistryV2(registryAddress);
+        AgreementFactoryV2 factory = AgreementFactoryV2(factoryAddress);
 
         string memory json = vm.readFile("agreementDetailsV2.json");
 
@@ -45,11 +71,50 @@ contract AdoptSafeHarborV2 is ScriptBase {
 
         console.log("Parsed JSON agreement details successfully!");
 
+        // Get the owner address from environment variable, default to deployer address
+        address owner;
+        try vm.envAddress("AGREEMENT_OWNER") returns (address ownerAddr) {
+            owner = ownerAddr;
+            console.log("Using owner from environment variable:");
+        } catch {
+            owner = vm.addr(deployerPrivateKey);
+            console.log("Using deployer as default owner address:");
+        }
+        console.logAddress(owner);
+
         vm.startBroadcast(deployerPrivateKey);
 
         // Create agreement using factory
-        address deployer = vm.addr(deployerPrivateKey);
-        address agreementAddress = factory.create(details, address(registry), deployer);
+        address agreementAddress = factory.create(details, address(registry), owner);
+        console.log("Created agreement at:");
+        console.logAddress(agreementAddress);
+
+        // Adopt the agreement in the registry
+        registry.adoptSafeHarbor(agreementAddress);
+        console.log("Successfully adopted Safe Harbor V2 agreement");
+
+        vm.stopBroadcast();
+    }
+
+    // Overloaded function for explicit owner specification (used by tests)
+    function adopt(
+        uint256 deployerPrivateKey,
+        SafeHarborRegistryV2 registry,
+        AgreementFactoryV2 factory,
+        string memory json,
+        address explicitOwner
+    ) public {
+        // Parse agreement details from JSON
+        AgreementDetailsV2 memory details = parseAgreementDetails(json);
+
+        console.log("Parsed JSON agreement details successfully!");
+        console.log("Using explicit owner address:");
+        console.logAddress(explicitOwner);
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        // Create agreement using factory
+        address agreementAddress = factory.create(details, address(registry), explicitOwner);
         console.log("Created agreement at:");
         console.logAddress(agreementAddress);
 
