@@ -45,7 +45,6 @@ The V2 adoption script supports configurable options and is the recommended appr
 |----------|----------|---------|-------------|
 | `DEPLOYER_PRIVATE_KEY` | ✅ | - | Private key for transaction signing |
 | `AGREEMENT_OWNER` | ❌ | Deployer address | Address that will own the agreement |
-| `DEPLOY_REGISTRY` | ❌ | `false` | Whether to deploy registry contracts first |
 | `ADOPT_TO_REGISTRY` | ❌ | `true` | Whether to adopt the agreement to the registry |
 
 **Usage:**
