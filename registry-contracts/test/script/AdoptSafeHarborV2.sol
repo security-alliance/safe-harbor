@@ -47,7 +47,7 @@ contract AdoptSafeHarborV2Test is TestBase, DSTest {
 
     function test_adopt() public {
         AdoptSafeHarborV2 script = new AdoptSafeHarborV2();
-        script.adopt(mockKey, registry, factory, json, mockAddress);
+        script.adopt(mockKey, registry, factory, json);
 
         // Check if the agreement was adopted
         address agreementAddr = registry.getAgreement(mockAddress);
