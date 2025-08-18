@@ -27,6 +27,23 @@ contract AdoptSafeHarborV2 is ScriptBase {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 
+        // Get the owner address from environment variable, default to deployer address
+        address owner;
+        try vm.envAddress("AGREEMENT_OWNER") returns (address ownerAddr) {
+            owner = ownerAddr;
+        } catch {
+            owner = vm.addr(deployerPrivateKey);
+        }
+
+        // Check if we should adopt to registry
+        bool shouldAdoptToRegistry;
+        try vm.envBool("ADOPT_TO_REGISTRY") returns (bool adoptFlag) {
+            shouldAdoptToRegistry = adoptFlag;
+        } catch {
+            // Default to false if environment variable is not set
+            shouldAdoptToRegistry = false;
+        }
+
         // Check if we should deploy registry contracts
         bool shouldDeployRegistry = false;
         try vm.envBool("DEPLOY_REGISTRY") returns (bool deployFlag) {
@@ -57,29 +74,22 @@ contract AdoptSafeHarborV2 is ScriptBase {
 
         string memory json = vm.readFile("agreementDetailsV2.json");
 
-        adopt(deployerPrivateKey, registry, factory, json);
+        adopt(deployerPrivateKey, registry, factory, json, owner, shouldAdoptToRegistry);
     }
 
     function adopt(
         uint256 deployerPrivateKey,
         SafeHarborRegistryV2 registry,
         AgreementFactoryV2 factory,
-        string memory json
+        string memory json,
+        address owner,
+        bool shouldAdoptToRegistry
     ) public {
         // Parse agreement details from JSON
         AgreementDetailsV2 memory details = parseAgreementDetails(json);
 
         console.log("Parsed JSON agreement details successfully!");
-
-        // Get the owner address from environment variable, default to deployer address
-        address owner;
-        try vm.envAddress("AGREEMENT_OWNER") returns (address ownerAddr) {
-            owner = ownerAddr;
-            console.log("Using owner from environment variable:");
-        } catch {
-            owner = vm.addr(deployerPrivateKey);
-            console.log("Using deployer as default owner address:");
-        }
+        console.log("Using owner address:");
         console.logAddress(owner);
 
         vm.startBroadcast(deployerPrivateKey);
@@ -89,38 +99,13 @@ contract AdoptSafeHarborV2 is ScriptBase {
         console.log("Created agreement at:");
         console.logAddress(agreementAddress);
 
-        // Adopt the agreement in the registry
-        registry.adoptSafeHarbor(agreementAddress);
-        console.log("Successfully adopted Safe Harbor V2 agreement");
-
-        vm.stopBroadcast();
-    }
-
-    // Overloaded function for explicit owner specification (used by tests)
-    function adopt(
-        uint256 deployerPrivateKey,
-        SafeHarborRegistryV2 registry,
-        AgreementFactoryV2 factory,
-        string memory json,
-        address explicitOwner
-    ) public {
-        // Parse agreement details from JSON
-        AgreementDetailsV2 memory details = parseAgreementDetails(json);
-
-        console.log("Parsed JSON agreement details successfully!");
-        console.log("Using explicit owner address:");
-        console.logAddress(explicitOwner);
-
-        vm.startBroadcast(deployerPrivateKey);
-
-        // Create agreement using factory
-        address agreementAddress = factory.create(details, address(registry), explicitOwner);
-        console.log("Created agreement at:");
-        console.logAddress(agreementAddress);
-
-        // Adopt the agreement in the registry
-        registry.adoptSafeHarbor(agreementAddress);
-        console.log("Successfully adopted Safe Harbor V2 agreement");
+        if (shouldAdoptToRegistry) {
+            // Adopt the agreement in the registry
+            registry.adoptSafeHarbor(agreementAddress);
+            console.log("Successfully adopted Safe Harbor V2 agreement");
+        } else {
+            console.log("Agreement created but not adopted to registry (ADOPT_TO_REGISTRY=false)");
+        }
 
         vm.stopBroadcast();
     }
