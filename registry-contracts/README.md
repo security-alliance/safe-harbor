@@ -33,14 +33,37 @@ A protocol may update their agreement details using any enabled registry. To do 
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
-### Using the script to adopt Safe Harbor.
+### Using the script to adopt Safe Harbor
 
+#### V2 Adoption (Recommended)
+
+The V2 adoption script supports configurable options and is the recommended approach for new adoptions.
+
+**Environment Variables:**
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DEPLOYER_PRIVATE_KEY` | ✅ | - | Private key for transaction signing |
+| `AGREEMENT_OWNER` | ❌ | Deployer address | Address that will own the agreement |
+| `ADOPT_TO_REGISTRY` | ❌ | `true` | Whether to adopt the agreement to the registry |
+
+**Usage:**
+```bash
+cd registry-contracts
+forge script script/v2/AdoptSafeHarborV2.s.sol --rpc-url <URL> --verify --broadcast
+```
+
+**Configuration:** The script reads agreement details from `agreementDetailsV2.json`. Make sure this file exists and contains valid agreement configuration before running the script.
+
+#### V1 Adoption (Legacy)
+
+For V1 adoptions:
 1. Edit agreementDetails.json with the agreement details of your protocol.
-2. Create a .env file and set the `DEPLOYER_PRIVATE_KEY` environment variable to the private key of the EOA that will adopt the agreement.
+2. Create a .env file and set the `DEPLOYER_PRIVATE_KEY` environment variable.
 3. Run the script using:
 
-```
-forge script AdoptSafeHarborV2 --rpc-url <URL> --verify --broadcast
+```bash
+forge script script/v1/AdoptSafeHarborV1.s.sol --rpc-url <URL> --verify --broadcast
 ```
 
 If you would like to deploy from the protocol multisig, please contact us directly.

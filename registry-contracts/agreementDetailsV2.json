@@ -21,7 +21,7 @@
                 }
             ],
             "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
-            "caip2ChainId": "eip155:1"
+            "id": "eip155:1"
         },
         {
             "accounts": [
@@ -35,7 +35,7 @@
                 }
             ],
             "assetRecoveryAddress": "CzYQ2kFnBxsNEt9Zy34vQ3n5fSDhvA4o4XaTnq1rLvyr",
-            "caip2ChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            "id": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
         }
     ],
     "contact": [

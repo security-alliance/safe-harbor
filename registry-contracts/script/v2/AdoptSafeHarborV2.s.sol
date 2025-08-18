@@ -15,6 +15,8 @@ import {
     ChildContractScope,
     IdentityRequirements
 } from "../../src/v2/AgreementDetailsV2.sol";
+import "./DeployRegistryV2.s.sol";
+import {logAgreementDetails} from "../../test/v2/mock.sol";
 
 contract AdoptSafeHarborV2 is ScriptBase {
     using stdJson for string;
@@ -26,36 +28,52 @@ contract AdoptSafeHarborV2 is ScriptBase {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 
+        // Get the owner address from environment variable, default to deployer address
+        address owner = vm.envOr("AGREEMENT_OWNER", vm.addr(deployerPrivateKey));
+
+        // Check if we should adopt to registry
+        bool shouldAdoptToRegistry = vm.envOr("ADOPT_TO_REGISTRY", false);
+
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
         AgreementFactoryV2 factory = AgreementFactoryV2(FACTORY_ADDRESS);
 
         string memory json = vm.readFile("agreementDetailsV2.json");
 
-        adopt(deployerPrivateKey, registry, factory, json);
+        adopt(deployerPrivateKey, registry, factory, json, owner, shouldAdoptToRegistry);
     }
 
     function adopt(
         uint256 deployerPrivateKey,
         SafeHarborRegistryV2 registry,
         AgreementFactoryV2 factory,
-        string memory json
+        string memory json,
+        address owner,
+        bool shouldAdoptToRegistry
     ) public {
         // Parse agreement details from JSON
         AgreementDetailsV2 memory details = parseAgreementDetails(json);
 
+        logAgreementDetails(details);
+
         console.log("Parsed JSON agreement details successfully!");
+        console.log("Using owner address:");
+        console.logAddress(owner);
 
         vm.startBroadcast(deployerPrivateKey);
 
         // Create agreement using factory
-        address deployer = vm.addr(deployerPrivateKey);
-        address agreementAddress = factory.create(details, address(registry), deployer);
+        address agreementAddress = factory.create(details, address(registry), owner);
         console.log("Created agreement at:");
         console.logAddress(agreementAddress);
 
-        // Adopt the agreement in the registry
-        registry.adoptSafeHarbor(agreementAddress);
-        console.log("Successfully adopted Safe Harbor V2 agreement");
+        if (shouldAdoptToRegistry) {
+            // Adopt the agreement in the registry
+            registry.adoptSafeHarbor(agreementAddress);
+
+            console.log("Successfully adopted Safe Harbor V2 agreement");
+        } else {
+            console.log("Agreement created but not adopted to registry (ADOPT_TO_REGISTRY=false)");
+        }
 
         vm.stopBroadcast();
     }
