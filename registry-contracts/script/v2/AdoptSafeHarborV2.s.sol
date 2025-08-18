@@ -44,33 +44,8 @@ contract AdoptSafeHarborV2 is ScriptBase {
             shouldAdoptToRegistry = false;
         }
 
-        // Check if we should deploy registry contracts
-        bool shouldDeployRegistry = false;
-        try vm.envBool("DEPLOY_REGISTRY") returns (bool deployFlag) {
-            shouldDeployRegistry = deployFlag;
-        } catch {
-            // Default to false if environment variable is not set
-            shouldDeployRegistry = false;
-        }
-
-        address registryAddress;
-        address factoryAddress;
-
-        if (shouldDeployRegistry) {
-            console.log("Deploying registry contracts...");
-            DeployRegistryV2 deployScript = new DeployRegistryV2();
-            deployScript.run();
-
-            address deployerAddress = vm.addr(deployerPrivateKey);
-            registryAddress = deployScript.getExpectedRegistryAddress(deployerAddress);
-            factoryAddress = deployScript.getExpectedFactoryAddress();
-        } else {
-            registryAddress = REGISTRY_ADDRESS;
-            factoryAddress = FACTORY_ADDRESS;
-        }
-
-        SafeHarborRegistryV2 registry = SafeHarborRegistryV2(registryAddress);
-        AgreementFactoryV2 factory = AgreementFactoryV2(factoryAddress);
+        SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
+        AgreementFactoryV2 factory = AgreementFactoryV2(FACTORY_ADDRESS);
 
         string memory json = vm.readFile("agreementDetailsV2.json");
 
