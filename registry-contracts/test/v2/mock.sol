@@ -40,6 +40,9 @@ function getMockAgreementDetails(string memory accountAddress) pure returns (Agr
 }
 
 function logAgreementDetails(AgreementDetailsV2 memory details) view {
+    string[3] memory identityRequirements = ["Anonymous", "Pseudonymous", "Named"];
+    string[4] memory childContractScopes = ["None", "ExistingOnly", "All", "FutureOnly"];
+
     console.log("Agreement Details:");
     console.log("Protocol Name:", details.protocolName);
     console.log("Agreement URI:", details.agreementURI);
@@ -62,7 +65,8 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
         for (uint256 j = 0; j < details.chains[i].accounts.length; j++) {
             console.log("    Account Address:", details.chains[i].accounts[j].accountAddress);
             console.log(
-                "    Child Contract Scope:", toString(uint256(details.chains[i].accounts[j].childContractScope))
+                "    Child Contract Scope:",
+                childContractScopes[uint256(details.chains[i].accounts[j].childContractScope)]
             );
         }
     }
@@ -72,7 +76,7 @@ function logAgreementDetails(AgreementDetailsV2 memory details) view {
     console.log("Bounty Cap USD:", toString(details.bountyTerms.bountyCapUSD));
     console.log("Aggregate Bounty Cap USD:", toString(details.bountyTerms.aggregateBountyCapUSD));
     console.log("Is Retainable:", details.bountyTerms.retainable ? "Yes" : "No");
-    console.log("Identity Requirement:", toString(uint256(details.bountyTerms.identity)));
+    console.log("Identity Requirement:", identityRequirements[uint256(details.bountyTerms.identity)]);
     console.log("Diligence Requirements:", details.bountyTerms.diligenceRequirements);
 }
 
