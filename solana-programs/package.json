@@ -13,7 +13,8 @@
     "manage-chains": "ts-node scripts/manage-chains.ts"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.31.1"
+    "@coral-xyz/anchor": "^0.31.1",
+    "bs58": "^6.0.0"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",

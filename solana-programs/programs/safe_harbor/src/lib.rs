@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 // Program ID: ensure Anchor.toml matches this address for localnet
 declare_id!("AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L");
 
-const VERSION: &str = "1.1.0";
+const VERSION: &str = "2.0.0";
 
 #[allow(deprecated)]
 #[program]
@@ -138,6 +138,12 @@ pub mod safe_harbor {
         agreement.bounty_terms = params.bounty_terms;
         agreement.agreement_uri = params.agreement_uri;
         
+        // Calculate required space and resize if needed
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
         });
@@ -162,6 +168,13 @@ pub mod safe_harbor {
         assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
         let agreement = &mut ctx.accounts.agreement;
         agreement.contact_details = contacts;
+        
+        // Resize account if needed
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
         });
@@ -173,16 +186,26 @@ pub mod safe_harbor {
         let registry = &ctx.accounts.registry;
         assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
         let agreement = &mut ctx.accounts.agreement;
+        
         // Validate chain ids are valid per registry
         for ch in chains.iter() {
             require!(registry.valid_chains.contains(&ch.caip2_chain_id), ErrorCode::InvalidChainId);
         }
-        // Append
+        
+        // Append chains
         for ch in chains.into_iter() {
             agreement.chains.push(ch);
         }
+        
         // Ensure no duplicates across all chains
         validate_no_duplicate_chain_ids(&agreement.chains)?;
+        
+        // Resize account to accommodate new data
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
         });
@@ -230,9 +253,17 @@ pub mod safe_harbor {
         assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
         let agreement = &mut ctx.accounts.agreement;
         let idx = find_chain_index(&agreement.chains, &caip2_chain_id)?;
+        
         for acc in accounts.into_iter() {
             agreement.chains[idx].accounts.push(acc);
         }
+        
+        // Resize account to accommodate new data
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
         });
@@ -264,9 +295,85 @@ pub mod safe_harbor {
         assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
         let agreement = &mut ctx.accounts.agreement;
         agreement.bounty_terms = terms;
+        
+        // Resize account if needed
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
         });
+        Ok(())
+    }
+
+    // Owner-only: set agreement URI
+    pub fn set_agreement_uri(ctx: Context<AgreementOwnerOnly>, agreement_uri: String) -> Result<()> {
+        require!(!agreement_uri.is_empty(), ErrorCode::InvalidInput);
+        assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
+        let agreement = &mut ctx.accounts.agreement;
+        agreement.agreement_uri = agreement_uri;
+        
+        // Resize account if needed
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
+        emit!(AgreementUpdated {
+            agreement: ctx.accounts.agreement.key(),
+        });
+        Ok(())
+    }
+
+    // Factory function: create agreement and adopt in one transaction
+    pub fn create_and_adopt_agreement(
+        ctx: Context<CreateAndAdoptAgreement>,
+        params: AgreementInitParams,
+    ) -> Result<()> {
+        let registry = &mut ctx.accounts.registry;
+        let agreement = &mut ctx.accounts.agreement;
+        let adopter = ctx.accounts.adopter.key();
+
+        // Validate chains exist
+        for ch in params.chains.iter() {
+            require!(registry.valid_chains.contains(&ch.caip2_chain_id), ErrorCode::InvalidChainId);
+        }
+        // Validate bounty terms
+        require!(!(params.bounty_terms.aggregate_bounty_cap_usd > 0 && params.bounty_terms.retainable), ErrorCode::CannotSetBothAggregateBountyCapUSDAndRetainable);
+        
+        // Validate no duplicate chain IDs
+        validate_no_duplicate_chain_ids(&params.chains)?;
+
+        // Initialize agreement
+        agreement.owner = ctx.accounts.owner.key();
+        agreement.protocol_name = params.protocol_name;
+        agreement.contact_details = params.contact_details;
+        agreement.chains = params.chains;
+        agreement.bounty_terms = params.bounty_terms;
+        agreement.agreement_uri = params.agreement_uri;
+        
+        // Calculate required space and resize if needed
+        let required_space = agreement.calculate_required_space();
+        if ctx.accounts.agreement.to_account_info().data_len() < required_space {
+            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+        }
+        
+        // Adopt the agreement
+        let old_agreement = registry.agreements.get(adopter);
+        registry.agreements.insert(adopter, ctx.accounts.agreement.key());
+        
+        emit!(AgreementUpdated {
+            agreement: ctx.accounts.agreement.key(),
+        });
+        
+        emit!(SafeHarborAdoption {
+            entity: adopter,
+            old_details: old_agreement.unwrap_or_default(),
+            new_details: ctx.accounts.agreement.key(),
+        });
+        
         Ok(())
     }
 
@@ -430,12 +537,31 @@ pub struct CreateAgreement<'info> {
     #[account(
         init,
         payer = payer,
-        space = Agreement::MAX_SPACE,
+        space = Agreement::INITIAL_SPACE,
         // In this first pass we create agreement as a regular account; clients can choose PDAs later if desired.
     )]
     pub agreement: Account<'info, Agreement>,
     /// The agreement owner/authority
     pub owner: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateAndAdoptAgreement<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(
+        init,
+        payer = payer,
+        space = Agreement::INITIAL_SPACE,
+    )]
+    pub agreement: Account<'info, Agreement>,
+    /// The agreement owner/authority
+    pub owner: Signer<'info>,
+    /// The adopter (can be same as owner)
+    pub adopter: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -496,29 +622,52 @@ impl Registry {
 }
 
 impl Agreement {
-    // Conservative maxima for early iterations; adjust as needed
-    pub const MAX_CONTACTS: usize = 8;
-    pub const MAX_CHAINS: usize = 8;
-    pub const MAX_ACCOUNTS_PER_CHAIN: usize = 16;
-    pub const AVG_STR: usize = 64;
-
-    pub const MAX_SPACE: usize = 8
+    // Base space for empty agreement (discriminator + fixed fields)
+    pub const BASE_SPACE: usize = 8 // discriminator
         + 32 // owner
-        + 4 + Self::AVG_STR // protocol_name
-        + 4 + (Self::MAX_CONTACTS * (4 + Self::AVG_STR + 4 + Self::AVG_STR)) // contacts vec
-        + 4 // chains vec len
-        + (Self::MAX_CHAINS * (
-            4 + Self::AVG_STR // asset_recovery_address
-            + 4 // accounts vec len
-            + (Self::MAX_ACCOUNTS_PER_CHAIN * (4 + Self::AVG_STR + 1)) // account address + enum
-            + 4 + Self::AVG_STR // caip2 id
-        ))
-        + 8 + 8 + 1 // bounty terms numeric + bool
-        + 1 // identity enum
-        + 4 + Self::AVG_STR // diligence_requirements
-        + 8 // aggregate cap
-        + 4 + Self::AVG_STR // agreement_uri
-        ;
+        + 4 // protocol_name length
+        + 4 // contact_details vec length
+        + 4 // chains vec length
+        + 8 + 8 + 1 + 1 + 4 + 8 // bounty terms (all numeric fields + bools + enum)
+        + 4; // agreement_uri length
+    
+    // Initial space allocation - will grow dynamically
+    pub const INITIAL_SPACE: usize = Self::BASE_SPACE + 1024; // 1KB buffer for initial data
+    
+    // Calculate the actual space needed for current data
+    pub fn calculate_required_space(&self) -> usize {
+        let mut size = Self::BASE_SPACE;
+        
+        // Protocol name
+        size += self.protocol_name.len();
+        
+        // Contact details
+        for contact in &self.contact_details {
+            size += 4 + contact.name.len() + 4 + contact.contact.len();
+        }
+        
+        // Chains
+        for chain in &self.chains {
+            size += 4 + chain.asset_recovery_address.len(); // asset recovery address
+            size += 4; // accounts vec length
+            
+            // Accounts in this chain
+            for account in &chain.accounts {
+                size += 4 + account.account_address.len() + 1; // address + enum
+            }
+            
+            size += 4 + chain.caip2_chain_id.len(); // chain id
+        }
+        
+        // Bounty terms diligence requirements
+        size += self.bounty_terms.diligence_requirements.len();
+        
+        // Agreement URI
+        size += self.agreement_uri.len();
+        
+        // Add 25% buffer for safety
+        size + (size / 4)
+    }
 }
 
 // -------------------- Access Control --------------------

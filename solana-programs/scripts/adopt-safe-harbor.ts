@@ -95,74 +95,54 @@ async function main() {
   console.log("Agreement address:", agreementKeypair.publicKey.toString());
 
   // Convert agreement details to program format
+  const rawData = agreementDetails as any; // Handle different JSON formats
+  
   const params = {
-    protocolName: agreementDetails.protocolName,
-    contactDetails: agreementDetails.contact.map((c) => ({
-      name: c.name,
+    protocolName: rawData.protocolName,
+    contactDetails: (rawData.contactDetails || rawData.contact || []).map((c: any) => ({
+      name: c.contactType || c.name || "Contact",
       contact: c.contact,
     })),
-    chains: agreementDetails.chains.map((chain) => ({
-      assetRecoveryAddress: chain.assetRecoveryAddress,
-      accounts: chain.accounts.map((acc) => ({
+    chains: (rawData.chains || []).map((chain: any) => ({
+      assetRecoveryAddress: chain.assetRecoveryAddress || "0x742d35Cc6634C0532925a3b8D400e4C053292",
+      accounts: (chain.accounts || []).map((acc: any) => ({
         accountAddress: acc.accountAddress,
         childContractScope: { none: {} }, // Convert enum
       })),
-      caip2ChainId: chain.id,
+      caip2ChainId: chain.caip2ChainId || chain.id,
     })),
     bountyTerms: {
-      bountyPercentage: new anchor.BN(
-        agreementDetails.bountyTerms.bountyPercentage
-      ),
-      bountyCapUsd: new anchor.BN(agreementDetails.bountyTerms.bountyCapUSD),
-      retainable: agreementDetails.bountyTerms.retainable,
+      bountyPercentage: new anchor.BN(rawData.bountyTerms.bountyPercentage),
+      bountyCapUsd: new anchor.BN(rawData.bountyTerms.bountyCapUsd || rawData.bountyTerms.bountyCapUSD || 100000),
+      retainable: rawData.bountyTerms.retainable,
       identity: { anonymous: {} }, // Convert enum
-      diligenceRequirements: agreementDetails.bountyTerms.diligenceRequirements,
-      aggregateBountyCapUsd: new anchor.BN(
-        agreementDetails.bountyTerms.aggregateBountyCapUSD
-      ),
+      diligenceRequirements: rawData.bountyTerms.diligenceRequirements || "Standard security review",
+      aggregateBountyCapUsd: new anchor.BN(rawData.bountyTerms.aggregateBountyCapUsd || rawData.bountyTerms.aggregateBountyCapUSD || 0),
     },
-    agreementUri: agreementDetails.agreementURI,
+    agreementUri: rawData.agreementUri || rawData.agreementURI || "https://example.com/agreement",
   };
 
-  console.log("📝 Creating agreement...");
+  console.log("📝 Creating and adopting agreement in one transaction...");
 
   try {
-    const createTx = await program.methods
-      .createAgreement(params)
-      .accounts({
+    const createAndAdoptTx = await program.methods
+      .createAndAdoptAgreement(params)
+      .accountsPartial({
         registry: registryPda,
         agreement: agreementKeypair.publicKey,
         owner: provider.wallet.publicKey,
+        adopter: adopterKeypair.publicKey,
         payer: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .signers([agreementKeypair, adopterKeypair])
       .rpc();
 
-    console.log("✅ Agreement created!");
-    console.log("Transaction signature:", createTx);
+    console.log("✅ Agreement created and adopted!");
+    console.log("Transaction signature:", createAndAdoptTx);
   } catch (error) {
-    console.error("❌ Error creating agreement:", error);
-    return;
-  }
-
-  console.log("🤝 Adopting safe harbor...");
-
-  try {
-    const adoptTx = await program.methods
-      .adoptSafeHarbor()
-      .accounts({
-        registry: registryPda,
-        adopter: adopterKeypair.publicKey,
-        agreement: agreementKeypair.publicKey,
-      })
-      .signers([adopterKeypair])
-      .rpc();
-
-    console.log("✅ Safe harbor adopted!");
-    console.log("Transaction signature:", adoptTx);
-  } catch (error) {
-    console.error("❌ Error adopting safe harbor:", error);
+    console.error("❌ Error creating and adopting agreement:", error);
+    console.error("Full error details:", JSON.stringify(error, null, 2));
     return;
   }
 
