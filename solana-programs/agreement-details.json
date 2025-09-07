@@ -1,0 +1,27 @@
+{
+  "protocolName": "TestProtocol",
+  "agreementUri": "https://testprotocol.com/security-policy",
+  "chains": [
+    {
+      "caip2ChainId": "eip155:1",
+      "accounts": [
+        {
+          "accountType": "Treasury",
+          "accountAddress": "0x1234567890123456789012345678901234567890"
+        }
+      ]
+    }
+  ],
+  "contactDetails": [
+    {
+      "contactType": "Email",
+      "contact": "security@testprotocol.com"
+    }
+  ],
+  "bountyTerms": {
+    "bountyPercentage": 10,
+    "bountyCapUsd": 1000000,
+    "retainable": true,
+    "aggregateBountyCapUsd": 0
+  }
+}

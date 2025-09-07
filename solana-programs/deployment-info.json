@@ -1,0 +1,17 @@
+{
+  "programId": "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L",
+  "registryPda": "DmVqMRhuDZoJjahQ8X8Nan7EArcddB9xcz9RFHpB2rN",
+  "owner": "GWmXG4TQBAZ9g7YjHhHABSVw21AcghNWTqKxSTPHz6qb",
+  "network": "http://127.0.0.1:8899",
+  "validChains": [
+    "eip155:1",
+    "eip155:137",
+    "eip155:42161",
+    "eip155:10",
+    "eip155:8453",
+    "eip155:43114",
+    "eip155:56",
+    "eip155:100"
+  ],
+  "deployedAt": "2025-09-07T06:13:11.671Z"
+}

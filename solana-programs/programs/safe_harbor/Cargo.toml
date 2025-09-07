@@ -1,0 +1,21 @@
+[package]
+name = "safe_harbor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "safe_harbor"
+
+[features]
+no-entrypoint = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+
+[dev-dependencies]
+solana-program-test = "2.3.0"
+solana-sdk = "2.3.0"
+solana-program = "2.3.0"
+tokio = { version = "1.37", features = ["macros", "rt-multi-thread"] }

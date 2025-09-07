@@ -1,0 +1,18 @@
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
+
+[programs.testnet]
+safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
+
+[registry]
+url = "https://api.testnet.solana.com"
+
+[provider]
+cluster = "Testnet"
+wallet = "~/.config/solana/id.json"
