@@ -6,8 +6,10 @@ import * as fs from "fs";
 
 // Configuration
 const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
-const AGREEMENT_DATA_PATH = process.env.AGREEMENT_DATA_PATH || "./agreement-details.json";
-const ADOPTER_KEYPAIR_PATH = process.env.ADOPTER_KEYPAIR_PATH || "./adopter-keypair.json";
+const AGREEMENT_DATA_PATH =
+  process.env.AGREEMENT_DATA_PATH || "./agreement-details.json";
+const ADOPTER_KEYPAIR_PATH =
+  process.env.ADOPTER_KEYPAIR_PATH || "./adopter-keypair.json";
 
 interface AgreementDetails {
   protocolName: string;
@@ -40,11 +42,13 @@ async function main() {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
-  
+
   console.log("🤝 Adopting Safe Harbor Agreement");
 
   // Load deployment info
-  const deploymentInfo = JSON.parse(fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8"));
+  const deploymentInfo = JSON.parse(
+    fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8")
+  );
   const registryPda = new PublicKey(deploymentInfo.registryPda);
 
   console.log("Registry PDA:", registryPda.toString());
@@ -52,13 +56,18 @@ async function main() {
   // Load or generate adopter keypair
   let adopterKeypair: Keypair;
   try {
-    const adopterKeypairData = JSON.parse(fs.readFileSync(ADOPTER_KEYPAIR_PATH, "utf8"));
+    const adopterKeypairData = JSON.parse(
+      fs.readFileSync(ADOPTER_KEYPAIR_PATH, "utf8")
+    );
     adopterKeypair = Keypair.fromSecretKey(new Uint8Array(adopterKeypairData));
     console.log("Loaded adopter keypair from:", ADOPTER_KEYPAIR_PATH);
   } catch (error) {
     console.log("Generating new adopter keypair...");
     adopterKeypair = Keypair.generate();
-    fs.writeFileSync(ADOPTER_KEYPAIR_PATH, JSON.stringify(Array.from(adopterKeypair.secretKey)));
+    fs.writeFileSync(
+      ADOPTER_KEYPAIR_PATH,
+      JSON.stringify(Array.from(adopterKeypair.secretKey))
+    );
     console.log("Saved adopter keypair to:", ADOPTER_KEYPAIR_PATH);
   }
 
@@ -72,7 +81,10 @@ async function main() {
   } catch (error) {
     console.log("Creating sample agreement details...");
     agreementDetails = createSampleAgreementDetails();
-    fs.writeFileSync(AGREEMENT_DATA_PATH, JSON.stringify(agreementDetails, null, 2));
+    fs.writeFileSync(
+      AGREEMENT_DATA_PATH,
+      JSON.stringify(agreementDetails, null, 2)
+    );
     console.log("Saved sample agreement details to:", AGREEMENT_DATA_PATH);
   }
 
@@ -85,25 +97,29 @@ async function main() {
   // Convert agreement details to program format
   const params = {
     protocolName: agreementDetails.protocolName,
-    contactDetails: agreementDetails.contact.map(c => ({
+    contactDetails: agreementDetails.contact.map((c) => ({
       name: c.name,
       contact: c.contact,
     })),
-    chains: agreementDetails.chains.map(chain => ({
+    chains: agreementDetails.chains.map((chain) => ({
       assetRecoveryAddress: chain.assetRecoveryAddress,
-      accounts: chain.accounts.map(acc => ({
+      accounts: chain.accounts.map((acc) => ({
         accountAddress: acc.accountAddress,
         childContractScope: { none: {} }, // Convert enum
       })),
       caip2ChainId: chain.id,
     })),
     bountyTerms: {
-      bountyPercentage: new anchor.BN(agreementDetails.bountyTerms.bountyPercentage),
+      bountyPercentage: new anchor.BN(
+        agreementDetails.bountyTerms.bountyPercentage
+      ),
       bountyCapUsd: new anchor.BN(agreementDetails.bountyTerms.bountyCapUSD),
       retainable: agreementDetails.bountyTerms.retainable,
       identity: { anonymous: {} }, // Convert enum
       diligenceRequirements: agreementDetails.bountyTerms.diligenceRequirements,
-      aggregateBountyCapUsd: new anchor.BN(agreementDetails.bountyTerms.aggregateBountyCapUSD),
+      aggregateBountyCapUsd: new anchor.BN(
+        agreementDetails.bountyTerms.aggregateBountyCapUSD
+      ),
     },
     agreementUri: agreementDetails.agreementURI,
   };
@@ -158,7 +174,10 @@ async function main() {
     adoptedAt: new Date().toISOString(),
   };
 
-  fs.writeFileSync("./adoption-info.json", JSON.stringify(adoptionInfo, null, 2));
+  fs.writeFileSync(
+    "./adoption-info.json",
+    JSON.stringify(adoptionInfo, null, 2)
+  );
 
   console.log("\n🎉 Adoption Summary:");
   console.log("=".repeat(50));
@@ -174,8 +193,8 @@ function createSampleAgreementDetails(): AgreementDetails {
     contact: [
       {
         name: "Security Team",
-        contact: "security@sampledefi.com"
-      }
+        contact: "security@sampledefi.com",
+      },
     ],
     chains: [
       {
@@ -184,10 +203,10 @@ function createSampleAgreementDetails(): AgreementDetails {
         accounts: [
           {
             accountAddress: "0x1234567890123456789012345678901234567890",
-            childContractScope: 0 // None
-          }
-        ]
-      }
+            childContractScope: 0, // None
+          },
+        ],
+      },
     ],
     bountyTerms: {
       bountyPercentage: 10,
@@ -195,9 +214,9 @@ function createSampleAgreementDetails(): AgreementDetails {
       retainable: true,
       identity: 0, // Anonymous
       diligenceRequirements: "Standard security review and disclosure process",
-      aggregateBountyCapUSD: 0
+      aggregateBountyCapUSD: 0,
     },
-    agreementURI: "ipfs://QmSampleAgreementHash"
+    agreementURI: "ipfs://QmSampleAgreementHash",
   };
 }
 

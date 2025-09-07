@@ -6,14 +6,18 @@ import fs from "fs";
 
 // Configuration
 const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
-const OWNER_KEYPAIR_PATH = process.env.OWNER_KEYPAIR_PATH || "./owner-keypair.json";
+const OWNER_KEYPAIR_PATH =
+  process.env.OWNER_KEYPAIR_PATH || "./owner-keypair.json";
 
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
   const chains = args.slice(1);
 
-  if (!command || (command !== "add" && command !== "remove" && command !== "list")) {
+  if (
+    !command ||
+    (command !== "add" && command !== "remove" && command !== "list")
+  ) {
     console.log("Usage:");
     console.log("  npm run manage-chains add <chain1> <chain2> ...");
     console.log("  npm run manage-chains remove <chain1> <chain2> ...");
@@ -31,15 +35,19 @@ async function main() {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
-  
+
   console.log("⛓️  Managing Safe Harbor Chain Validation");
 
   // Load deployment info
-  const deploymentInfo = JSON.parse(fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8"));
+  const deploymentInfo = JSON.parse(
+    fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8")
+  );
   const registryPda = new PublicKey(deploymentInfo.registryPda);
 
   // Load owner keypair
-  const ownerKeypairData = JSON.parse(fs.readFileSync(OWNER_KEYPAIR_PATH, "utf8"));
+  const ownerKeypairData = JSON.parse(
+    fs.readFileSync(OWNER_KEYPAIR_PATH, "utf8")
+  );
   const ownerKeypair = Keypair.fromSecretKey(new Uint8Array(ownerKeypairData));
 
   console.log("Registry PDA:", registryPda.toString());
@@ -48,10 +56,10 @@ async function main() {
   if (command === "list") {
     try {
       const registryAccount = await program.account.registry.fetch(registryPda);
-      
+
       console.log("\n🔗 Currently Valid Chains:");
       console.log("=".repeat(50));
-      
+
       if (registryAccount.validChains.length === 0) {
         console.log("No valid chains configured");
       } else {
@@ -70,11 +78,14 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`\n📝 ${command === "add" ? "Adding" : "Removing"} chains:`, chains);
+  console.log(
+    `\n📝 ${command === "add" ? "Adding" : "Removing"} chains:`,
+    chains
+  );
 
   try {
     let tx: string;
-    
+
     if (command === "add") {
       tx = await program.methods
         .setValidChains(chains)
@@ -102,7 +113,7 @@ async function main() {
     const registryAccount = await program.account.registry.fetch(registryPda);
     console.log("\n🔗 Updated Valid Chains:");
     console.log("=".repeat(50));
-    
+
     if (registryAccount.validChains.length === 0) {
       console.log("No valid chains configured");
     } else {
@@ -110,7 +121,6 @@ async function main() {
         console.log(`  ${index + 1}. ${chain}`);
       });
     }
-
   } catch (error) {
     console.error("❌ Error updating chains:", error);
     process.exit(1);

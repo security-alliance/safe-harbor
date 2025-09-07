@@ -1,6 +1,6 @@
 [package]
 name = "safe_harbor"
-version = "0.1.0"
+version = "1.1.0"
 edition = "2021"
 
 [lib]
@@ -9,10 +9,17 @@ name = "safe_harbor"
 
 [features]
 no-entrypoint = []
+no-log-ix-name = []
+anchor-debug = []
+cpi = []
+custom-heap = []
+custom-panic = []
+no-idl = []
 idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
 anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+solana-program = "2.3.0"
 
 [dev-dependencies]
 solana-program-test = "2.3.0"

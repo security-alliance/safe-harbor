@@ -1,6 +1,21 @@
 # Safe Harbor Registry - Solana Implementation
 
-This repository contains the Solana/Anchor implementation of the Safe Harbor Registry V2 contracts, converted from the original Ethereum implementation.
+This repository contains the Solana/Anchor implementation of the Safe Harbor Registry V2 contracts, converted from the original Ethereum implementation found in `../registry-contracts/`.
+
+## Relationship to EVM Version
+
+This Solana implementation maintains **full feature parity** with the original Ethereum Safe Harbor Registry V2 contracts while leveraging Solana's performance and cost benefits:
+
+- **Same Business Logic**: All core functionality (registry management, agreement creation, adoption) works identically
+- **Same Data Structures**: Contact details, chain specifications, bounty terms are preserved
+- **Same Security Model**: Owner controls, validation rules, and access patterns maintained
+- **Solana Optimizations**: Uses PDAs for deterministic addresses, Anchor for type safety, and events for transparency
+
+**Key Differences from EVM:**
+- Uses Solana accounts instead of Ethereum contracts
+- Program Derived Addresses (PDAs) replace contract addresses
+- Anchor events replace Solidity events
+- Rent-exempt accounts replace gas-based storage
 
 ## Overview
 

@@ -5,8 +5,15 @@ import { expect } from "chai";
 
 // Helper types matching Rust structs
 type Contact = { name: string; contact: string };
-type AccountInScope = { accountAddress: string; childContractScope: { [k: string]: {} } | number };
-type Chain = { assetRecoveryAddress: string; accounts: AccountInScope[]; caip2ChainId: string };
+type AccountInScope = {
+  accountAddress: string;
+  childContractScope: { [k: string]: {} } | number;
+};
+type Chain = {
+  assetRecoveryAddress: string;
+  accounts: AccountInScope[];
+  caip2ChainId: string;
+};
 type BountyTerms = {
   bountyPercentage: number;
   bountyCapUsd: number;
@@ -40,7 +47,10 @@ const IdentityRequirements = {
 
 function mockAgreementDetails(accountAddr: string): AgreementInitParams {
   const contact: Contact = { name: "Test Name V2", contact: "test@mail.com" };
-  const account: AccountInScope = { accountAddress: accountAddr, childContractScope: ChildContractScope.All };
+  const account: AccountInScope = {
+    accountAddress: accountAddr,
+    childContractScope: ChildContractScope.All,
+  };
   const chain: Chain = {
     assetRecoveryAddress: "0x0000000000000000000000000000000000000022",
     caip2ChainId: "eip155:1",
@@ -78,7 +88,11 @@ describe("safe_harbor", () => {
     // initialize_registry
     await program.methods
       .initializeRegistry(provider.wallet.publicKey)
-      .accounts({ registry: registryPda, payer: provider.wallet.publicKey, systemProgram: SystemProgram.programId })
+      .accounts({
+        registry: registryPda,
+        payer: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
       .rpc();
 
     // set_valid_chains
@@ -107,23 +121,37 @@ describe("safe_harbor", () => {
     // adopt_safe_harbor
     await program.methods
       .adoptSafeHarbor()
-      .accounts({ registry: registryPda, adopter: provider.wallet.publicKey, agreement: agreementKp.publicKey })
+      .accounts({
+        registry: registryPda,
+        adopter: provider.wallet.publicKey,
+        agreement: agreementKp.publicKey,
+      })
       .rpc();
 
     // set_protocol_name
     await program.methods
       .setProtocolName("Updated Protocol")
-      .accounts({ agreement: agreementKp.publicKey, owner: provider.wallet.publicKey })
+      .accounts({
+        agreement: agreementKp.publicKey,
+        owner: provider.wallet.publicKey,
+      })
       .rpc();
 
     // add_accounts to eip155:1
     await program.methods
-      .addAccounts("eip155:1", [{ accountAddress: "0x02", childContractScope: ChildContractScope.None }] as any)
-      .accounts({ agreement: agreementKp.publicKey, owner: provider.wallet.publicKey })
+      .addAccounts("eip155:1", [
+        { accountAddress: "0x02", childContractScope: ChildContractScope.None },
+      ] as any)
+      .accounts({
+        agreement: agreementKp.publicKey,
+        owner: provider.wallet.publicKey,
+      })
       .rpc();
 
     // Fetch agreement account and assert
-    const acct: any = await program.account.agreement.fetch(agreementKp.publicKey);
+    const acct: any = await program.account.agreement.fetch(
+      agreementKp.publicKey
+    );
     expect(acct.protocolName).to.eq("Updated Protocol");
     expect(acct.chains.length).to.eq(1);
     const chain = acct.chains[0];

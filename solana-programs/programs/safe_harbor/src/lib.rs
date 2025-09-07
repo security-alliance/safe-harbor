@@ -5,6 +5,7 @@ declare_id!("AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L");
 
 const VERSION: &str = "1.1.0";
 
+#[allow(deprecated)]
 #[program]
 pub mod safe_harbor {
     use super::*;
@@ -28,7 +29,14 @@ pub mod safe_harbor {
     // Owner-only: set a list of chains as valid (adds if missing)
     pub fn set_valid_chains(ctx: Context<OwnerOnly>, chains: Vec<String>) -> Result<()> {
         let reg = &mut ctx.accounts.registry;
-        require_keys_eq!(ctx.accounts.signer.key(), reg.owner);
+        require_keys_eq!(ctx.accounts.signer.key(), reg.owner, ErrorCode::Unauthorized);
+        
+        // Validate chain ID format (basic CAIP-2 validation)
+        for chain in &chains {
+            require!(!chain.is_empty(), ErrorCode::InvalidChainId);
+            require!(chain.contains(':'), ErrorCode::InvalidChainId);
+        }
+        
         for c in chains.into_iter() {
             if !reg.valid_chains.contains(&c) {
                 reg.valid_chains.push(c.clone());
@@ -44,7 +52,7 @@ pub mod safe_harbor {
     // Owner-only: mark a list of chains as invalid (removes if present)
     pub fn set_invalid_chains(ctx: Context<OwnerOnly>, chains: Vec<String>) -> Result<()> {
         let reg = &mut ctx.accounts.registry;
-        require_keys_eq!(ctx.accounts.signer.key(), reg.owner);
+        require_keys_eq!(ctx.accounts.signer.key(), reg.owner, ErrorCode::Unauthorized);
         for c in chains.into_iter() {
             if let Some(i) = reg.valid_chains.iter().position(|x| x == &c) {
                 reg.valid_chains.swap_remove(i);
@@ -60,7 +68,7 @@ pub mod safe_harbor {
     // Owner-only: set fallback registry address (optional)
     pub fn set_fallback_registry(ctx: Context<OwnerOnly>, fallback: Option<Pubkey>) -> Result<()> {
         let reg = &mut ctx.accounts.registry;
-        require_keys_eq!(ctx.accounts.signer.key(), reg.owner);
+        require_keys_eq!(ctx.accounts.signer.key(), reg.owner, ErrorCode::Unauthorized);
         reg.fallback_registry = fallback;
         Ok(())
     }
@@ -74,7 +82,7 @@ pub mod safe_harbor {
         
         emit!(SafeHarborAdoption {
             entity: adopter,
-            old_details: old_agreement.unwrap_or(Pubkey::default()),
+            old_details: old_agreement.unwrap_or_default(),
             new_details: ctx.accounts.agreement.key(),
         });
         Ok(())
@@ -90,7 +98,7 @@ pub mod safe_harbor {
         
         // TODO: Implement fallback registry lookup if needed
         // For now, we'll return an error if no agreement is found
-        return err!(ErrorCode::NoAgreement);
+        err!(ErrorCode::NoAgreement)
     }
 
     // Check if a chain is valid
@@ -138,6 +146,8 @@ pub mod safe_harbor {
 
     // Owner-only: set protocol name
     pub fn set_protocol_name(ctx: Context<AgreementOwnerOnly>, protocol_name: String) -> Result<()> {
+        require!(!protocol_name.is_empty(), ErrorCode::InvalidInput);
+        require!(protocol_name.len() <= 128, ErrorCode::InvalidInput);
         assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
         let agreement = &mut ctx.accounts.agreement;
         agreement.protocol_name = protocol_name;
@@ -529,6 +539,8 @@ pub enum ErrorCode {
     DuplicateChainId,
     #[msg("No agreement found")]
     NoAgreement,
+    #[msg("Invalid input")]
+    InvalidInput,
 }
 
 // -------------------- Events --------------------
@@ -558,10 +570,10 @@ pub struct AgreementUpdated {
 
 // -------------------- Helpers --------------------
 fn assert_agreement_owner(owner: Pubkey, agreement: &Account<Agreement>) -> Result<()> {
-    require_keys_eq!(owner, agreement.owner);
+    require_keys_eq!(owner, agreement.owner, ErrorCode::Unauthorized);
     Ok(())
 }
-fn validate_no_duplicate_chain_ids(chains: &Vec<Chain>) -> Result<()> {
+fn validate_no_duplicate_chain_ids(chains: &[Chain]) -> Result<()> {
     for i in 0..chains.len() {
         for j in (i+1)..chains.len() {
             if chains[i].caip2_chain_id == chains[j].caip2_chain_id {
@@ -572,10 +584,10 @@ fn validate_no_duplicate_chain_ids(chains: &Vec<Chain>) -> Result<()> {
     Ok(())
 }
 
-fn find_chain_index(chains: &Vec<Chain>, id: &str) -> Result<usize> {
+fn find_chain_index(chains: &[Chain], id: &str) -> Result<usize> {
     chains.iter().position(|c| c.caip2_chain_id == id).ok_or(ErrorCode::ChainNotFound.into())
 }
 
-fn find_account_index(accounts: &Vec<AccountInScope>, addr: &str, _chain_id: &str) -> Result<usize> {
+fn find_account_index(accounts: &[AccountInScope], addr: &str, _chain_id: &str) -> Result<usize> {
     accounts.iter().position(|a| a.account_address == addr).ok_or(ErrorCode::AccountNotFound.into())
 }
