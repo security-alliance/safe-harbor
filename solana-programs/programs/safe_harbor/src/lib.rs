@@ -5,7 +5,6 @@ declare_id!("AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L");
 
 const VERSION: &str = "2.0.0";
 
-#[allow(deprecated)]
 #[program]
 pub mod safe_harbor {
     use super::*;
@@ -17,6 +16,13 @@ pub mod safe_harbor {
         reg.fallback_registry = None;
         reg.valid_chains = Vec::new();
         reg.agreements = AccountMap { items: Vec::new() };
+        
+        // Calculate required space and resize if needed
+        let required_space = reg.calculate_required_space();
+        if ctx.accounts.registry.to_account_info().data_len() < required_space {
+            ctx.accounts.registry.to_account_info().resize(required_space)?;
+        }
+        
         emit!(RegistryInitialized { owner });
         Ok(())
     }
@@ -46,6 +52,13 @@ pub mod safe_harbor {
                 });
             }
         }
+        
+        // Resize account to accommodate new data
+        let required_space = reg.calculate_required_space();
+        if ctx.accounts.registry.to_account_info().data_len() < required_space {
+            ctx.accounts.registry.to_account_info().resize(required_space)?;
+        }
+        
         Ok(())
     }
 
@@ -79,6 +92,12 @@ pub mod safe_harbor {
         let adopter = ctx.accounts.adopter.key();
         let old_agreement = reg.agreements.get(adopter);
         reg.agreements.insert(adopter, ctx.accounts.agreement.key());
+        
+        // Resize account to accommodate new data
+        let required_space = reg.calculate_required_space();
+        if ctx.accounts.registry.to_account_info().data_len() < required_space {
+            ctx.accounts.registry.to_account_info().resize(required_space)?;
+        }
         
         emit!(SafeHarborAdoption {
             entity: adopter,
@@ -141,7 +160,7 @@ pub mod safe_harbor {
         // Calculate required space and resize if needed
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -172,7 +191,7 @@ pub mod safe_harbor {
         // Resize account if needed
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -203,7 +222,7 @@ pub mod safe_harbor {
         // Resize account to accommodate new data
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -261,7 +280,7 @@ pub mod safe_harbor {
         // Resize account to accommodate new data
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -299,7 +318,7 @@ pub mod safe_harbor {
         // Resize account if needed
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -318,7 +337,7 @@ pub mod safe_harbor {
         // Resize account if needed
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         emit!(AgreementUpdated {
@@ -357,12 +376,18 @@ pub mod safe_harbor {
         // Calculate required space and resize if needed
         let required_space = agreement.calculate_required_space();
         if ctx.accounts.agreement.to_account_info().data_len() < required_space {
-            ctx.accounts.agreement.to_account_info().realloc(required_space, false)?;
+            ctx.accounts.agreement.to_account_info().resize(required_space)?;
         }
         
         // Adopt the agreement
         let old_agreement = registry.agreements.get(adopter);
         registry.agreements.insert(adopter, ctx.accounts.agreement.key());
+        
+        // Resize registry account to accommodate new data
+        let registry_required_space = registry.calculate_required_space();
+        if ctx.accounts.registry.to_account_info().data_len() < registry_required_space {
+            ctx.accounts.registry.to_account_info().resize(registry_required_space)?;
+        }
         
         emit!(AgreementUpdated {
             agreement: ctx.accounts.agreement.key(),
@@ -503,7 +528,7 @@ pub struct InitializeRegistry<'info> {
     #[account(
         init,
         payer = payer,
-        space = Registry::MAX_SPACE,
+        space = Registry::INITIAL_SPACE,
         seeds = [b"registry"],
         bump
     )]
@@ -609,16 +634,31 @@ pub struct ReadOnlyAgreement<'info> {
 
 // -------------------- Sizes --------------------
 impl Registry {
-    pub const MAX_VALID_CHAINS: usize = 32; // reduced for space efficiency
-    pub const AVG_CHAIN_ID_LEN: usize = 32; // reduced average chain ID length
-    pub const AGREEMENTS_CAP: usize = 64; // reduced for initial deployment
-
-    pub const MAX_SPACE: usize = 8  // discriminator
+    // Base space for empty registry (discriminator + fixed fields)
+    pub const BASE_SPACE: usize = 8  // discriminator
         + 32 // owner
         + 1 + 32 // Option<Pubkey>
-        + 4 + (Self::AGREEMENTS_CAP * (32 + 32)) // AccountMap as Vec<Entry>
-        + 4 + (Self::MAX_VALID_CHAINS * (4 + Self::AVG_CHAIN_ID_LEN)) // Vec<String>
-        ;
+        + 4 // agreements vec length
+        + 4; // valid_chains vec length
+    
+    // Initial space allocation - will grow dynamically
+    pub const INITIAL_SPACE: usize = Self::BASE_SPACE + 1024; // 1KB buffer for initial data
+    
+    // Calculate the actual space needed for current data
+    pub fn calculate_required_space(&self) -> usize {
+        let mut size = Self::BASE_SPACE;
+        
+        // AccountMap entries
+        size += self.agreements.items.len() * (32 + 32); // key + value pubkeys
+        
+        // Valid chains
+        for chain in &self.valid_chains {
+            size += 4 + chain.len(); // length prefix + string data
+        }
+        
+        // Add 25% buffer for safety
+        size + (size / 4)
+    }
 }
 
 impl Agreement {

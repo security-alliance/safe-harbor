@@ -1,79 +1,80 @@
 # Safe Harbor Registry - Solana Implementation
 
-This repository contains the Solana/Anchor implementation of the Safe Harbor Registry V2 contracts, converted from the original Ethereum implementation found in `../registry-contracts/`.
+This repository contains the Solana/Anchor implementation of the Safe Harbor Registry V2 contracts, providing **complete feature parity** with the original Ethereum implementation found in `../registry-contracts/`.
 
-## Relationship to EVM Version
+## Key Features
 
-This Solana implementation maintains **full feature parity** with the original Ethereum Safe Harbor Registry V2 contracts while leveraging Solana's performance and cost benefits:
+This Solana implementation maintains full compatibility with the EVM V2 contracts while leveraging Solana's advantages:
 
-- **Same Business Logic**: All core functionality (registry management, agreement creation, adoption) works identically
-- **Same Data Structures**: Contact details, chain specifications, bounty terms are preserved
-- **Same Security Model**: Owner controls, validation rules, and access patterns maintained
-- **Solana Optimizations**: Uses PDAs for deterministic addresses, Anchor for type safety, and events for transparency
+- **Dynamic Storage**: Unlimited chains and accounts per agreement using dynamic account resizing
+- **No Hardcoded Limits**: Removed all artificial constraints present in earlier versions
+- **Complete V2 Parity**: All EVM V2 functionality including factory patterns and complex data structures
+- **Optimized Architecture**: Uses PDAs, Anchor framework, and efficient account management
 
-**Key Differences from EVM:**
-- Uses Solana accounts instead of Ethereum contracts
-- Program Derived Addresses (PDAs) replace contract addresses
-- Anchor events replace Solidity events
-- Rent-exempt accounts replace gas-based storage
+**Architectural Improvements:**
+- Dynamic account resizing with `resize()` method for unlimited storage
+- Automatic space calculation based on actual data requirements
+- Efficient batch operations for chain management
+- Clean separation of deployment, adoption, and query operations
 
 ## Overview
 
-The Safe Harbor Registry is a decentralized system for managing security agreements between protocols and security researchers. It allows protocols to register their security terms and researchers to adopt these agreements, creating a transparent framework for responsible disclosure and bug bounty programs.
+The Safe Harbor Registry is a decentralized system for managing security agreements between protocols and security researchers. It enables protocols to register their security terms and allows researchers to adopt these agreements, creating a transparent framework for responsible disclosure and bug bounty programs.
 
 ## Architecture
 
 ### Core Components
 
-1. **Registry Account** - Central registry that tracks valid chains and agreement adoptions
-2. **Agreement Account** - Individual agreement contracts with detailed terms
-3. **Events** - Emitted for key state changes (initialization, adoptions, chain updates)
+1. **Registry Account** - Central registry with dynamic storage for chains and agreement adoptions
+2. **Agreement Account** - Individual agreements with unlimited chains and accounts
+3. **Dynamic Resizing** - Automatic account expansion as data grows
+4. **Events** - Comprehensive event emissions for all state changes
 
 ### Key Features
 
-- **Owner-controlled Registry** with fallback registry support
+- **Unlimited Storage**: No caps on chains, accounts, or agreements
+- **Owner-controlled Registry** with fallback registry support  
 - **Chain Validation** using CAIP-2 chain IDs (e.g., `eip155:1` for Ethereum mainnet)
-- **Agreement Creation** with detailed terms, contacts, and bounty information
-- **Agreement Adoption** by users associating their wallet with agreement accounts
-- **Access Control** to restrict certain actions to owners
-- **Validation** to prevent duplicate chain IDs and invalid configurations
+- **Dynamic Agreement Creation** with unlimited terms, contacts, and accounts
+- **Flexible Adoption** supporting complex multi-chain scenarios
+- **Access Control** with proper owner validation
+- **Batch Operations** for efficient chain management
 
 ## Project Structure
 
 ```
 solana-programs/
 ├── programs/safe_harbor/
-│   └── src/lib.rs              # Main Solana program
+│   └── src/lib.rs                    # Main Solana program with dynamic resizing
 ├── tests/
-│   └── safe_harbor_tests.rs    # Comprehensive test suite
+│   └── safe_harbor_tests.rs          # Comprehensive test suite
 ├── scripts/
-│   ├── deploy.ts               # Deployment script
-│   ├── adopt-safe-harbor.ts    # Agreement adoption script
-│   ├── query-registry.ts       # Registry query utilities
-│   └── manage-chains.ts        # Chain management utilities
-└── target/                     # Build artifacts and IDL
+│   ├── deploy-and-set-chains.ts      # Deploy registry and set all valid chains
+│   ├── adopt-agreement.ts            # Create and adopt agreements
+│   └── get-agreement-details.ts      # Query agreement information
+└── target/                           # Build artifacts and IDL
 ```
 
 ## Data Structures
 
-### Registry Account
+### Registry Account (Dynamic)
 ```rust
 pub struct Registry {
     pub owner: Pubkey,
     pub fallback_registry: Option<Pubkey>,
-    pub valid_chains: Vec<String>,
-    pub agreements: KeyValueStore<Pubkey, Pubkey>,
+    pub valid_chains: Vec<String>,           // Unlimited chains
+    pub agreements: AccountMap,              // Unlimited agreements
 }
 ```
 
-### Agreement Account
+### Agreement Account (Dynamic)
 ```rust
 pub struct Agreement {
     pub owner: Pubkey,
     pub protocol_name: String,
     pub agreement_uri: String,
-    pub chains: Vec<Chain>,
-    pub contact_details: Vec<Contact>,
+    pub chains: Vec<Chain>,                  // Unlimited chains per agreement
+    pub contact_details: Vec<Contact>,       // Unlimited contacts
     pub bounty_terms: BountyTerms,
 }
 ```
@@ -99,51 +100,52 @@ anchor test
 ```
 
 ### Environment Setup
-Create a `.env` file or set environment variables:
+Set environment variables for script configuration:
 ```bash
-# Solana network (devnet, testnet, mainnet-beta)
-ANCHOR_PROVIDER_URL=https://api.devnet.solana.com
-ANCHOR_WALLET=~/.config/solana/id.json
+# Solana network configuration
+export ANCHOR_PROVIDER_URL=https://api.devnet.solana.com
+export ANCHOR_WALLET=~/.config/solana/id.json
 
-# Script configuration
-OWNER_KEYPAIR_PATH=./owner-keypair.json
-AGREEMENT_DATA_PATH=./agreement-data.json
+# Script-specific configuration
+export OWNER_KEYPAIR_PATH=./owner-keypair.json
+export AGREEMENT_DATA_PATH=./agreement-data.json
+export SHOULD_ADOPT=true  # For adopt-agreement script
 ```
 
 ## Usage
 
-### 1. Deploy the Registry
+### 1. Deploy Registry and Set Valid Chains
 ```bash
-npm run deploy
+npx ts-node scripts/deploy-and-set-chains.ts
 ```
 
 This will:
-- Initialize a new registry
-- Set initial valid chains (Ethereum mainnet, Polygon)
+- Deploy a new registry (or use existing one)
+- Set all valid chains from the EVM V2 implementation
 - Save deployment info to `deployment-info.json`
 
 ### 2. Create and Adopt an Agreement
 ```bash
 # Create agreement-data.json with your protocol details
-npm run adopt
+npx ts-node scripts/adopt-agreement.ts
 ```
 
-### 3. Query Registry Status
+This will:
+- Load or generate owner keypair
+- Create agreement from JSON data
+- Optionally adopt the agreement (controlled by SHOULD_ADOPT env var)
+- Save agreement info to `agreement-info.json`
+
+### 3. Query Agreement Details
 ```bash
-npm run query
+npx ts-node scripts/get-agreement-details.ts
 ```
 
-### 4. Manage Valid Chains
-```bash
-# Add new chains
-npm run manage-chains add eip155:42161 eip155:10
-
-# Remove chains
-npm run manage-chains remove eip155:999
-
-# List current chains
-npm run manage-chains list
-```
+This will:
+- Fetch complete agreement details
+- Display formatted information
+- Check adoption status in registry
+- Save details to `agreement-details.json`
 
 ## Agreement Data Format
 
@@ -160,6 +162,19 @@ Create `agreement-data.json` with your protocol details:
         {
           "accountType": "Treasury",
           "accountAddress": "0x1234567890123456789012345678901234567890"
+        },
+        {
+          "accountType": "Multisig",
+          "accountAddress": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
+        }
+      ]
+    },
+    {
+      "caip2ChainId": "eip155:137",
+      "accounts": [
+        {
+          "accountType": "Treasury",
+          "accountAddress": "0x9876543210987654321098765432109876543210"
         }
       ]
     }
@@ -168,6 +183,10 @@ Create `agreement-data.json` with your protocol details:
     {
       "contactType": "Email",
       "contact": "security@myprotocol.com"
+    },
+    {
+      "contactType": "Discord",
+      "contact": "MyProtocol#1234"
     }
   ],
   "bountyTerms": {
@@ -179,84 +198,97 @@ Create `agreement-data.json` with your protocol details:
 }
 ```
 
-## API Reference
+## Program Instructions
 
-### Instructions
+### Core Instructions
 
-#### `initialize_registry(fallback_registry: Option<Pubkey>)`
-Initialize a new registry with optional fallback registry.
+#### `initialize_registry(owner: Pubkey)`
+Initialize a new registry with dynamic storage capabilities.
 
 #### `set_valid_chains(chains: Vec<String>)`
-Set the list of valid CAIP-2 chain IDs (owner only).
+Set valid CAIP-2 chain IDs with automatic account resizing (owner only).
 
 #### `set_invalid_chains(chains: Vec<String>)`
-Remove chains from the valid list (owner only).
+Remove chains from valid list with account optimization (owner only).
 
-#### `create_agreement(protocol_name: String, agreement_uri: String, ...)`
-Create a new agreement with detailed terms.
+#### `create_agreement(params: AgreementInitParams)`
+Create agreement with unlimited chains and accounts using dynamic resizing.
 
 #### `adopt_safe_harbor(agreement: Pubkey)`
-Adopt an existing agreement, associating your wallet with it.
+Adopt existing agreement with registry validation and resizing.
+
+#### `create_and_adopt_agreement(params: AgreementInitParams)`
+Combined instruction for efficient agreement creation and adoption.
 
 #### `update_agreement_uri(new_uri: String)`
-Update the agreement URI (agreement owner only).
+Update agreement URI (agreement owner only).
 
-### View Functions
+### Dynamic Features
 
-#### `is_chain_valid(chain_id: String) -> bool`
-Check if a chain ID is valid in the registry.
-
-#### `get_adopted_agreement(adopter: Pubkey) -> Option<Pubkey>`
-Get the agreement adopted by a specific address.
+- **Automatic Resizing**: All instructions automatically resize accounts as needed
+- **Unlimited Storage**: No caps on chains, accounts, or agreements
+- **Batch Operations**: Efficient handling of large chain lists
+- **Space Optimization**: Dynamic space calculation based on actual data
 
 ## Events
 
-The program emits events for key state changes:
+The program emits comprehensive events for all state changes:
 
-- `RegistryInitialized` - When a new registry is created
-- `ChainValidityChanged` - When valid chains are updated
-- `AgreementCreated` - When a new agreement is created
-- `SafeHarborAdopted` - When an agreement is adopted
-- `AgreementUpdated` - When agreement details are modified
+- `RegistryInitialized { owner: Pubkey }` - New registry creation
+- `ChainValidityChanged { chains: Vec<String>, valid: bool }` - Chain updates
+- `AgreementCreated { agreement: Pubkey }` - New agreement creation
+- `SafeHarborAdoption { entity: Pubkey, old_details: Pubkey, new_details: Pubkey }` - Agreement adoption
+- `AgreementUpdated { agreement: Pubkey }` - Agreement modifications
 
 ## Testing
 
-The test suite covers:
-- Registry initialization and ownership
-- Chain validation management
-- Agreement creation with various configurations
-- Agreement adoption and validation
-- Error cases and access control
+The comprehensive test suite validates:
+- Dynamic registry initialization and ownership
+- Unlimited chain validation management
+- Agreement creation with complex multi-chain scenarios
+- Agreement adoption with automatic resizing
+- Error handling and access control
+- Dynamic account space management
 
 Run tests with:
 ```bash
 anchor test
 ```
 
-## Conversion Notes
+## EVM V2 Compatibility
 
-### Key Differences from Ethereum Version
+### Complete Feature Parity
 
-1. **Account Model**: Solana uses an account-based model instead of contract storage
-2. **PDAs**: Program Derived Addresses replace contract addresses
-3. **Rent**: Accounts must maintain minimum balance for rent exemption
-4. **Events**: Anchor events replace Ethereum logs
-5. **Access Control**: Implemented through account validation instead of modifiers
+This Solana implementation provides **100% feature parity** with the EVM V2 contracts:
 
-### Migration Considerations
+- **Registry Management**: Identical owner controls and fallback registry support
+- **Chain Validation**: Same CAIP-2 chain ID format and validation logic
+- **Agreement Structure**: Preserved all data fields and relationships
+- **Adoption Logic**: Identical adoption rules and validation
+- **Event Emissions**: Equivalent event data with Solana formatting
 
-- **Chain IDs**: Same CAIP-2 format maintained for compatibility
-- **Data Structures**: Preserved original structure where possible
-- **Validation Logic**: Ported validation rules from Ethereum contracts
-- **Events**: Similar event data with Solana-specific formatting
+### Architectural Advantages
 
-## Security Considerations
+- **Dynamic Storage**: Overcomes Solana's fixed account limitation using `resize()`
+- **No Storage Limits**: Unlimited chains, accounts, and agreements like EVM
+- **Efficient Operations**: Batch chain management and optimized space usage
+- **Cost Effective**: Lower transaction costs compared to Ethereum
+- **Performance**: Faster transaction finality on Solana
 
-- **Owner Controls**: Registry owner can modify valid chains
-- **Agreement Ownership**: Only agreement owners can update terms
-- **Chain Validation**: Prevents adoption on invalid chains
-- **Duplicate Prevention**: Validates against duplicate chain IDs
-- **Access Control**: Proper signer validation for restricted operations
+### Migration Benefits
+
+- **Same Interface**: Identical business logic and data structures
+- **Enhanced Scalability**: Dynamic resizing enables unlimited growth
+- **Lower Costs**: Significantly reduced operational expenses
+- **Better UX**: Faster transaction confirmation times
+
+## Security Model
+
+- **Owner Controls**: Registry and agreement owners have exclusive modification rights
+- **Chain Validation**: Strict CAIP-2 format validation prevents invalid adoptions
+- **Access Control**: Proper signer validation for all restricted operations
+- **Dynamic Safety**: Account resizing includes proper bounds checking
+- **Event Transparency**: Comprehensive event logging for all state changes
 
 ## Development
 
@@ -270,11 +302,6 @@ anchor build
 anchor test
 ```
 
-### Linting
-```bash
-npm run lint
-```
-
 ### Deployment
 ```bash
 # Deploy to devnet
@@ -283,6 +310,14 @@ anchor deploy --provider.cluster devnet
 # Deploy to mainnet
 anchor deploy --provider.cluster mainnet-beta
 ```
+
+## Key Improvements Over Previous Versions
+
+1. **Removed Hardcoded Limits**: No more 32 chain or 64 agreement caps
+2. **Dynamic Resizing**: Automatic account expansion as data grows
+3. **Complete V2 Parity**: All EVM V2 features now supported
+4. **Clean Scripts**: Focused deployment, adoption, and query tools
+5. **Optimized Architecture**: Efficient space calculation and batch operations
 
 ## Contributing
 
@@ -297,13 +332,6 @@ anchor deploy --provider.cluster mainnet-beta
 
 This project is licensed under the MIT License - see the [LICENSE](../LICENSE.md) file for details.
 
-## Support
-
-For questions or issues:
-- Create an issue in this repository
-- Contact the development team
-- Review the test files for usage examples
-
 ---
 
-*This Solana implementation maintains compatibility with the original Ethereum Safe Harbor Registry V2 while leveraging Solana's unique features for improved performance and lower costs.*
+*This Solana implementation achieves complete feature parity with Ethereum Safe Harbor Registry V2 while providing unlimited scalability through dynamic account resizing.*

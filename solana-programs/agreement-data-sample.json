@@ -1,0 +1,48 @@
+{
+  "protocolName": "ExampleProtocol",
+  "agreementURI": "https://example.com/security-policy",
+  "chains": [
+    {
+      "id": "eip155:1",
+      "assetRecoveryAddress": "0x1234567890123456789012345678901234567890",
+      "accounts": [
+        {
+          "accountAddress": "0x1234567890123456789012345678901234567890",
+          "childContractScope": 0
+        },
+        {
+          "accountAddress": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:137",
+      "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
+      "accounts": [
+        {
+          "accountAddress": "0x9876543210987654321098765432109876543210",
+          "childContractScope": 0
+        }
+      ]
+    }
+  ],
+  "contact": [
+    {
+      "name": "Email",
+      "contact": "security@example.com"
+    },
+    {
+      "name": "Discord",
+      "contact": "ExampleProtocol#1234"
+    }
+  ],
+  "bountyTerms": {
+    "bountyPercentage": 10,
+    "bountyCapUSD": 1000000,
+    "retainable": true,
+    "identity": 0,
+    "diligenceRequirements": "Standard security review process",
+    "aggregateBountyCapUSD": 0
+  }
+}

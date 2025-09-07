@@ -1,0 +1,181 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { SafeHarbor } from "../target/types/safe_harbor";
+import { PublicKey } from "@solana/web3.js";
+import * as fs from "fs";
+
+// Configuration
+const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
+
+async function main() {
+  // Configure the client
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
+
+  console.log("🔍 Getting Agreement Details");
+
+  // Get agreement address from environment or command line
+  const agreementAddress = process.env.AGREEMENT_ADDRESS || process.argv[2];
+  if (!agreementAddress) {
+    console.error("❌ Please provide agreement address");
+    console.log("Usage:");
+    console.log("  AGREEMENT_ADDRESS=<pubkey> npx ts-node scripts/get-agreement-details.ts");
+    console.log("  OR");
+    console.log("  npx ts-node scripts/get-agreement-details.ts <pubkey>");
+    process.exit(1);
+  }
+
+  let agreementPubkey: PublicKey;
+  try {
+    agreementPubkey = new PublicKey(agreementAddress);
+  } catch (error) {
+    console.error("❌ Invalid agreement address:", agreementAddress);
+    process.exit(1);
+  }
+
+  console.log("Agreement address:", agreementPubkey.toString());
+
+  // Load deployment info for registry context
+  let registryPda: PublicKey | null = null;
+  try {
+    const deploymentInfo = JSON.parse(fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8"));
+    registryPda = new PublicKey(deploymentInfo.registryPda);
+    console.log("Registry PDA:", registryPda.toString());
+  } catch (error) {
+    console.log("⚠️  Could not load deployment info, continuing without registry context");
+  }
+
+  // Fetch agreement details
+  try {
+    const agreement = await program.account.agreement.fetch(agreementPubkey);
+    
+    console.log("\n📄 Agreement Details:");
+    console.log("=".repeat(60));
+    console.log("Address:", agreementPubkey.toString());
+    console.log("Owner:", agreement.owner.toString());
+    console.log("Protocol Name:", agreement.protocolName);
+    console.log("Agreement URI:", agreement.agreementUri);
+    
+    console.log("\n👥 Contact Details:");
+    if (agreement.contactDetails.length === 0) {
+      console.log("  No contacts specified");
+    } else {
+      agreement.contactDetails.forEach((contact, index) => {
+        console.log(`  ${index + 1}. ${contact.name}: ${contact.contact}`);
+      });
+    }
+    
+    console.log("\n💰 Bounty Terms:");
+    console.log("  Bounty Percentage:", agreement.bountyTerms.bountyPercentage.toString() + "%");
+    console.log("  Bounty Cap USD:", agreement.bountyTerms.bountyCapUsd.toString());
+    console.log("  Retainable:", agreement.bountyTerms.retainable);
+    console.log("  Identity Requirements:", formatIdentityRequirements(agreement.bountyTerms.identity));
+    console.log("  Diligence Requirements:", agreement.bountyTerms.diligenceRequirements);
+    console.log("  Aggregate Bounty Cap USD:", agreement.bountyTerms.aggregateBountyCapUsd.toString());
+    
+    console.log("\n🔗 Chains and Accounts:");
+    if (agreement.chains.length === 0) {
+      console.log("  No chains specified");
+    } else {
+      let totalAccounts = 0;
+      agreement.chains.forEach((chain, chainIndex) => {
+        console.log(`  Chain ${chainIndex + 1}: ${chain.caip2ChainId}`);
+        console.log(`    Asset Recovery Address: ${chain.assetRecoveryAddress}`);
+        console.log(`    Accounts (${chain.accounts.length}):`);
+        totalAccounts += chain.accounts.length;
+        
+        if (chain.accounts.length === 0) {
+          console.log("      No accounts specified");
+        } else {
+          chain.accounts.forEach((account, accountIndex) => {
+            console.log(`      ${accountIndex + 1}. ${account.accountAddress}`);
+            console.log(`         Child Contract Scope: ${formatChildContractScope(account.childContractScope)}`);
+          });
+        }
+      });
+      
+      console.log(`\n📊 Summary: ${agreement.chains.length} chains, ${totalAccounts} total accounts`);
+    }
+
+    // Check adoption status if registry is available
+    if (registryPda) {
+      console.log("\n🤝 Checking Adoption Status...");
+      try {
+        // Try to find who adopted this agreement by checking the deployer first
+        const deployerAgreement = await program.methods
+          .getAgreement(provider.wallet.publicKey)
+          .accountsPartial({
+            registry: registryPda,
+          })
+          .view();
+        
+        if (deployerAgreement.toString() === agreementPubkey.toString()) {
+          console.log("  ✅ Adopted by deployer:", provider.wallet.publicKey.toString());
+        } else {
+          console.log("  ❌ Not adopted by deployer");
+        }
+      } catch (error) {
+        console.log("  ❌ Not adopted by deployer (or no agreement found)");
+      }
+    }
+
+    // Save details to JSON file
+    const detailsOutput = {
+      address: agreementPubkey.toString(),
+      owner: agreement.owner.toString(),
+      protocolName: agreement.protocolName,
+      agreementUri: agreement.agreementUri,
+      contactDetails: agreement.contactDetails,
+      bountyTerms: {
+        bountyPercentage: agreement.bountyTerms.bountyPercentage.toString(),
+        bountyCapUsd: agreement.bountyTerms.bountyCapUsd.toString(),
+        retainable: agreement.bountyTerms.retainable,
+        identity: formatIdentityRequirements(agreement.bountyTerms.identity),
+        diligenceRequirements: agreement.bountyTerms.diligenceRequirements,
+        aggregateBountyCapUsd: agreement.bountyTerms.aggregateBountyCapUsd.toString(),
+      },
+      chains: agreement.chains.map(chain => ({
+        caip2ChainId: chain.caip2ChainId,
+        assetRecoveryAddress: chain.assetRecoveryAddress,
+        accounts: chain.accounts.map(account => ({
+          accountAddress: account.accountAddress,
+          childContractScope: formatChildContractScope(account.childContractScope),
+        })),
+      })),
+      queriedAt: new Date().toISOString(),
+    };
+
+    const outputFile = `./agreement-details-${agreementPubkey.toString().slice(0, 8)}.json`;
+    fs.writeFileSync(outputFile, JSON.stringify(detailsOutput, null, 2));
+    console.log(`\n📄 Details saved to: ${outputFile}`);
+
+  } catch (error) {
+    console.error("❌ Error fetching agreement details:", error);
+    if (error.message?.includes("Account does not exist")) {
+      console.log("💡 Make sure the agreement address is correct and the account exists");
+    }
+    process.exit(1);
+  }
+}
+
+function formatIdentityRequirements(identity: any): string {
+  if (identity.anonymous !== undefined) return "Anonymous";
+  if (identity.pseudonymous !== undefined) return "Pseudonymous";
+  if (identity.named !== undefined) return "Named";
+  return "Unknown";
+}
+
+function formatChildContractScope(scope: any): string {
+  if (scope.none !== undefined) return "None";
+  if (scope.existingOnly !== undefined) return "Existing Only";
+  if (scope.all !== undefined) return "All";
+  if (scope.futureOnly !== undefined) return "Future Only";
+  return "Unknown";
+}
+
+main().catch((error) => {
+  console.error("❌ Failed to get agreement details:", error);
+  process.exit(1);
+});

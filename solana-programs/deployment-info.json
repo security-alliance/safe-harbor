@@ -2,22 +2,8 @@
   "programId": "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L",
   "registryPda": "DmVqMRhuDZoJjahQ8X8Nan7EArcddB9xcz9RFHpB2rN",
   "owner": "9CcqFiW9A51v3cyY42kCY5JMxmpm4tYybyZdJk7sHHaW",
-  "network": "https://api.devnet.solana.com",
-  "validChains": [
-    "eip155:1",
-    "eip155:137",
-    "eip155:42161",
-    "eip155:10",
-    "eip155:8453",
-    "eip155:43114",
-    "eip155:56",
-    "eip155:100"
-  ],
-  "testAgreement": {
-    "address": "H8HDUxnUMEu6WQr6eBkCLnD1U47pzbSYfSBjmbvy6fLD",
-    "adopter": "6JJtvEAK1QJ9p4kbRtQasjzfchwWRRbQpxU2Evbm9AtB",
-    "protocolName": "DeFi Protocol Test"
-  },
-  "deployedAt": "2025-09-07T19:50:01.102Z",
-  "version": "2.0.0"
+  "currentWallet": "J9U7mHEjkJUZkMft5n9A4NTNRVbFBGKfEkKNh2ZbdEBj",
+  "validChainsCount": 49,
+  "note": "Using existing registry - not owner",
+  "deployedAt": "2025-09-07T23:12:57.186Z"
 }

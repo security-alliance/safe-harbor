@@ -7,10 +7,9 @@
     "build": "anchor build",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "deploy": "ts-node scripts/deploy.ts",
-    "adopt": "ts-node scripts/adopt-safe-harbor.ts",
-    "query": "ts-node scripts/query-registry.ts",
-    "manage-chains": "ts-node scripts/manage-chains.ts"
+    "deploy": "ts-node scripts/deploy-and-set-chains.ts",
+    "adopt": "ts-node scripts/adopt-agreement.ts",
+    "query": "ts-node scripts/get-agreement-details.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
