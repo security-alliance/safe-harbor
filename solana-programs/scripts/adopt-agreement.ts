@@ -143,12 +143,22 @@ Examples:
     agreementUri: agreementDetails.agreementURI,
   };
 
+  // First create the agreement with minimal data
+  const minimalParams = {
+    ...params,
+    // Start with empty accounts to avoid transaction size issues
+    chains: params.chains.map(chain => ({
+      ...chain,
+      accounts: []
+    }))
+  };
+
   if (SHOULD_ADOPT) {
-    console.log("📝 Creating and adopting agreement in one transaction...");
+    console.log("📝 Creating and adopting agreement (without accounts first)...");
     
     try {
       const createAndAdoptTx = await program.methods
-        .createAndAdoptAgreement(params)
+        .createAndAdoptAgreement(minimalParams)
         .accountsPartial({
           registry: registryPda,
           agreement: agreementKeypair.publicKey,
@@ -162,16 +172,48 @@ Examples:
 
       console.log("✅ Agreement created and adopted!");
       console.log("Transaction signature:", createAndAdoptTx);
+
+      // Now add accounts in batches
+      console.log("📝 Adding accounts in batches...");
+      const BATCH_SIZE = 5; // Adjust based on your needs
+      
+      for (const chain of params.chains) {
+        if (chain.accounts.length === 0) continue;
+        
+        console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
+        
+        for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
+          const batch = chain.accounts.slice(i, i + BATCH_SIZE);
+          console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
+          
+          try {
+            const addTx = await program.methods
+              .addAccounts(chain.caip2ChainId, batch)
+              .accounts({
+                agreement: agreementKeypair.publicKey,
+                owner: ownerKeypair.publicKey,
+              })
+              .signers([ownerKeypair])
+              .rpc();
+              
+            console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
+          } catch (error) {
+            console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
+            throw error; // Rethrow to be caught by outer try-catch
+          }
+        }
+      }
+      
     } catch (error) {
       console.error("❌ Error creating and adopting agreement:", error);
       return;
     }
   } else {
-    console.log("📝 Creating agreement (without adoption)...");
+    console.log("📝 Creating agreement (without accounts first)...");
     
     try {
       const createTx = await program.methods
-        .createAgreement(params)
+        .createAgreement(minimalParams)
         .accountsPartial({
           registry: registryPda,
           agreement: agreementKeypair.publicKey,
@@ -184,6 +226,38 @@ Examples:
 
       console.log("✅ Agreement created!");
       console.log("Transaction signature:", createTx);
+
+      // Now add accounts in batches
+      console.log("📝 Adding accounts in batches...");
+      const BATCH_SIZE = 5; // Adjust based on your needs
+      
+      for (const chain of params.chains) {
+        if (chain.accounts.length === 0) continue;
+        
+        console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
+        
+        for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
+          const batch = chain.accounts.slice(i, i + BATCH_SIZE);
+          console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
+          
+          try {
+            const addTx = await program.methods
+              .addAccounts(chain.caip2ChainId, batch)
+              .accounts({
+                agreement: agreementKeypair.publicKey,
+                owner: ownerKeypair.publicKey,
+              })
+              .signers([ownerKeypair])
+              .rpc();
+              
+            console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
+          } catch (error) {
+            console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
+            throw error; // Rethrow to be caught by outer try-catch
+          }
+        }
+      }
+      
       console.log("💡 To adopt this agreement, use the adopt-safe-harbor.ts script");
     } catch (error) {
       console.error("❌ Error creating agreement:", error);
