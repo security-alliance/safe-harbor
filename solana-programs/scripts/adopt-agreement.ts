@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { SafeHarbor } from "../target/types/safe_harbor";
-import { PublicKey, Keypair, SystemProgram } from "@solana/web3.js";
+import { PublicKey, Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import * as fs from "fs";
 
 // Configuration
@@ -155,7 +155,7 @@ Examples:
 
   if (SHOULD_ADOPT) {
     console.log("📝 Creating and adopting agreement (without accounts first)...");
-    
+
     try {
       const createAndAdoptTx = await program.methods
         .createAndAdoptAgreement(minimalParams)
@@ -173,19 +173,37 @@ Examples:
       console.log("✅ Agreement created and adopted!");
       console.log("Transaction signature:", createAndAdoptTx);
 
+      // Prefund agreement account to cover rent for dynamic resizing during account additions
+      const prefundSol = Number(process.env.PREFUND_AGREEMENT_SOL || "0.1");
+      if (prefundSol > 0) {
+        try {
+          console.log(`💸 Prefunding agreement account with ${prefundSol} SOL for rent...`);
+          const transferIx = SystemProgram.transfer({
+            fromPubkey: ownerKeypair.publicKey,
+            toPubkey: agreementKeypair.publicKey,
+            lamports: Math.floor(prefundSol * LAMPORTS_PER_SOL),
+          });
+          const tx = new Transaction().add(transferIx);
+          const sig = await provider.sendAndConfirm(tx, [ownerKeypair]);
+          console.log("  ✅ Prefund tx:", sig);
+        } catch (prefundErr) {
+          console.log("  ⚠️  Prefund failed (continuing):", (prefundErr as Error).message);
+        }
+      }
+
       // Now add accounts in batches
       console.log("📝 Adding accounts in batches...");
       const BATCH_SIZE = 5; // Adjust based on your needs
-      
+
       for (const chain of params.chains) {
         if (chain.accounts.length === 0) continue;
-        
+
         console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
-        
+
         for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
           const batch = chain.accounts.slice(i, i + BATCH_SIZE);
           console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
-          
+
           try {
             const addTx = await program.methods
               .addAccounts(chain.caip2ChainId, batch)
@@ -195,7 +213,7 @@ Examples:
               })
               .signers([ownerKeypair])
               .rpc();
-              
+
             console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
           } catch (error) {
             console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
@@ -203,14 +221,14 @@ Examples:
           }
         }
       }
-      
+
     } catch (error) {
       console.error("❌ Error creating and adopting agreement:", error);
       return;
     }
   } else {
     console.log("📝 Creating agreement (without accounts first)...");
-    
+
     try {
       const createTx = await program.methods
         .createAgreement(minimalParams)
@@ -227,19 +245,37 @@ Examples:
       console.log("✅ Agreement created!");
       console.log("Transaction signature:", createTx);
 
+      // Prefund agreement account to cover rent for dynamic resizing during account additions
+      const prefundSol = Number(process.env.PREFUND_AGREEMENT_SOL || "0.1");
+      if (prefundSol > 0) {
+        try {
+          console.log(`💸 Prefunding agreement account with ${prefundSol} SOL for rent...`);
+          const transferIx = SystemProgram.transfer({
+            fromPubkey: ownerKeypair.publicKey,
+            toPubkey: agreementKeypair.publicKey,
+            lamports: Math.floor(prefundSol * LAMPORTS_PER_SOL),
+          });
+          const tx = new Transaction().add(transferIx);
+          const sig = await provider.sendAndConfirm(tx, [ownerKeypair]);
+          console.log("  ✅ Prefund tx:", sig);
+        } catch (prefundErr) {
+          console.log("  ⚠️  Prefund failed (continuing):", (prefundErr as Error).message);
+        }
+      }
+
       // Now add accounts in batches
       console.log("📝 Adding accounts in batches...");
       const BATCH_SIZE = 5; // Adjust based on your needs
-      
+
       for (const chain of params.chains) {
         if (chain.accounts.length === 0) continue;
-        
+
         console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
-        
+
         for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
           const batch = chain.accounts.slice(i, i + BATCH_SIZE);
           console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
-          
+
           try {
             const addTx = await program.methods
               .addAccounts(chain.caip2ChainId, batch)
@@ -249,7 +285,7 @@ Examples:
               })
               .signers([ownerKeypair])
               .rpc();
-              
+
             console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
           } catch (error) {
             console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
@@ -257,7 +293,7 @@ Examples:
           }
         }
       }
-      
+
       console.log("💡 To adopt this agreement, use the adopt-safe-harbor.ts script");
     } catch (error) {
       console.error("❌ Error creating agreement:", error);
