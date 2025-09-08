@@ -137,6 +137,476 @@
           "childContractScope": 0
         }
       ]
+    },
+    {
+      "id": "eip155:56",
+      "assetRecoveryAddress": "0x3333333333333333333333333333333333333333",
+      "accounts": [
+        {
+          "accountAddress": "0x3333333333333333333333333333333333333333",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:42161",
+      "assetRecoveryAddress": "0x4444444444444444444444444444444444444444",
+      "accounts": [
+        {
+          "accountAddress": "0x4444444444444444444444444444444444444444",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:8453",
+      "assetRecoveryAddress": "0x6666666666666666666666666666666666666666",
+      "accounts": [
+        {
+          "accountAddress": "0x6666666666666666666666666666666666666666",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:43114",
+      "assetRecoveryAddress": "0x7777777777777777777777777777777777777777",
+      "accounts": [
+        {
+          "accountAddress": "0x7777777777777777777777777777777777777777",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:10",
+      "assetRecoveryAddress": "0x8888888888888888888888888888888888888888",
+      "accounts": [
+        {
+          "accountAddress": "0x8888888888888888888888888888888888888888",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "tron:mainnet",
+      "assetRecoveryAddress": "TRX9999999999999999999999999999999999",
+      "accounts": [
+        {
+          "accountAddress": "TRX9999999999999999999999999999999999",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:1284",
+      "assetRecoveryAddress": "0x9999999999999999999999999999999999999999",
+      "accounts": [
+        {
+          "accountAddress": "0x9999999999999999999999999999999999999999",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:1285",
+      "assetRecoveryAddress": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "accounts": [
+        {
+          "accountAddress": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:252",
+      "assetRecoveryAddress": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "accounts": [
+        {
+          "accountAddress": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:100",
+      "assetRecoveryAddress": "0xcccccccccccccccccccccccccccccccccccccccc",
+      "accounts": [
+        {
+          "accountAddress": "0xcccccccccccccccccccccccccccccccccccccccc",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:34443",
+      "assetRecoveryAddress": "0xdddddddddddddddddddddddddddddddddddddddd",
+      "accounts": [
+        {
+          "accountAddress": "0xdddddddddddddddddddddddddddddddddddddddd",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:1101",
+      "assetRecoveryAddress": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "accounts": [
+        {
+          "accountAddress": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:146",
+      "assetRecoveryAddress": "0xffffffffffffffffffffffffffffffffffffffff",
+      "accounts": [
+        {
+          "accountAddress": "0xffffffffffffffffffffffffffffffffffffffff",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "eip155:81457",
+      "assetRecoveryAddress": "0x1010101010101010101010101010101010101010",
+      "accounts": [
+        {
+          "accountAddress": "0x1010101010101010101010101010101010101010",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:288",
+      "assetRecoveryAddress": "0x1212121212121212121212121212121212121212",
+      "accounts": [
+        {
+          "accountAddress": "0x1212121212121212121212121212121212121212",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:42220",
+      "assetRecoveryAddress": "0x1313131313131313131313131313131313131313",
+      "accounts": [
+        {
+          "accountAddress": "0x1313131313131313131313131313131313131313",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:314",
+      "assetRecoveryAddress": "0x1414141414141414141414141414141414141414",
+      "accounts": [
+        {
+          "accountAddress": "0x1414141414141414141414141414141414141414",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:59144",
+      "assetRecoveryAddress": "0x1515151515151515151515151515151515151515",
+      "accounts": [
+        {
+          "accountAddress": "0x1515151515151515151515151515151515151515",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:169",
+      "assetRecoveryAddress": "0x1616161616161616161616161616161616161616",
+      "accounts": [
+        {
+          "accountAddress": "0x1616161616161616161616161616161616161616",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:5000",
+      "assetRecoveryAddress": "0x1717171717171717171717171717171717171717",
+      "accounts": [
+        {
+          "accountAddress": "0x1717171717171717171717171717171717171717",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:690",
+      "assetRecoveryAddress": "0x1818181818181818181818181818181818181818",
+      "accounts": [
+        {
+          "accountAddress": "0x1818181818181818181818181818181818181818",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "eip155:30",
+      "assetRecoveryAddress": "0x1919191919191919191919191919191919191919",
+      "accounts": [
+        {
+          "accountAddress": "0x1919191919191919191919191919191919191919",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:534352",
+      "assetRecoveryAddress": "0x2020202020202020202020202020202020202020",
+      "accounts": [
+        {
+          "accountAddress": "0x2020202020202020202020202020202020202020",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:1329",
+      "assetRecoveryAddress": "0x2121212121212121212121212121212121212121",
+      "accounts": [
+        {
+          "accountAddress": "0x2121212121212121212121212121212121212121",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:167000",
+      "assetRecoveryAddress": "0x2222222222222222222222222222222222222222",
+      "accounts": [
+        {
+          "accountAddress": "0x2222222222222222222222222222222222222222",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:480",
+      "assetRecoveryAddress": "0x2323232323232323232323232323232323232323",
+      "accounts": [
+        {
+          "accountAddress": "0x2323232323232323232323232323232323232323",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:324",
+      "assetRecoveryAddress": "0x2424242424242424242424242424242424242424",
+      "accounts": [
+        {
+          "accountAddress": "0x2424242424242424242424242424242424242424",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:7777777",
+      "assetRecoveryAddress": "0x2525252525252525252525252525252525252525",
+      "accounts": [
+        {
+          "accountAddress": "0x2525252525252525252525252525252525252525",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:204",
+      "assetRecoveryAddress": "0x2626262626262626262626262626262626262626",
+      "accounts": [
+        {
+          "accountAddress": "0x2626262626262626262626262626262626262626",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "eip155:1088",
+      "assetRecoveryAddress": "0x2727272727272727272727272727272727272727",
+      "accounts": [
+        {
+          "accountAddress": "0x2727272727272727272727272727272727272727",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "assetRecoveryAddress": "11111111111111111111111111111112",
+      "accounts": [
+        {
+          "accountAddress": "11111111111111111111111111111112",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "stellar:pubnet",
+      "assetRecoveryAddress": "GCKFBEIYTKP62LKHJRKUVLMVJ3XZWZDDCDVZKKQJLVQXELGRTBQTNFUB",
+      "accounts": [
+        {
+          "accountAddress": "GCKFBEIYTKP62LKHJRKUVLMVJ3XZWZDDCDVZKKQJLVQXELGRTBQTNFUB",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "bip122:000000000019d6689c085ae165831e93",
+      "assetRecoveryAddress": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "accounts": [
+        {
+          "accountAddress": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:999",
+      "assetRecoveryAddress": "0x2828282828282828282828282828282828282828",
+      "accounts": [
+        {
+          "accountAddress": "0x2828282828282828282828282828282828282828",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:25",
+      "assetRecoveryAddress": "0x2929292929292929292929292929292929292929",
+      "accounts": [
+        {
+          "accountAddress": "0x2929292929292929292929292929292929292929",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:1116",
+      "assetRecoveryAddress": "0x3030303030303030303030303030303030303030",
+      "accounts": [
+        {
+          "accountAddress": "0x3030303030303030303030303030303030303030",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:747474",
+      "assetRecoveryAddress": "0x3131313131313131313131313131313131313131",
+      "accounts": [
+        {
+          "accountAddress": "0x3131313131313131313131313131313131313131",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "eip155:369",
+      "assetRecoveryAddress": "0x3232323232323232323232323232323232323232",
+      "accounts": [
+        {
+          "accountAddress": "0x3232323232323232323232323232323232323232",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:2222",
+      "assetRecoveryAddress": "0x3333333333333333333333333333333333333333",
+      "accounts": [
+        {
+          "accountAddress": "0x3333333333333333333333333333333333333333",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:8217",
+      "assetRecoveryAddress": "0x3434343434343434343434343434343434343434",
+      "accounts": [
+        {
+          "accountAddress": "0x3434343434343434343434343434343434343434",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:200901",
+      "assetRecoveryAddress": "0x3535353535353535353535353535353535353535",
+      "accounts": [
+        {
+          "accountAddress": "0x3535353535353535353535353535353535353535",
+          "childContractScope": 2
+        }
+      ]
+    },
+    {
+      "id": "eip155:60808",
+      "assetRecoveryAddress": "0x3636363636363636363636363636363636363636",
+      "accounts": [
+        {
+          "accountAddress": "0x3636363636363636363636363636363636363636",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:98866",
+      "assetRecoveryAddress": "0x3737373737373737373737373737373737373737",
+      "accounts": [
+        {
+          "accountAddress": "0x3737373737373737373737373737373737373737",
+          "childContractScope": 1
+        }
+      ]
+    },
+    {
+      "id": "eip155:43111",
+      "assetRecoveryAddress": "0x3838383838383838383838383838383838383838",
+      "accounts": [
+        {
+          "accountAddress": "0x3838383838383838383838383838383838383838",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:14",
+      "assetRecoveryAddress": "0x3939393939393939393939393939393939393939",
+      "accounts": [
+        {
+          "accountAddress": "0x3939393939393939393939393939393939393939",
+          "childContractScope": 3
+        }
+      ]
+    },
+    {
+      "id": "eip155:1868",
+      "assetRecoveryAddress": "0x4040404040404040404040404040404040404040",
+      "accounts": [
+        {
+          "accountAddress": "0x4040404040404040404040404040404040404040",
+          "childContractScope": 0
+        }
+      ]
+    },
+    {
+      "id": "eip155:295",
+      "assetRecoveryAddress": "0x4141414141414141414141414141414141414141",
+      "accounts": [
+        {
+          "accountAddress": "0x4141414141414141414141414141414141414141",
+          "childContractScope": 1
+        }
+      ]
     }
   ],
   "contact": [
@@ -154,7 +624,7 @@
     "bountyCapUSD": 1000000,
     "retainable": true,
     "identity": 0,
-    "diligenceRequirements": "Standard security review process",
+    "diligenceRequirements": "ENS requires all eligible whitehats to undergo Know Your Customer (KYC) verification and be screened against the Office of Foreign Assets Control (OFAC) sanctions lists. This process ensures that all bounty recipients are compliant with legal and regulatory standards before qualifying for payment",
     "aggregateBountyCapUSD": 0
   }
 }
