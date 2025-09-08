@@ -6,7 +6,7 @@ import * as fs from "fs";
 
 // Configuration
 const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
-const AGREEMENT_DATA_PATH = process.env.AGREEMENT_DATA_PATH || "./agreement-data.json";
+const AGREEMENT_DATA_PATH = process.argv[2] || process.env.AGREEMENT_DATA_PATH || "./agreement-data.json";
 const OWNER_KEYPAIR_PATH = process.env.OWNER_KEYPAIR_PATH || "./agreement-owner-keypair.json";
 const SHOULD_ADOPT = process.env.SHOULD_ADOPT === "true";
 
@@ -36,6 +36,30 @@ interface AgreementDetailsJSON {
 }
 
 async function main() {
+  // Check for help flag
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    console.log(`
+🤝 Safe Harbor Agreement Creator
+
+Usage:
+  npx ts-node scripts/adopt-agreement.ts [agreement-data.json]
+  npx ts-node scripts/adopt-agreement.ts --help
+
+Arguments:
+  agreement-data.json    Path to JSON file with agreement details (default: ./agreement-data.json)
+
+Environment Variables:
+  SHOULD_ADOPT=true     Also adopt the agreement after creating it
+  OWNER_KEYPAIR_PATH    Path to agreement owner keypair (default: ./agreement-owner-keypair.json)
+
+Examples:
+  npx ts-node scripts/adopt-agreement.ts
+  npx ts-node scripts/adopt-agreement.ts my-protocol.json
+  SHOULD_ADOPT=true npx ts-node scripts/adopt-agreement.ts custom-agreement.json
+    `);
+    return;
+  }
+
   // Configure the client
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
@@ -43,16 +67,13 @@ async function main() {
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
 
   console.log("🤝 Creating Safe Harbor Agreement");
+  console.log("Agreement data file:", AGREEMENT_DATA_PATH);
 
-  // Load deployment info
-  if (!fs.existsSync(DEPLOYMENT_INFO_PATH)) {
-    console.error("❌ Deployment info not found. Please run deploy-and-set-chains.ts first.");
-    process.exit(1);
-  }
-
-  const deploymentInfo = JSON.parse(fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8"));
-  const registryPda = new PublicKey(deploymentInfo.registryPda);
-
+  // Derive registry PDA directly (don't depend on deployment info)
+  const [registryPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("registry")],
+    program.programId
+  );
   console.log("Registry PDA:", registryPda.toString());
 
   // Load or generate agreement owner keypair

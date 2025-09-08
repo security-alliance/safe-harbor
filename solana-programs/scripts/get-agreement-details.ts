@@ -8,22 +8,41 @@ import * as fs from "fs";
 const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
 
 async function main() {
-  // Configure the client
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  // Check for help flag
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    console.log(`
+🔍 Safe Harbor Agreement Details Viewer
 
-  const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
+Usage:
+  npx ts-node scripts/get-agreement-details.ts <agreement-address>
+  npx ts-node scripts/get-agreement-details.ts --help
+
+Arguments:
+  agreement-address    The public key of the agreement to query
+
+Environment Variables:
+  AGREEMENT_ADDRESS    Alternative way to specify the agreement address
+
+Examples:
+  npx ts-node scripts/get-agreement-details.ts ALuW9Hk1SJTzUyMQMhFbLiJDBp4dwJgBiah1qNP8xQRp
+  AGREEMENT_ADDRESS=ALuW9Hk1SJTzUyMQMhFbLiJDBp4dwJgBiah1qNP8xQRp npx ts-node scripts/get-agreement-details.ts
+    `);
+    return;
+  }
 
   console.log("🔍 Getting Agreement Details");
 
-  // Get agreement address from environment or command line
-  const agreementAddress = process.env.AGREEMENT_ADDRESS || process.argv[2];
+  // Get agreement address from command line or environment variable
+  const agreementAddress = process.argv[2] || process.env.AGREEMENT_ADDRESS;
+  
   if (!agreementAddress) {
     console.error("❌ Please provide agreement address");
     console.log("Usage:");
+    console.log("  npx ts-node scripts/get-agreement-details.ts <agreement-address>");
+    console.log("  OR");
     console.log("  AGREEMENT_ADDRESS=<pubkey> npx ts-node scripts/get-agreement-details.ts");
     console.log("  OR");
-    console.log("  npx ts-node scripts/get-agreement-details.ts <pubkey>");
+    console.log("  npx ts-node scripts/get-agreement-details.ts --help");
     process.exit(1);
   }
 
@@ -37,15 +56,18 @@ async function main() {
 
   console.log("Agreement address:", agreementPubkey.toString());
 
-  // Load deployment info for registry context
-  let registryPda: PublicKey | null = null;
-  try {
-    const deploymentInfo = JSON.parse(fs.readFileSync(DEPLOYMENT_INFO_PATH, "utf8"));
-    registryPda = new PublicKey(deploymentInfo.registryPda);
-    console.log("Registry PDA:", registryPda.toString());
-  } catch (error) {
-    console.log("⚠️  Could not load deployment info, continuing without registry context");
-  }
+  // Configure the client
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
+
+  // Derive registry PDA
+  const [registryPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("registry")],
+    program.programId
+  );
+  console.log("Registry PDA:", registryPda.toString());
 
   // Fetch agreement details
   try {
