@@ -136,6 +136,7 @@ pub mod safe_harbor {
     pub fn create_agreement(
         ctx: Context<CreateAgreement>,
         params: AgreementInitParams,
+        owner: Pubkey,
     ) -> Result<()> {
         let agreement = &mut ctx.accounts.agreement;
         let registry = &ctx.accounts.registry;
@@ -150,7 +151,7 @@ pub mod safe_harbor {
         // Validate no duplicate chain IDs
         validate_no_duplicate_chain_ids(&params.chains)?;
 
-        agreement.owner = ctx.accounts.owner.key();
+        agreement.owner = owner;
         agreement.protocol_name = params.protocol_name;
         agreement.contact_details = params.contact_details;
         agreement.chains = params.chains;
@@ -350,6 +351,7 @@ pub mod safe_harbor {
     pub fn create_and_adopt_agreement(
         ctx: Context<CreateAndAdoptAgreement>,
         params: AgreementInitParams,
+        owner: Pubkey,
     ) -> Result<()> {
         let registry = &mut ctx.accounts.registry;
         let agreement = &mut ctx.accounts.agreement;
@@ -366,7 +368,7 @@ pub mod safe_harbor {
         validate_no_duplicate_chain_ids(&params.chains)?;
 
         // Initialize agreement
-        agreement.owner = ctx.accounts.owner.key();
+        agreement.owner = owner;
         agreement.protocol_name = params.protocol_name;
         agreement.contact_details = params.contact_details;
         agreement.chains = params.chains;
@@ -566,8 +568,9 @@ pub struct CreateAgreement<'info> {
         // In this first pass we create agreement as a regular account; clients can choose PDAs later if desired.
     )]
     pub agreement: Account<'info, Agreement>,
-    /// The agreement owner/authority
-    pub owner: Signer<'info>,
+    /// The agreement owner/authority (no longer needs to sign)
+    /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
+    pub owner: UncheckedAccount<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -583,8 +586,9 @@ pub struct CreateAndAdoptAgreement<'info> {
         space = Agreement::INITIAL_SPACE,
     )]
     pub agreement: Account<'info, Agreement>,
-    /// The agreement owner/authority
-    pub owner: Signer<'info>,
+    /// The agreement owner/authority (no longer needs to sign)
+    /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
+    pub owner: UncheckedAccount<'info>,
     /// The adopter (can be same as owner)
     pub adopter: Signer<'info>,
     #[account(mut)]
@@ -596,7 +600,8 @@ pub struct CreateAndAdoptAgreement<'info> {
 pub struct AgreementOwnerOnly<'info> {
     #[account(mut)]
     pub agreement: Account<'info, Agreement>,
-    pub owner: Signer<'info>,
+    /// CHECK: The owner account is validated against the agreement's owner field
+    pub owner: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -605,7 +610,8 @@ pub struct AgreementOwnerWithRegistry<'info> {
     pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub agreement: Account<'info, Agreement>,
-    pub owner: Signer<'info>,
+    /// CHECK: The owner account is validated against the agreement's owner field
+    pub owner: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]

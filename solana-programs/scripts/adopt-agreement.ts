@@ -8,6 +8,7 @@ import * as fs from "fs";
 const DEPLOYMENT_INFO_PATH = "./deployment-info.json";
 const AGREEMENT_DATA_PATH = process.argv[2] || process.env.AGREEMENT_DATA_PATH || "./agreement-data.json";
 const OWNER_KEYPAIR_PATH = process.env.OWNER_KEYPAIR_PATH || "./agreement-owner-keypair.json";
+const OWNER_ADDRESS = process.env.OWNER_ADDRESS || process.argv[3]; // Optional: specify owner address directly
 const SHOULD_ADOPT = process.env.SHOULD_ADOPT !== "false"; // Default to true for better UX
 
 // All supported chains from deploy-and-set-chains.ts - MUST match exactly
@@ -96,21 +97,30 @@ async function main() {
 🤝 Safe Harbor Agreement Creator (Production Ready)
 
 Usage:
-  npx ts-node scripts/adopt-agreement.ts [agreement-data.json]
+  npx ts-node scripts/adopt-agreement.ts [agreement-data.json] [owner-address]
   npx ts-node scripts/adopt-agreement.ts --help
 
 Arguments:
   agreement-data.json    Path to JSON file with agreement details (default: ./agreement-data.json)
+  owner-address          Public key of the agreement owner (optional, overrides keypair)
 
 Environment Variables:
   SHOULD_ADOPT=false         Set to false to skip adoption (default: true)
   OWNER_KEYPAIR_PATH         Path to agreement owner keypair (default: ./agreement-owner-keypair.json)
+  OWNER_ADDRESS              Public key of the agreement owner (alternative to keypair)
   PREFUND_AGREEMENT_SOL      SOL to prefund for rent (auto-calculated if not set)
+
+Owner Address Mode (EVM-like):
+  ✅ Can create simple agreements (≤1 chain, ≤5 accounts) with any owner address
+  ❌ Cannot create large agreements (requires progressive creation with owner signatures)
+  ❌ Cannot prefund agreements (requires owner to sign transfers)
+  ❌ Cannot perform post-creation operations (require owner signature)
+  🔑 Deployer signs all transactions, but ownership is assigned to provided address
 
 Features:
   ✅ Validates chains against registry (skips invalid chains)
   ✅ Handles duplicate chains by merging accounts
-  ✅ Progressive creation for large agreements (>10 chains or >50 accounts)
+  ✅ Progressive creation for large agreements (>1 chain or >5 accounts)
   ✅ Smart rent estimation and prefunding
   ✅ Comprehensive error handling and reporting
 
@@ -118,11 +128,14 @@ Examples:
   # Standard usage (auto-adopts by default)
   npx ts-node scripts/adopt-agreement.ts my-protocol.json
   
-  # Large protocol with 50 chains (uses progressive strategy)
-  npx ts-node scripts/adopt-agreement.ts agreement-data-sample.json
+  # Specify custom owner address (matches EVM behavior!)
+  npx ts-node scripts/adopt-agreement.ts my-protocol.json EJL3gUS5G3hA6cEYb8ghZJAvKu2JV19Ef6GBG55XmYf
   
-  # Custom prefunding for large agreements
-  PREFUND_AGREEMENT_SOL=5 npx ts-node scripts/adopt-agreement.ts large-protocol.json
+  # Large protocol with 50 chains (requires owner keypair)
+  OWNER_KEYPAIR_PATH=./protocol-owner-keypair.json npx ts-node scripts/adopt-agreement.ts agreement-data-sample.json
+  
+  # Using environment variable for owner address
+  OWNER_ADDRESS=EJL3gUS5G3hA6cEYb8ghZJAvKu2JV19Ef6GBG55XmYf npx ts-node scripts/adopt-agreement.ts my-protocol.json
   
   # Create without adopting
   SHOULD_ADOPT=false npx ts-node scripts/adopt-agreement.ts my-protocol.json
@@ -164,23 +177,49 @@ Large Agreement Support:
     return;
   }
 
-  // Load or generate agreement owner keypair
-  let ownerKeypair: Keypair;
-  try {
-    const ownerKeypairData = JSON.parse(fs.readFileSync(OWNER_KEYPAIR_PATH, "utf8"));
-    ownerKeypair = Keypair.fromSecretKey(new Uint8Array(ownerKeypairData));
-    console.log("Loaded agreement owner keypair from:", OWNER_KEYPAIR_PATH);
-  } catch (error) {
-    console.log("Generating new agreement owner keypair...");
-    ownerKeypair = Keypair.generate();
-    fs.writeFileSync(
-      OWNER_KEYPAIR_PATH,
-      JSON.stringify(Array.from(ownerKeypair.secretKey))
-    );
-    console.log("Saved agreement owner keypair to:", OWNER_KEYPAIR_PATH);
+  // Load owner (either keypair for signing or public key only)
+  let ownerKeypair: Keypair | null = null;
+  let ownerPublicKey: PublicKey;
+
+  if (OWNER_ADDRESS) {
+    // Use provided owner address
+    try {
+      ownerPublicKey = new PublicKey(OWNER_ADDRESS);
+      console.log("Using provided owner address:", ownerPublicKey.toString());
+      console.log("📝 Note: Deployer will sign all transactions, but agreement will be owned by provided address");
+    } catch (error) {
+      console.error("❌ Invalid owner address:", OWNER_ADDRESS);
+      return;
+    }
+  } else {
+    // Load or generate agreement owner keypair
+    try {
+      const ownerKeypairData = JSON.parse(fs.readFileSync(OWNER_KEYPAIR_PATH, "utf8"));
+      ownerKeypair = Keypair.fromSecretKey(new Uint8Array(ownerKeypairData));
+      ownerPublicKey = ownerKeypair.publicKey;
+      console.log("Loaded agreement owner keypair from:", OWNER_KEYPAIR_PATH);
+    } catch (error) {
+      console.log("Generating new agreement owner keypair...");
+      ownerKeypair = Keypair.generate();
+      ownerPublicKey = ownerKeypair.publicKey;
+      fs.writeFileSync(
+        OWNER_KEYPAIR_PATH,
+        JSON.stringify(Array.from(ownerKeypair.secretKey))
+      );
+      console.log("Saved agreement owner keypair to:", OWNER_KEYPAIR_PATH);
+    }
   }
 
-  console.log("Agreement owner:", ownerKeypair.publicKey.toString());
+  console.log("Agreement owner:", ownerPublicKey.toString());
+
+  // Check limitations when using address-only mode
+  if (!ownerKeypair && OWNER_ADDRESS) {
+    console.log("⚠️  Owner address-only mode:");
+    console.log("   - Agreement creation: ✅ Supported");
+    console.log("   - Post-creation operations: ❌ Not supported (require owner signature)");
+    console.log("   - Prefunding: ❌ Not supported (requires owner to sign transfers)");
+    console.log("   - Large agreements: ❌ Not supported (require progressive creation)");
+  }
 
   // Load agreement details
   if (!fs.existsSync(AGREEMENT_DATA_PATH)) {
@@ -268,38 +307,49 @@ Large Agreement Support:
   };
 
   // Progressive creation strategy for large agreements
-  const isLargeAgreement = processedChains.length > 10 || totalAccounts > 50;
+  // Use more conservative thresholds to avoid transaction size limits
+  const isLargeAgreement = processedChains.length > 1 || totalAccounts > 5;
+
+  // Restrict large agreements when using address-only mode
+  if (!ownerKeypair && OWNER_ADDRESS && isLargeAgreement) {
+    console.error("❌ Error: Large agreements require owner keypair for progressive creation");
+    console.error("   This agreement has", processedChains.length, "chains and", totalAccounts, "accounts");
+    console.error("   Please provide OWNER_KEYPAIR_PATH or reduce the agreement size");
+    return;
+  }
 
   if (isLargeAgreement) {
     console.log("📈 Large agreement detected - using progressive creation strategy");
     console.log(`   ${processedChains.length} chains, ${totalAccounts} accounts`);
   }
 
-  // Start with first few chains only (no accounts initially)
-  const initialChainsCount = isLargeAgreement ? Math.min(3, processedChains.length) : processedChains.length;
-  const minimalParams = {
+  // For owner address-only mode, create complete agreement upfront (no progressive approach)
+  // For owner keypair mode, use progressive approach for large agreements
+  const useProgressiveCreation = isLargeAgreement && ownerKeypair;
+  const initialChainsCount = useProgressiveCreation ? Math.min(3, processedChains.length) : processedChains.length;
+  const initialParams = useProgressiveCreation ? {
     ...params,
     chains: params.chains.slice(0, initialChainsCount).map(chain => ({
       ...chain,
-      accounts: [] // Start with no accounts
+      accounts: [] // Start with no accounts for progressive approach
     }))
-  };
+  } : params; // Use complete params for non-progressive approach
 
   if (SHOULD_ADOPT) {
-    console.log("📝 Creating and adopting agreement (without accounts first)...");
+    console.log(useProgressiveCreation ? "📝 Creating and adopting agreement (without accounts first)..." : "📝 Creating and adopting complete agreement...");
 
     try {
       const createAndAdoptTx = await program.methods
-        .createAndAdoptAgreement(minimalParams)
+        .createAndAdoptAgreement(initialParams, ownerPublicKey)
         .accountsPartial({
           registry: registryPda,
           agreement: agreementKeypair.publicKey,
-          owner: ownerKeypair.publicKey,
+          owner: ownerPublicKey,
           adopter: provider.wallet.publicKey, // Deployer adopts the agreement
           payer: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         })
-        .signers([agreementKeypair, ownerKeypair])
+        .signers([agreementKeypair])
         .rpc();
 
       console.log("✅ Agreement created and adopted!");
@@ -313,12 +363,12 @@ Large Agreement Support:
         try {
           console.log(`💸 Prefunding agreement account with ${prefundSol} SOL for rent...`);
           const transferIx = SystemProgram.transfer({
-            fromPubkey: ownerKeypair.publicKey,
+            fromPubkey: ownerPublicKey,
             toPubkey: agreementKeypair.publicKey,
             lamports: Math.floor(prefundSol * LAMPORTS_PER_SOL),
           });
           const tx = new Transaction().add(transferIx);
-          const sig = await provider.sendAndConfirm(tx, [ownerKeypair]);
+          const sig = await provider.sendAndConfirm(tx, ownerKeypair ? [ownerKeypair] : []);
           console.log("  ✅ Prefund tx:", sig);
         } catch (prefundErr) {
           console.log("  ⚠️  Prefund failed (continuing):", (prefundErr as Error).message);
@@ -326,8 +376,8 @@ Large Agreement Support:
         }
       }
 
-      // Add remaining chains progressively (if large agreement)
-      if (isLargeAgreement && processedChains.length > initialChainsCount) {
+      // Add remaining chains progressively (if using progressive creation)
+      if (useProgressiveCreation && processedChains.length > initialChainsCount) {
         const remainingChains = params.chains.slice(initialChainsCount);
         console.log(`🔗 Adding ${remainingChains.length} remaining chains progressively...`);
 
@@ -346,9 +396,9 @@ Large Agreement Support:
               .accountsPartial({
                 registry: registryPda,
                 agreement: agreementKeypair.publicKey,
-                owner: ownerKeypair.publicKey,
+                owner: ownerPublicKey,
               })
-              .signers([ownerKeypair])
+              .signers(ownerKeypair ? [ownerKeypair] : [])
               .rpc();
 
             console.log(`    ✅ Added ${batch.length} chains`);
@@ -359,55 +409,57 @@ Large Agreement Support:
         }
       }
 
-      // Now add accounts in batches
-      console.log("📝 Adding accounts in batches...");
-      const BATCH_SIZE = 5; // Adjust based on your needs
+      // Now add accounts in batches (only for progressive creation)
+      if (useProgressiveCreation) {
+        console.log("📝 Adding accounts in batches...");
+        const BATCH_SIZE = 5; // Adjust based on your needs
 
-      for (const chain of params.chains) {
-        if (chain.accounts.length === 0) continue;
+        for (const chain of params.chains) {
+          if (chain.accounts.length === 0) continue;
 
-        console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
+          console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
 
-        for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
-          const batch = chain.accounts.slice(i, i + BATCH_SIZE);
-          console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
+          for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
+            const batch = chain.accounts.slice(i, i + BATCH_SIZE);
+            console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
 
-          try {
-            const addTx = await program.methods
-              .addAccounts(chain.caip2ChainId, batch)
-              .accounts({
-                agreement: agreementKeypair.publicKey,
-                owner: ownerKeypair.publicKey,
-              })
-              .signers([ownerKeypair])
-              .rpc();
+            try {
+              const addTx = await program.methods
+                .addAccounts(chain.caip2ChainId, batch)
+                .accounts({
+                  agreement: agreementKeypair.publicKey,
+                  owner: ownerPublicKey,
+                })
+                .signers(ownerKeypair ? [ownerKeypair] : [])
+                .rpc();
 
-            console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
-          } catch (error) {
-            console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
-            throw error; // Rethrow to be caught by outer try-catch
+              console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
+            } catch (error) {
+              console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
+              throw error; // Rethrow to be caught by outer try-catch
+            }
           }
         }
-      }
+      } // End useProgressiveCreation block
 
     } catch (error) {
       console.error("❌ Error creating and adopting agreement:", error);
       return;
     }
   } else {
-    console.log("📝 Creating agreement (without accounts first)...");
+    console.log(useProgressiveCreation ? "📝 Creating agreement (without accounts first)..." : "📝 Creating complete agreement...");
 
     try {
       const createTx = await program.methods
-        .createAgreement(minimalParams)
+        .createAgreement(initialParams, ownerPublicKey)
         .accountsPartial({
           registry: registryPda,
           agreement: agreementKeypair.publicKey,
-          owner: ownerKeypair.publicKey,
+          owner: ownerPublicKey,
           payer: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         })
-        .signers([agreementKeypair, ownerKeypair])
+        .signers([agreementKeypair])
         .rpc();
 
       console.log("✅ Agreement created!");
@@ -421,12 +473,12 @@ Large Agreement Support:
         try {
           console.log(`💸 Prefunding agreement account with ${prefundSol} SOL for rent...`);
           const transferIx = SystemProgram.transfer({
-            fromPubkey: ownerKeypair.publicKey,
+            fromPubkey: ownerPublicKey,
             toPubkey: agreementKeypair.publicKey,
             lamports: Math.floor(prefundSol * LAMPORTS_PER_SOL),
           });
           const tx = new Transaction().add(transferIx);
-          const sig = await provider.sendAndConfirm(tx, [ownerKeypair]);
+          const sig = await provider.sendAndConfirm(tx, ownerKeypair ? [ownerKeypair] : []);
           console.log("  ✅ Prefund tx:", sig);
         } catch (prefundErr) {
           console.log("  ⚠️  Prefund failed (continuing):", (prefundErr as Error).message);
@@ -434,8 +486,8 @@ Large Agreement Support:
         }
       }
 
-      // Add remaining chains progressively (if large agreement)
-      if (isLargeAgreement && processedChains.length > initialChainsCount) {
+      // Add remaining chains progressively (if using progressive creation)
+      if (useProgressiveCreation && processedChains.length > initialChainsCount) {
         const remainingChains = params.chains.slice(initialChainsCount);
         console.log(`🔗 Adding ${remainingChains.length} remaining chains progressively...`);
 
@@ -454,9 +506,9 @@ Large Agreement Support:
               .accountsPartial({
                 registry: registryPda,
                 agreement: agreementKeypair.publicKey,
-                owner: ownerKeypair.publicKey,
+                owner: ownerPublicKey,
               })
-              .signers([ownerKeypair])
+              .signers(ownerKeypair ? [ownerKeypair] : [])
               .rpc();
 
             console.log(`    ✅ Added ${batch.length} chains`);
@@ -467,36 +519,38 @@ Large Agreement Support:
         }
       }
 
-      // Now add accounts in batches
-      console.log("📝 Adding accounts in batches...");
-      const BATCH_SIZE = 5; // Adjust based on your needs
+      // Now add accounts in batches (only for progressive creation)
+      if (useProgressiveCreation) {
+        console.log("📝 Adding accounts in batches...");
+        const BATCH_SIZE = 5; // Adjust based on your needs
 
-      for (const chain of params.chains) {
-        if (chain.accounts.length === 0) continue;
+        for (const chain of params.chains) {
+          if (chain.accounts.length === 0) continue;
 
-        console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
+          console.log(`  Adding ${chain.accounts.length} accounts for chain ${chain.caip2ChainId}...`);
 
-        for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
-          const batch = chain.accounts.slice(i, i + BATCH_SIZE);
-          console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
+          for (let i = 0; i < chain.accounts.length; i += BATCH_SIZE) {
+            const batch = chain.accounts.slice(i, i + BATCH_SIZE);
+            console.log(`    Adding batch ${i / BATCH_SIZE + 1} (${batch.length} accounts)...`);
 
-          try {
-            const addTx = await program.methods
-              .addAccounts(chain.caip2ChainId, batch)
-              .accounts({
-                agreement: agreementKeypair.publicKey,
-                owner: ownerKeypair.publicKey,
-              })
-              .signers([ownerKeypair])
-              .rpc();
+            try {
+              const addTx = await program.methods
+                .addAccounts(chain.caip2ChainId, batch)
+                .accounts({
+                  agreement: agreementKeypair.publicKey,
+                  owner: ownerPublicKey,
+                })
+                .signers(ownerKeypair ? [ownerKeypair] : [])
+                .rpc();
 
-            console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
-          } catch (error) {
-            console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
-            throw error; // Rethrow to be caught by outer try-catch
+              console.log(`    ✅ Batch ${i / BATCH_SIZE + 1} added:`, addTx);
+            } catch (error) {
+              console.error(`    ❌ Error adding batch ${i / BATCH_SIZE + 1}:`, error);
+              throw error; // Rethrow to be caught by outer try-catch
+            }
           }
         }
-      }
+      } // End useProgressiveCreation block
 
       console.log("💡 To adopt this agreement, use the adopt-safe-harbor.ts script");
     } catch (error) {
@@ -519,7 +573,7 @@ Large Agreement Support:
   // Save comprehensive agreement info
   const agreementInfo = {
     agreement: agreementKeypair.publicKey.toString(),
-    owner: ownerKeypair.publicKey.toString(),
+    owner: ownerPublicKey.toString(),
     protocolName: agreementDetails.protocolName,
     adopted: SHOULD_ADOPT,
     adopter: SHOULD_ADOPT ? provider.wallet.publicKey.toString() : null,
@@ -541,7 +595,7 @@ Large Agreement Support:
   console.log("\n🎉 Agreement Creation Complete!");
   console.log("=".repeat(60));
   console.log("Agreement:", agreementKeypair.publicKey.toString());
-  console.log("Owner:", ownerKeypair.publicKey.toString());
+  console.log("Owner:", ownerPublicKey.toString());
   console.log("Protocol:", agreementDetails.protocolName);
   console.log("Strategy:", isLargeAgreement ? "Progressive (Large Agreement)" : "Standard");
   console.log("Input Chains:", `${agreementDetails.chains.length} → ${processedChains.length} valid`);
