@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
-    "types": ["chai", "node"],
-    "typeRoots": ["./node_modules/@types"],
-    "lib": ["es6"],
+    "types": [
+      "mocha",
+      "chai",
+      "node"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "lib": [
+      "es6"
+    ],
     "module": "commonjs",
     "target": "es6",
     "esModuleInterop": true,
@@ -22,5 +30,8 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": ["tests/**/*.ts"]
+  "include": [
+    "tests/**/*.ts",
+    "scripts/**/*.ts"
+  ]
 }

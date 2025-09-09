@@ -7,50 +7,61 @@ pub mod types;
 pub mod state;
 pub mod errors;
 pub mod events;
-pub mod contexts;
 pub mod helpers;
-mod instructions;
+pub mod instructions;
+
+// Re-export commonly used types at crate root for compatibility with existing tests/clients
+pub use crate::types::{
+    Contact,
+    AccountInScope,
+    Chain,
+    ChildContractScope,
+    IdentityRequirements,
+    BountyTerms,
+    AgreementInitParams,
+};
+pub use crate::state::{Registry, Agreement};
 
 #[program]
 pub mod safe_harbor {
+    use anchor_lang::prelude::*;
     use super::*;
-    use crate::contexts::*;
     use crate::types::{AgreementInitParams, Contact, Chain, AccountInScope, BountyTerms};
 
     pub fn initialize_registry(ctx: Context<InitializeRegistry>, owner: Pubkey) -> Result<()> {
-        instructions::initialize_registry(ctx, owner)
+        crate::instructions::initialize_registry(ctx, owner)
     }
 
     pub fn version(_ctx: Context<VersionContext>) -> Result<String> {
-        instructions::version()
+        crate::instructions::version()
     }
 
     pub fn set_valid_chains(ctx: Context<OwnerOnly>, chains: Vec<String>) -> Result<()> {
-        instructions::set_valid_chains(ctx, chains)
+        crate::instructions::set_valid_chains(ctx, chains)
     }
 
     pub fn set_invalid_chains(ctx: Context<OwnerOnly>, chains: Vec<String>) -> Result<()> {
-        instructions::set_invalid_chains(ctx, chains)
+        crate::instructions::set_invalid_chains(ctx, chains)
     }
 
     pub fn set_fallback_registry(ctx: Context<OwnerOnly>, fallback: Option<Pubkey>) -> Result<()> {
-        instructions::set_fallback_registry(ctx, fallback)
+        crate::instructions::set_fallback_registry(ctx, fallback)
     }
 
     pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
-        instructions::adopt_safe_harbor(ctx)
+        crate::instructions::adopt_safe_harbor(ctx)
     }
 
     pub fn get_agreement(ctx: Context<GetAgreement>, adopter: Pubkey) -> Result<Pubkey> {
-        instructions::get_agreement(ctx, adopter)
+        crate::instructions::get_agreement(ctx, adopter)
     }
 
     pub fn is_chain_valid(ctx: Context<ReadOnlyRegistry>, caip2_chain_id: String) -> Result<bool> {
-        instructions::is_chain_valid(ctx, caip2_chain_id)
+        crate::instructions::is_chain_valid(ctx, caip2_chain_id)
     }
 
     pub fn get_valid_chains(ctx: Context<ReadOnlyRegistry>) -> Result<Vec<String>> {
-        instructions::get_valid_chains(ctx)
+        crate::instructions::get_valid_chains(ctx)
     }
 
     pub fn create_agreement(
@@ -58,27 +69,27 @@ pub mod safe_harbor {
         params: AgreementInitParams,
         owner: Pubkey,
     ) -> Result<()> {
-        instructions::create_agreement(ctx, params, owner)
+        crate::instructions::create_agreement(ctx, params, owner)
     }
 
     pub fn set_protocol_name(ctx: Context<AgreementOwnerOnly>, protocol_name: String) -> Result<()> {
-        instructions::set_protocol_name(ctx, protocol_name)
+        crate::instructions::set_protocol_name(ctx, protocol_name)
     }
 
     pub fn set_contact_details(ctx: Context<AgreementOwnerOnly>, contacts: Vec<Contact>) -> Result<()> {
-        instructions::set_contact_details(ctx, contacts)
+        crate::instructions::set_contact_details(ctx, contacts)
     }
 
     pub fn add_chains(ctx: Context<AgreementOwnerWithRegistry>, chains: Vec<Chain>) -> Result<()> {
-        instructions::add_chains(ctx, chains)
+        crate::instructions::add_chains(ctx, chains)
     }
 
     pub fn set_chains(ctx: Context<AgreementOwnerWithRegistry>, chains: Vec<Chain>) -> Result<()> {
-        instructions::set_chains(ctx, chains)
+        crate::instructions::set_chains(ctx, chains)
     }
 
     pub fn remove_chains(ctx: Context<AgreementOwnerOnly>, ids: Vec<String>) -> Result<()> {
-        instructions::remove_chains(ctx, ids)
+        crate::instructions::remove_chains(ctx, ids)
     }
 
     pub fn add_accounts(
@@ -86,7 +97,7 @@ pub mod safe_harbor {
         caip2_chain_id: String,
         accounts: Vec<AccountInScope>,
     ) -> Result<()> {
-        instructions::add_accounts(ctx, caip2_chain_id, accounts)
+        crate::instructions::add_accounts(ctx, caip2_chain_id, accounts)
     }
 
     pub fn remove_accounts(
@@ -94,15 +105,15 @@ pub mod safe_harbor {
         caip2_chain_id: String,
         account_addresses: Vec<String>,
     ) -> Result<()> {
-        instructions::remove_accounts(ctx, caip2_chain_id, account_addresses)
+        crate::instructions::remove_accounts(ctx, caip2_chain_id, account_addresses)
     }
 
     pub fn set_bounty_terms(ctx: Context<AgreementOwnerOnly>, terms: BountyTerms) -> Result<()> {
-        instructions::set_bounty_terms(ctx, terms)
+        crate::instructions::set_bounty_terms(ctx, terms)
     }
 
     pub fn set_agreement_uri(ctx: Context<AgreementOwnerOnly>, agreement_uri: String) -> Result<()> {
-        instructions::set_agreement_uri(ctx, agreement_uri)
+        crate::instructions::set_agreement_uri(ctx, agreement_uri)
     }
 
     pub fn create_and_adopt_agreement(
@@ -110,10 +121,118 @@ pub mod safe_harbor {
         params: AgreementInitParams,
         owner: Pubkey,
     ) -> Result<()> {
-        instructions::create_and_adopt_agreement(ctx, params, owner)
+        crate::instructions::create_and_adopt_agreement(ctx, params, owner)
     }
 
     pub fn get_agreement_details(_ctx: Context<ReadOnlyAgreement>) -> Result<()> {
-        instructions::get_agreement_details()
+        crate::instructions::get_agreement_details()
     }
+}
+
+// -------------------- Contexts --------------------
+
+#[derive(Accounts)]
+pub struct InitializeRegistry<'info> {
+    #[account(
+        init,
+        payer = payer,
+        space = Registry::INITIAL_SPACE,
+        seeds = [b"registry"],
+        bump
+    )]
+    pub registry: Account<'info, Registry>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct OwnerOnly<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    pub signer: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct AdoptSafeHarbor<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    pub adopter: Signer<'info>,
+    /// CHECK: agreement PDA or normal account; stored as pubkey only
+    pub agreement: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct CreateAgreement<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(
+        init,
+        payer = payer,
+        space = Agreement::INITIAL_SPACE,
+    )]
+    pub agreement: Account<'info, Agreement>,
+    /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
+    pub owner: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateAndAdoptAgreement<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(
+        init,
+        payer = payer,
+        space = Agreement::INITIAL_SPACE,
+    )]
+    pub agreement: Account<'info, Agreement>,
+    /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
+    pub owner: UncheckedAccount<'info>,
+    pub adopter: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AgreementOwnerOnly<'info> {
+    #[account(mut)]
+    pub agreement: Account<'info, Agreement>,
+    /// CHECK: The owner account is validated against the agreement's owner field
+    pub owner: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct AgreementOwnerWithRegistry<'info> {
+    #[account(mut, seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(mut)]
+    pub agreement: Account<'info, Agreement>,
+    /// CHECK: The owner account is validated against the agreement's owner field
+    pub owner: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct VersionContext<'info> {
+    pub signer: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct GetAgreement<'info> {
+    #[account(seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+}
+
+#[derive(Accounts)]
+pub struct ReadOnlyRegistry<'info> {
+    #[account(seeds=[b"registry"], bump)]
+    pub registry: Account<'info, Registry>,
+}
+
+#[derive(Accounts)]
+pub struct ReadOnlyAgreement<'info> {
+    pub agreement: Account<'info, Agreement>,
 }
