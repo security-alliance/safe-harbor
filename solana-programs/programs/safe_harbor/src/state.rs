@@ -106,4 +106,52 @@ impl Agreement {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{Contact, Chain, AccountInScope, BountyTerms, IdentityRequirements};
+
+    fn make_agreement(contacts: usize, chains: usize, accounts_per_chain: usize) -> Agreement {
+        let contact_details = (0..contacts).map(|i| Contact { name: format!("n{}", i), contact: format!("c{}", i) }).collect();
+        let chains_vec = (0..chains).map(|i| {
+            let accounts = (0..accounts_per_chain).map(|j| AccountInScope { account_address: format!("0x{:02x}", j), child_contract_scope: Default::default() }).collect();
+            Chain { asset_recovery_address: format!("addr{}", i), accounts, caip2_chain_id: format!("eip155:{}", i+1) }
+        }).collect();
+        Agreement {
+            owner: Pubkey::default(),
+            protocol_name: "p".into(),
+            contact_details,
+            chains: chains_vec,
+            bounty_terms: BountyTerms { bounty_percentage: 10, bounty_cap_usd: 100, retainable: false, identity: IdentityRequirements::Anonymous, diligence_requirements: "x".into(), aggregate_bounty_cap_usd: 0 },
+            agreement_uri: "ipfs://x".into(),
+        }
+    }
+
+    #[test]
+    fn agreement_space_grows_with_contacts() {
+        let mut a = make_agreement(0, 1, 1);
+        let base = a.calculate_required_space();
+        a.contact_details.push(Contact { name: "A".into(), contact: "B".into() });
+        assert!(a.calculate_required_space() > base);
+    }
+
+    #[test]
+    fn agreement_space_grows_with_accounts() {
+        let a1 = make_agreement(0, 1, 0);
+        let a2 = make_agreement(0, 1, 3);
+        assert!(a2.calculate_required_space() > a1.calculate_required_space());
+    }
+
+    #[test]
+    fn registry_space_grows_with_valid_chains_and_agreements() {
+        let mut r = Registry { owner: Pubkey::default(), fallback_registry: None, agreements: AccountMap { items: vec![] }, valid_chains: vec![] };
+        let base = r.calculate_required_space();
+        r.valid_chains.push("eip155:1".into());
+        let after_chain = r.calculate_required_space();
+        assert!(after_chain > base);
+        r.agreements.insert(Pubkey::new_unique(), Pubkey::new_unique());
+        assert!(r.calculate_required_space() > after_chain);
+    }
+}
+
 

@@ -61,4 +61,19 @@ pub struct AgreementInitParams {
     pub agreement_uri: String,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defaults_are_sensible() {
+        let c: Contact = Default::default();
+        assert_eq!(c.name, "");
+        let a: AccountInScope = Default::default();
+        match a.child_contract_scope { ChildContractScope::None => {}, _ => panic!("default child scope should be None") }
+        let id: IdentityRequirements = Default::default();
+        match id { IdentityRequirements::Anonymous => {}, _ => panic!("default identity should be Anonymous") }
+    }
+}
+
 

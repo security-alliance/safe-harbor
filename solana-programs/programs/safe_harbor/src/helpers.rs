@@ -38,3 +38,46 @@ pub fn resize_if_needed(account_info: &AccountInfo, required_space: usize) -> Re
 }
 
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{Chain, AccountInScope};
+
+    #[test]
+    fn validate_no_duplicate_chain_ids_ok() {
+        let chains = vec![
+            Chain { asset_recovery_address: "x".into(), accounts: vec![], caip2_chain_id: "eip155:1".into() },
+            Chain { asset_recovery_address: "y".into(), accounts: vec![], caip2_chain_id: "eip155:137".into() },
+        ];
+        assert!(validate_no_duplicate_chain_ids(&chains).is_ok());
+    }
+
+    #[test]
+    fn validate_no_duplicate_chain_ids_err() {
+        let chains = vec![
+            Chain { asset_recovery_address: "x".into(), accounts: vec![], caip2_chain_id: "eip155:1".into() },
+            Chain { asset_recovery_address: "y".into(), accounts: vec![], caip2_chain_id: "eip155:1".into() },
+        ];
+        assert!(validate_no_duplicate_chain_ids(&chains).is_err());
+    }
+
+    #[test]
+    fn find_chain_index_works() {
+        let chains = vec![
+            Chain { asset_recovery_address: "x".into(), accounts: vec![], caip2_chain_id: "eip155:1".into() },
+            Chain { asset_recovery_address: "y".into(), accounts: vec![], caip2_chain_id: "eip155:137".into() },
+        ];
+        assert_eq!(find_chain_index(&chains, "eip155:137").unwrap(), 1);
+        assert!(find_chain_index(&chains, "eip155:2").is_err());
+    }
+
+    #[test]
+    fn find_account_index_works() {
+        let accounts = vec![
+            AccountInScope { account_address: "0x01".into(), child_contract_scope: Default::default() },
+            AccountInScope { account_address: "0x02".into(), child_contract_scope: Default::default() },
+        ];
+        assert_eq!(find_account_index(&accounts, "0x02").unwrap(), 1);
+        assert!(find_account_index(&accounts, "0x03").is_err());
+    }
+}
