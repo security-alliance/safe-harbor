@@ -1,72 +1,52 @@
 {
-  "protocolName": "ExampleProtocol",
-  "agreementURI": "https://example.com/security-policy",
+  "agreementURI": "ipfs://QmExampleHashForSafeHarborAgreementDocument123456789",
+  "bountyTerms": {
+    "aggregateBountyCapUSD": 1000000,
+    "bountyCapUSD": 1000000,
+    "bountyPercentage": 10,
+    "diligenceRequirements": "The protocol requires all eligible whitehats to undergo Know Your Customer (KYC) verification and be screened against global sanctions lists, including OFAC, UK, and EU regulations. This process ensures that all bounty recipients are compliant with legal and regulatory standards before qualifying for payment.",
+    "identity": 2,
+    "retainable": false
+  },
   "chains": [
     {
-      "id": "eip155:1",
-      "assetRecoveryAddress": "0x1234567890123456789012345678901234567890",
       "accounts": [
         {
           "accountAddress": "0x1234567890123456789012345678901234567890",
           "childContractScope": 0
         },
         {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
-        },
-        {
-          "accountAddress": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-          "childContractScope": 1
+          "accountAddress": "0xAbCdEf1234567890123456789012345678901234",
+          "childContractScope": 3
         }
-      ]
+      ],
+      "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
+      "id": "eip155:1"
     },
     {
-      "id": "eip155:137",
-      "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
       "accounts": [
         {
-          "accountAddress": "0x9876543210987654321098765432109876543210",
+          "accountAddress": "HvNqQBTfoiksyvzGR5rrNAv46DjeNgGNMTB5YZpYh16W",
+          "childContractScope": 3
+        },
+        {
+          "accountAddress": "4JDyw4rd4Rm9rWgPG9jhXLcYoo3NYVoZDSxABpoD3ozQ",
           "childContractScope": 0
         }
-      ]
+      ],
+      "assetRecoveryAddress": "CzYQ2kFnBxsNEt9Zy34vQ3n5fSDhvA4o4XaTnq1rLvyr",
+      "id": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
     }
   ],
   "contact": [
     {
-      "name": "Email",
-      "contact": "security@example.com"
+      "contact": "security@exampleprotocol.com",
+      "name": "Example Protocol Security Team"
     },
     {
-      "name": "Discord",
-      "contact": "ExampleProtocol#1234"
+      "contact": "emergency-security@exampleprotocol.com",
+      "name": "Emergency Response Team"
     }
   ],
-  "bountyTerms": {
-    "bountyPercentage": 10,
-    "bountyCapUSD": 1000000,
-    "retainable": true,
-    "identity": 0,
-    "diligenceRequirements": "ENS requires all eligible whitehats to undergo Know Your Customer (KYC) verification and be screened against the Office of Foreign Assets Control (OFAC) sanctions lists. This process ensures that all bounty recipients are compliant with legal and regulatory standards before qualifying for payment",
-    "aggregateBountyCapUSD": 0
-  }
+  "protocolName": "Example Protocol"
 }

@@ -46,6 +46,43 @@ The system automatically chooses between two strategies based on agreement compl
 - **Requires**: Owner keypair for post-creation operations
 - **Benefits**: Handles any agreement size
 
+## 📏 Transaction Size: Constraints, Strategy, and Troubleshooting
+
+### Hard Limit and Why It Matters
+- Solana has a hard transaction size limit of ~1232 bytes (instruction data, account metas, signatures, Borsh overhead).
+- Agreements include strings (names, URIs, diligence), multiple chains, and account lists; even 2 chains with 9 accounts can exceed the limit.
+
+### Strategy Selection Matrix
+```
+≤1 chain AND ≤5 accounts → Standard (single tx)
+>1 chain OR >5 accounts  → Progressive (multi-tx)
+```
+- Conservative thresholds account for string length and serialization overhead.
+
+### Progressive Creation Phases
+1) Initial creation: metadata + first chain (≤3), no accounts (resizes as needed)
+2) Add remaining chains in batches (≈5/tx)
+3) Add accounts per chain in batches (≈5/tx)
+
+### Owner Modes and Limits
+- Owner keypair mode: supports progressive flow, prefunding, and post-creation edits.
+- Owner address-only mode: single-tx agreements only (no progressive/post-creation ops).
+
+### Common Errors and Fixes
+- Transaction too large: automatically switches to progressive; shorten strings if still failing.
+- Encoding overruns Buffer: reduce long strings; progressive creation.
+- Insufficient funds for rent: prefund via `PREFUND_AGREEMENT_SOL` and ensure owner wallet has SOL.
+
+### Optimization Tips
+- Minimize string sizes (put details off-chain; use URI).
+- Group accounts under fewer chains when possible.
+- For large protocols, plan progressive creation and set `PREFUND_AGREEMENT_SOL`.
+
+### Debugging Tools
+- `export ANCHOR_LOG=true` for verbose logs during scripts.
+- Estimate data size (`wc -c agreement-data.json`) to anticipate progressive creation.
+- Inspect failed tx in Solana Explorer for size-related errors.
+
 ## 📦 Installation & Setup
 
 ### Prerequisites
@@ -468,6 +505,38 @@ npm run deploy
 - **Faster Finality**: ~1-2 second confirmation vs minutes
 - **Better UX**: Predictable costs and faster execution
 - **Same Logic**: Identical business rules and data structures
+
+### API Equivalents (EVM → Solana)
+- **Registry chains**:
+  - EVM: `registry.setValidChains(chainIds)` → Solana: `program.methods.setValidChains(chainIds).rpc()`
+- **Create agreement**:
+  - EVM: `factory.createAgreement(params)` → Solana: `program.methods.createAgreement(params, owner).rpc()`
+- **Adopt agreement**:
+  - EVM: `registry.adoptSafeHarborV2(addr)` → Solana: `program.methods.adoptSafeHarbor(addr).rpc()`
+
+### Frontend Integration Example
+```typescript
+import { Program } from '@coral-xyz/anchor';
+
+const program = new Program(idl, programId, { connection, wallet });
+await program.methods
+  .createAndAdoptAgreement(params, ownerPublicKey)
+  .rpc();
+```
+
+### Migration Checklist
+- [ ] Install Solana CLI, Anchor, Node.js
+- [ ] `anchor build` to generate IDL/types
+- [ ] `anchor deploy` (Devnet) and `npm run deploy` to init registry
+- [ ] Update agreement creation to pass explicit `owner` pubkey
+- [ ] Size-aware agreement data (see Transaction Size Guide)
+- [ ] Update error handling to Anchor errors
+- [ ] Port tests to account-based flows
+
+### Common Pitfalls
+- Expecting unlimited tx size (EVM). Solana has ~1232 bytes; use progressive creation for complex data.
+- Assuming `msg.sender` is owner. On Solana you pass `owner` explicitly and can separate deployer from owner.
+- Forgetting to create/sign for new accounts. Account keypairs must be generated and provided.
 
 ## 🤝 Contributing
 
