@@ -5,7 +5,7 @@
     "bountyCapUSD": 1000000,
     "bountyPercentage": 10,
     "diligenceRequirements": "The protocol requires all eligible whitehats to undergo Know Your Customer (KYC) verification and be screened against global sanctions lists, including OFAC, UK, and EU regulations. This process ensures that all bounty recipients are compliant with legal and regulatory standards before qualifying for payment.",
-    "identity": 2,
+    "identity": 0,
     "retainable": false
   },
   "chains": [
@@ -13,11 +13,11 @@
       "accounts": [
         {
           "accountAddress": "0x1234567890123456789012345678901234567890",
-          "childContractScope": 0
+          "childContractScope": 1
         },
         {
           "accountAddress": "0xAbCdEf1234567890123456789012345678901234",
-          "childContractScope": 3
+          "childContractScope": 2
         }
       ],
       "assetRecoveryAddress": "0x9876543210987654321098765432109876543210",
@@ -26,11 +26,11 @@
     {
       "accounts": [
         {
-          "accountAddress": "HvNqQBTfoiksyvzGR5rrNAv46DjeNgGNMTB5YZpYh16W",
+          "accountAddress": "HvNqQdfsaBTfoiksyvzGR5rrNAv46DjeNgGNMTB5YZpYh16W",
           "childContractScope": 3
         },
         {
-          "accountAddress": "4JDyw4rd4Rm9rWgPG9jhXLcYoo3NYVoZDSxABpoD3ozQ",
+          "accountAddress": "AAAAAAAAJDyw4rd4Rm9rWgPG9jhXLcYoo3NYVoZDSxABpoD3ozQ",
           "childContractScope": 0
         }
       ],

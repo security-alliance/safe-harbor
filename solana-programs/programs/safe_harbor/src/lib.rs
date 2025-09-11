@@ -20,7 +20,7 @@ pub use crate::types::{
     BountyTerms,
     AgreementInitParams,
 };
-pub use crate::state::{Registry, Agreement};
+pub use crate::state::{Registry, Agreement, AdoptionEntry, AgreementChainIndex, AgreementAccountIndex};
 
 #[program]
 pub mod safe_harbor {
@@ -127,6 +127,11 @@ pub mod safe_harbor {
     pub fn get_agreement_details(_ctx: Context<ReadOnlyAgreement>) -> Result<()> {
         crate::instructions::get_agreement_details()
     }
+
+    // Optional PDA-based lookups
+    pub fn get_agreement_by_pda(ctx: Context<GetAgreementByPda>) -> Result<Pubkey> {
+        crate::instructions::get_agreement_by_pda(ctx)
+    }
 }
 
 // -------------------- Contexts --------------------
@@ -157,9 +162,19 @@ pub struct OwnerOnly<'info> {
 pub struct AdoptSafeHarbor<'info> {
     #[account(mut, seeds=[b"registry"], bump)]
     pub registry: Account<'info, Registry>,
+    #[account(mut)]
     pub adopter: Signer<'info>,
+    #[account(
+        init,
+        payer = adopter,
+        space = AdoptionEntry::SPACE,
+        seeds = [b"adoption", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption: Account<'info, AdoptionEntry>,
     /// CHECK: agreement PDA or normal account; stored as pubkey only
     pub agreement: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -185,13 +200,22 @@ pub struct CreateAndAdoptAgreement<'info> {
     pub registry: Account<'info, Registry>,
     #[account(
         init,
-        payer = payer,
+        payer = adopter,
         space = Agreement::INITIAL_SPACE,
     )]
     pub agreement: Account<'info, Agreement>,
     /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
     pub owner: UncheckedAccount<'info>,
+    #[account(mut)]
     pub adopter: Signer<'info>,
+    #[account(
+        init,
+        payer = adopter,
+        space = AdoptionEntry::SPACE,
+        seeds = [b"adoption", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption: Account<'info, AdoptionEntry>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -230,6 +254,17 @@ pub struct GetAgreement<'info> {
 pub struct ReadOnlyRegistry<'info> {
     #[account(seeds=[b"registry"], bump)]
     pub registry: Account<'info, Registry>,
+}
+
+#[derive(Accounts)]
+pub struct GetAgreementByPda<'info> {
+    /// CHECK: adopter passed to seed derivation
+    pub adopter: UncheckedAccount<'info>,
+    #[account(
+        seeds=[b"adoption", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption: Account<'info, AdoptionEntry>,
 }
 
 #[derive(Accounts)]

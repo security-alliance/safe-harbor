@@ -112,19 +112,24 @@ describe("safe_harbor", () => {
         registry: registryPda,
         agreement: agreementKp.publicKey,
         owner: provider.wallet.publicKey,
-        payer: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .signers([agreementKp])
       .rpc();
 
-    // adopt_safe_harbor
+    // adopt_safe_harbor (now requires adoption PDA + system program)
+    const [adoptionPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("adoption"), provider.wallet.publicKey.toBuffer()],
+      program.programId
+    );
     await program.methods
       .adoptSafeHarbor()
       .accounts({
         registry: registryPda,
         adopter: provider.wallet.publicKey,
+        adoption: adoptionPda,
         agreement: agreementKp.publicKey,
+        systemProgram: SystemProgram.programId,
       })
       .rpc();
 

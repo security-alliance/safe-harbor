@@ -156,6 +156,7 @@ Large Agreement Support:
   anchor.setProvider(provider);
 
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
+  const providerWalletSigner = (provider.wallet as any).payer;
 
   console.log("🤝 Creating Safe Harbor Agreement");
   console.log("Agreement data file:", AGREEMENT_DATA_PATH);
@@ -336,24 +337,42 @@ Large Agreement Support:
   } : params; // Use complete params for non-progressive approach
 
   if (SHOULD_ADOPT) {
-    console.log(useProgressiveCreation ? "📝 Creating and adopting agreement (without accounts first)..." : "📝 Creating and adopting complete agreement...");
+    console.log(useProgressiveCreation ? "📝 Creating agreement (without accounts first) then adopting..." : "📝 Creating complete agreement then adopting...");
 
     try {
-      const createAndAdoptTx = await program.methods
-        .createAndAdoptAgreement(initialParams, ownerPublicKey)
+      const [adoptionPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("adoption"), provider.wallet.publicKey.toBuffer()],
+        program.programId
+      );
+
+      // Create agreement first
+      const createTx = await program.methods
+        .createAgreement(initialParams, ownerPublicKey)
         .accountsPartial({
           registry: registryPda,
           agreement: agreementKeypair.publicKey,
           owner: ownerPublicKey,
-          adopter: provider.wallet.publicKey, // Deployer adopts the agreement
           payer: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         })
         .signers([agreementKeypair])
         .rpc();
 
-      console.log("✅ Agreement created and adopted!");
-      console.log("Transaction signature:", createAndAdoptTx);
+      console.log("✅ Agreement created!", createTx);
+
+      // Adopt the agreement
+      const adoptTx = await program.methods
+        .adoptSafeHarbor()
+        .accountsPartial({
+          registry: registryPda,
+          adopter: provider.wallet.publicKey,
+          adoption: adoptionPda,
+          agreement: agreementKeypair.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log("✅ Agreement adopted!", adoptTx);
 
       // Smart prefunding based on agreement size
       const estimatedRentSol = Math.max(0.1, Math.ceil(totalAccounts / 20));

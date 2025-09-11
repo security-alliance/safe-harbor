@@ -17,5 +17,5 @@ safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
 url = "https://api.devnet.solana.com"
 
 [provider]
-cluster = "Devnet"
+cluster = "Localnet"
 wallet = "./owner-keypair.json"

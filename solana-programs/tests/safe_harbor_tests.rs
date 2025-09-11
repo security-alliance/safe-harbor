@@ -194,7 +194,6 @@ async fn test_create_agreement() {
         registry: registry_pda,
         agreement: agreement_keypair.pubkey(),
         owner: owner.pubkey(),
-        payer: payer.pubkey(),
         system_program: solana_program::system_program::id(),
     };
     
@@ -255,10 +254,13 @@ async fn test_adopt_safe_harbor() {
     banks_client.process_transaction(init_transaction).await.unwrap();
     
     // Adopt safe harbor
+    let (adoption_pda, _abump) = Pubkey::find_program_address(&[b"adoption", adopter.pubkey().as_ref()], &program_id);
     let adopt_accounts = safe_harbor::accounts::AdoptSafeHarbor {
         registry: registry_pda,
         adopter: adopter.pubkey(),
+        adoption: adoption_pda,
         agreement: agreement_keypair.pubkey(),
+        system_program: solana_program::system_program::id(),
     };
     
     let adopt_instruction = Instruction {

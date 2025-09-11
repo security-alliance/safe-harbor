@@ -28,6 +28,37 @@ impl AccountMap {
 }
 
 #[account]
+pub struct AdoptionEntry {
+    pub agreement: Pubkey,
+}
+
+impl AdoptionEntry {
+    pub const SPACE: usize = 8 + 32;
+}
+
+#[account]
+pub struct AgreementChainIndex {
+    pub agreement: Pubkey,
+    pub chain_id_hash: [u8; 32],
+}
+
+impl AgreementChainIndex {
+    pub const SPACE: usize = 8 + 32 + 32;
+}
+
+#[account]
+pub struct AgreementAccountIndex {
+    pub agreement: Pubkey,
+    pub chain_id_hash: [u8; 32],
+    pub account_hash: [u8; 32],
+    pub child_contract_scope: u8,
+}
+
+impl AgreementAccountIndex {
+    pub const SPACE: usize = 8 + 32 + 32 + 32 + 1;
+}
+
+#[account]
 pub struct Registry {
     pub owner: Pubkey,
     pub fallback_registry: Option<Pubkey>,

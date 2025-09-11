@@ -23,7 +23,7 @@ use crate::helpers::{
     validate_no_duplicate_chain_ids,
     VERSION,
 };
-use crate::state::{Agreement, Registry};
+use crate::state::{Agreement, Registry, AdoptionEntry};
 use crate::types::{AccountInScope, AgreementInitParams, BountyTerms, Chain, Contact};
 
 pub fn initialize_registry(ctx: Context<InitializeRegistry>, owner: Pubkey) -> Result<()> {
@@ -89,6 +89,10 @@ pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
     let reg = &mut ctx.accounts.registry;
     let adopter = ctx.accounts.adopter.key();
     let old_agreement = reg.agreements.get(adopter);
+    // Write to PDA mapping
+    let adoption = &mut ctx.accounts.adoption;
+    adoption.agreement = ctx.accounts.agreement.key();
+    // Maintain legacy vec-backed map for compatibility (optional during migration)
     reg.agreements.insert(adopter, ctx.accounts.agreement.key());
 
     let required_space = reg.calculate_required_space();
@@ -108,6 +112,11 @@ pub fn get_agreement(ctx: Context<GetAgreement>, adopter: Pubkey) -> Result<Pubk
         return Ok(agreement);
     }
     err!(ErrorCode::NoAgreement)
+}
+
+// Optional PDA-based read path (O(1) without scanning registry)
+pub fn get_agreement_by_pda(ctx: Context<crate::GetAgreementByPda>) -> Result<Pubkey> {
+    Ok(ctx.accounts.adoption.agreement)
 }
 
 pub fn is_chain_valid(ctx: Context<ReadOnlyRegistry>, caip2_chain_id: String) -> Result<bool> {
@@ -315,7 +324,11 @@ pub fn create_and_adopt_agreement(
     let required_space = agreement.calculate_required_space();
     resize_if_needed(&ctx.accounts.agreement.to_account_info(), required_space)?;
 
+    // Write to PDA mapping
+    let adoption = &mut ctx.accounts.adoption;
     let old_agreement = registry.agreements.get(adopter);
+    adoption.agreement = ctx.accounts.agreement.key();
+    // Maintain legacy vec-backed map for compatibility
     registry.agreements.insert(adopter, ctx.accounts.agreement.key());
 
     let registry_required_space = registry.calculate_required_space();
