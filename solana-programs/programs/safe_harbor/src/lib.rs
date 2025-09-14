@@ -230,8 +230,8 @@ pub struct CreateAndAdoptAgreement<'info> {
 pub struct AgreementOwnerOnly<'info> {
     #[account(mut)]
     pub agreement: Account<'info, Agreement>,
-    /// CHECK: The owner account is validated against the agreement's owner field
-    pub owner: UncheckedAccount<'info>,
+    // Owner must sign; validated against the agreement's owner field
+    pub owner: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -240,8 +240,8 @@ pub struct AgreementOwnerWithRegistry<'info> {
     pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub agreement: Account<'info, Agreement>,
-    /// CHECK: The owner account is validated against the agreement's owner field
-    pub owner: UncheckedAccount<'info>,
+    // Owner must sign; validated against the agreement's owner field
+    pub owner: Signer<'info>,
 }
 
 #[derive(Accounts)]
