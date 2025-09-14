@@ -9,7 +9,9 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "deploy": "ts-node scripts/deploy-and-set-chains.ts",
     "adopt": "ts-node scripts/adopt-agreement.ts",
-    "query": "ts-node scripts/get-agreement-details.ts"
+    "query": "ts-node scripts/get-agreement-details.ts",
+    "change-owner": "ts-node scripts/change-owner.ts",
+    "add-chain": "ts-node scripts/add-chain.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

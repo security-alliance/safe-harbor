@@ -158,6 +158,23 @@ Large Agreement Support:
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
   const providerWalletSigner = (provider.wallet as any).payer;
 
+  // Ensure adopter (provider wallet) has enough SOL on devnet for rent (adoption PDA, etc.)
+  try {
+    const url = process.env.ANCHOR_PROVIDER_URL || "";
+    const isDevnet = url.includes("devnet");
+    if (isDevnet) {
+      const bal = await provider.connection.getBalance(provider.wallet.publicKey);
+      if (bal < 0.2 * LAMPORTS_PER_SOL) {
+        console.log("💧 Airdropping 1 SOL to adopter for rent (devnet)...");
+        const sig = await provider.connection.requestAirdrop(provider.wallet.publicKey, 1 * LAMPORTS_PER_SOL);
+        await provider.connection.confirmTransaction(sig, "confirmed");
+        console.log("  ✅ Airdrop complete");
+      }
+    }
+  } catch (e) {
+    console.log("⚠️  Devnet airdrop failed or not available; continuing...");
+  }
+
   console.log("🤝 Creating Safe Harbor Agreement");
   console.log("Agreement data file:", AGREEMENT_DATA_PATH);
 
@@ -340,10 +357,17 @@ Large Agreement Support:
     console.log(useProgressiveCreation ? "📝 Creating agreement (without accounts first) then adopting..." : "📝 Creating complete agreement then adopting...");
 
     try {
-      const [adoptionPda] = PublicKey.findProgramAddressSync(
+      const seedPrefix = process.env.ADOPTION_SEED_PREFIX || "adoption_v2";
+      const [adoptionPdaV2] = PublicKey.findProgramAddressSync(
+        [Buffer.from(seedPrefix), provider.wallet.publicKey.toBuffer(), agreementKeypair.publicKey.toBuffer()],
+        program.programId
+      );
+      const [adoptionPdaV1] = PublicKey.findProgramAddressSync(
         [Buffer.from("adoption"), provider.wallet.publicKey.toBuffer()],
         program.programId
       );
+      console.log("Adoption PDA v2:", adoptionPdaV2.toString());
+      console.log("Adoption PDA v1:", adoptionPdaV1.toString());
 
       // Create agreement first
       const createTx = await program.methods
@@ -366,8 +390,8 @@ Large Agreement Support:
         .accountsPartial({
           registry: registryPda,
           adopter: provider.wallet.publicKey,
-          adoption: adoptionPda,
           agreement: agreementKeypair.publicKey,
+          adoption: adoptionPdaV2,
           systemProgram: SystemProgram.programId,
         })
         .rpc();

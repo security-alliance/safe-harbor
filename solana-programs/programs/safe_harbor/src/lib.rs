@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 // Program ID: ensure Anchor.toml matches this address for localnet
-declare_id!("AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L");
+declare_id!("64Gpb6dztgGMcWPkQrDV4VjFHSfXTPoDtrhEu8ykXFKU");
 
 pub mod types;
 pub mod state;
@@ -116,6 +116,10 @@ pub mod safe_harbor {
         crate::instructions::set_agreement_uri(ctx, agreement_uri)
     }
 
+    pub fn transfer_ownership(ctx: Context<AgreementOwnerSignerOnly>, new_owner: Pubkey) -> Result<()> {
+        crate::instructions::transfer_ownership(ctx, new_owner)
+    }
+
     pub fn create_and_adopt_agreement(
         ctx: Context<CreateAndAdoptAgreement>,
         params: AgreementInitParams,
@@ -165,11 +169,12 @@ pub struct AdoptSafeHarbor<'info> {
     #[account(mut)]
     pub adopter: Signer<'info>,
     #[account(
-        init,
+        init_if_needed,
         payer = adopter,
         space = AdoptionEntry::SPACE,
-        seeds = [b"adoption", adopter.key().as_ref()],
-        bump
+        seeds = [b"adoption_v2", adopter.key().as_ref(), agreement.key().as_ref()],
+        bump,
+        constraint = adoption.key() == Pubkey::find_program_address(&[b"adoption_v2", adopter.key().as_ref(), agreement.key().as_ref()], &crate::id()).0
     )]
     pub adoption: Account<'info, AdoptionEntry>,
     /// CHECK: agreement PDA or normal account; stored as pubkey only
@@ -209,10 +214,10 @@ pub struct CreateAndAdoptAgreement<'info> {
     #[account(mut)]
     pub adopter: Signer<'info>,
     #[account(
-        init,
+        init_if_needed,
         payer = adopter,
         space = AdoptionEntry::SPACE,
-        seeds = [b"adoption", adopter.key().as_ref()],
+        seeds = [b"adoption_v2", adopter.key().as_ref(), agreement.key().as_ref()],
         bump
     )]
     pub adoption: Account<'info, AdoptionEntry>,
@@ -240,6 +245,13 @@ pub struct AgreementOwnerWithRegistry<'info> {
 }
 
 #[derive(Accounts)]
+pub struct AgreementOwnerSignerOnly<'info> {
+    #[account(mut)]
+    pub agreement: Account<'info, Agreement>,
+    pub owner: Signer<'info>,
+}
+
+#[derive(Accounts)]
 pub struct VersionContext<'info> {
     pub signer: Signer<'info>,
 }
@@ -260,8 +272,10 @@ pub struct ReadOnlyRegistry<'info> {
 pub struct GetAgreementByPda<'info> {
     /// CHECK: adopter passed to seed derivation
     pub adopter: UncheckedAccount<'info>,
+    /// CHECK: agreement passed to seed derivation
+    pub agreement: UncheckedAccount<'info>,
     #[account(
-        seeds=[b"adoption", adopter.key().as_ref()],
+        seeds=[b"adoption_v2", adopter.key().as_ref(), agreement.key().as_ref()],
         bump
     )]
     pub adoption: Account<'info, AdoptionEntry>,

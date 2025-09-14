@@ -4,6 +4,7 @@ use crate::{
     AdoptSafeHarbor,
     AgreementOwnerOnly,
     AgreementOwnerWithRegistry,
+    AgreementOwnerSignerOnly,
     CreateAgreement,
     CreateAndAdoptAgreement,
     GetAgreement,
@@ -92,11 +93,7 @@ pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
     // Write to PDA mapping
     let adoption = &mut ctx.accounts.adoption;
     adoption.agreement = ctx.accounts.agreement.key();
-    // Maintain legacy vec-backed map for compatibility (optional during migration)
-    reg.agreements.insert(adopter, ctx.accounts.agreement.key());
-
-    let required_space = reg.calculate_required_space();
-    resize_if_needed(&ctx.accounts.registry.to_account_info(), required_space)?;
+    // Skip legacy vec-backed map update to avoid registry reallocation/rent issues on devnet
 
     emit!(SafeHarborAdoption {
         entity: adopter,
@@ -296,6 +293,15 @@ pub fn set_agreement_uri(ctx: Context<AgreementOwnerOnly>, agreement_uri: String
     Ok(())
 }
 
+pub fn transfer_ownership(ctx: Context<AgreementOwnerSignerOnly>, new_owner: Pubkey) -> Result<()> {
+    // Require that the provided signer matches the agreement's current owner
+    assert_agreement_owner(ctx.accounts.owner.key(), &ctx.accounts.agreement)?;
+    let agreement = &mut ctx.accounts.agreement;
+    agreement.owner = new_owner;
+    emit!(AgreementUpdated { agreement: ctx.accounts.agreement.key() });
+    Ok(())
+}
+
 pub fn create_and_adopt_agreement(
     ctx: Context<CreateAndAdoptAgreement>,
     params: AgreementInitParams,
@@ -328,11 +334,7 @@ pub fn create_and_adopt_agreement(
     let adoption = &mut ctx.accounts.adoption;
     let old_agreement = registry.agreements.get(adopter);
     adoption.agreement = ctx.accounts.agreement.key();
-    // Maintain legacy vec-backed map for compatibility
-    registry.agreements.insert(adopter, ctx.accounts.agreement.key());
-
-    let registry_required_space = registry.calculate_required_space();
-    resize_if_needed(&ctx.accounts.registry.to_account_info(), registry_required_space)?;
+    // Skip legacy vec-backed map update to avoid registry reallocation/rent issues on devnet
 
     emit!(AgreementUpdated { agreement: ctx.accounts.agreement.key() });
     emit!(SafeHarborAdoption {

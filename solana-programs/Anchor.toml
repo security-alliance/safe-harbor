@@ -8,7 +8,7 @@ skip-lint = false
 safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
 
 [programs.devnet]
-safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
+safe_harbor = "64Gpb6dztgGMcWPkQrDV4VjFHSfXTPoDtrhEu8ykXFKU"
 
 [programs.testnet]
 safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
@@ -17,5 +17,5 @@ safe_harbor = "AE3K1g3QPY45R9u2aPyk5r1pVXHPUEF6UNAP76QHJi4L"
 url = "https://api.devnet.solana.com"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "./owner-keypair.json"
