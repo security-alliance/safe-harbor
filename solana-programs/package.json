@@ -11,7 +11,8 @@
     "adopt": "ts-node scripts/adopt-agreement.ts",
     "query": "ts-node scripts/get-agreement-details.ts",
     "change-owner": "ts-node scripts/change-owner.ts",
-    "add-chain": "ts-node scripts/add-chain.ts"
+    "add-chain": "ts-node scripts/add-chain.ts",
+    "adopt-existing": "ts-node scripts/adopt-existing.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

@@ -24,7 +24,7 @@ use crate::helpers::{
     validate_no_duplicate_chain_ids,
     VERSION,
 };
-use crate::state::{Agreement, Registry, AdoptionEntry};
+use crate::state::{Agreement, Registry, AdoptionEntry, AdoptionHead};
 use crate::types::{AccountInScope, AgreementInitParams, BountyTerms, Chain, Contact};
 
 pub fn initialize_registry(ctx: Context<InitializeRegistry>, owner: Pubkey) -> Result<()> {
@@ -93,6 +93,9 @@ pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
     // Write to PDA mapping
     let adoption = &mut ctx.accounts.adoption;
     adoption.agreement = ctx.accounts.agreement.key();
+    // Update adopter-keyed head mapping
+    let head = &mut ctx.accounts.adoption_head;
+    head.agreement = ctx.accounts.agreement.key();
     // Skip legacy vec-backed map update to avoid registry reallocation/rent issues on devnet
 
     emit!(SafeHarborAdoption {
@@ -334,6 +337,9 @@ pub fn create_and_adopt_agreement(
     let adoption = &mut ctx.accounts.adoption;
     let old_agreement = registry.agreements.get(adopter);
     adoption.agreement = ctx.accounts.agreement.key();
+    // Update adopter-keyed head mapping
+    let head = &mut ctx.accounts.adoption_head;
+    head.agreement = ctx.accounts.agreement.key();
     // Skip legacy vec-backed map update to avoid registry reallocation/rent issues on devnet
 
     emit!(AgreementUpdated { agreement: ctx.accounts.agreement.key() });
@@ -347,6 +353,11 @@ pub fn create_and_adopt_agreement(
 
 pub fn get_agreement_details() -> Result<()> {
     Ok(())
+}
+
+// New read path: returns agreement for the given adopter using adopter-keyed PDA
+pub fn get_agreement_for_adopter(ctx: Context<crate::GetAgreementForAdopter>) -> Result<Pubkey> {
+    Ok(ctx.accounts.adoption_head.agreement)
 }
 
 

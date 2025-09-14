@@ -21,6 +21,8 @@ pub use crate::types::{
     AgreementInitParams,
 };
 pub use crate::state::{Registry, Agreement, AdoptionEntry, AgreementChainIndex, AgreementAccountIndex};
+// Expose AdoptionHead for client contexts
+pub use crate::state::AdoptionHead;
 
 #[program]
 pub mod safe_harbor {
@@ -136,6 +138,11 @@ pub mod safe_harbor {
     pub fn get_agreement_by_pda(ctx: Context<GetAgreementByPda>) -> Result<Pubkey> {
         crate::instructions::get_agreement_by_pda(ctx)
     }
+
+    // New O(1) lookup by adopter using adopter-keyed PDA
+    pub fn get_agreement_for_adopter(ctx: Context<GetAgreementForAdopter>) -> Result<Pubkey> {
+        crate::instructions::get_agreement_for_adopter(ctx)
+    }
 }
 
 // -------------------- Contexts --------------------
@@ -179,6 +186,14 @@ pub struct AdoptSafeHarbor<'info> {
     pub adoption: Account<'info, AdoptionEntry>,
     /// CHECK: agreement PDA or normal account; stored as pubkey only
     pub agreement: UncheckedAccount<'info>,
+    #[account(
+        init_if_needed,
+        payer = adopter,
+        space = AdoptionHead::SPACE,
+        seeds = [b"adoption_head", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption_head: Account<'info, AdoptionHead>,
     pub system_program: Program<'info, System>,
 }
 
@@ -221,6 +236,14 @@ pub struct CreateAndAdoptAgreement<'info> {
         bump
     )]
     pub adoption: Account<'info, AdoptionEntry>,
+    #[account(
+        init_if_needed,
+        payer = adopter,
+        space = AdoptionHead::SPACE,
+        seeds = [b"adoption_head", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption_head: Account<'info, AdoptionHead>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -284,4 +307,15 @@ pub struct GetAgreementByPda<'info> {
 #[derive(Accounts)]
 pub struct ReadOnlyAgreement<'info> {
     pub agreement: Account<'info, Agreement>,
+}
+
+#[derive(Accounts)]
+pub struct GetAgreementForAdopter<'info> {
+    /// CHECK: Adopter whose current agreement is queried
+    pub adopter: UncheckedAccount<'info>,
+    #[account(
+        seeds=[b"adoption_head", adopter.key().as_ref()],
+        bump
+    )]
+    pub adoption_head: Account<'info, AdoptionHead>,
 }

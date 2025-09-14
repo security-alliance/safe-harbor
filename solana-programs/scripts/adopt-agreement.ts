@@ -366,8 +366,13 @@ Large Agreement Support:
         [Buffer.from("adoption"), provider.wallet.publicKey.toBuffer()],
         program.programId
       );
+      const [adoptionHead] = PublicKey.findProgramAddressSync(
+        [Buffer.from("adoption_head"), provider.wallet.publicKey.toBuffer()],
+        program.programId
+      );
       console.log("Adoption PDA v2:", adoptionPdaV2.toString());
       console.log("Adoption PDA v1:", adoptionPdaV1.toString());
+      console.log("Adoption Head:", adoptionHead.toString());
 
       // Create agreement first
       const createTx = await program.methods
@@ -392,6 +397,7 @@ Large Agreement Support:
           adopter: provider.wallet.publicKey,
           agreement: agreementKeypair.publicKey,
           adoption: adoptionPdaV2,
+          adoptionHead: adoptionHead,
           systemProgram: SystemProgram.programId,
         })
         .rpc();

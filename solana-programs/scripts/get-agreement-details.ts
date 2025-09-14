@@ -34,7 +34,7 @@ Examples:
 
   // Get agreement address from command line or environment variable
   const agreementAddress = process.argv[2] || process.env.AGREEMENT_ADDRESS;
-  
+
   if (!agreementAddress) {
     console.error("❌ Please provide agreement address");
     console.log("Usage:");
@@ -72,14 +72,14 @@ Examples:
   // Fetch agreement details
   try {
     const agreement = await program.account.agreement.fetch(agreementPubkey);
-    
+
     console.log("\n📄 Agreement Details:");
     console.log("=".repeat(60));
     console.log("Address:", agreementPubkey.toString());
     console.log("Owner:", agreement.owner.toString());
     console.log("Protocol Name:", agreement.protocolName);
     console.log("Agreement URI:", agreement.agreementUri);
-    
+
     console.log("\n👥 Contact Details:");
     if (agreement.contactDetails.length === 0) {
       console.log("  No contacts specified");
@@ -88,7 +88,7 @@ Examples:
         console.log(`  ${index + 1}. ${contact.name}: ${contact.contact}`);
       });
     }
-    
+
     console.log("\n💰 Bounty Terms:");
     console.log("  Bounty Percentage:", agreement.bountyTerms.bountyPercentage.toString() + "%");
     console.log("  Bounty Cap USD:", agreement.bountyTerms.bountyCapUsd.toString());
@@ -96,7 +96,7 @@ Examples:
     console.log("  Identity Requirements:", formatIdentityRequirements(agreement.bountyTerms.identity));
     console.log("  Diligence Requirements:", agreement.bountyTerms.diligenceRequirements);
     console.log("  Aggregate Bounty Cap USD:", agreement.bountyTerms.aggregateBountyCapUsd.toString());
-    
+
     console.log("\n🔗 Chains and Accounts:");
     if (agreement.chains.length === 0) {
       console.log("  No chains specified");
@@ -107,7 +107,7 @@ Examples:
         console.log(`    Asset Recovery Address: ${chain.assetRecoveryAddress}`);
         console.log(`    Accounts (${chain.accounts.length}):`);
         totalAccounts += chain.accounts.length;
-        
+
         if (chain.accounts.length === 0) {
           console.log("      No accounts specified");
         } else {
@@ -117,30 +117,30 @@ Examples:
           });
         }
       });
-      
+
       console.log(`\n📊 Summary: ${agreement.chains.length} chains, ${totalAccounts} total accounts`);
     }
 
-    // Check adoption status if registry is available
-    if (registryPda) {
-      console.log("\n🤝 Checking Adoption Status...");
-      try {
-        // Try to find who adopted this agreement by checking the deployer first
-        const deployerAgreement = await program.methods
-          .getAgreement(provider.wallet.publicKey)
-          .accountsPartial({
-            registry: registryPda,
-          })
-          .view();
-        
-        if (deployerAgreement.toString() === agreementPubkey.toString()) {
-          console.log("  ✅ Adopted by deployer:", provider.wallet.publicKey.toString());
-        } else {
-          console.log("  ❌ Not adopted by deployer");
-        }
-      } catch (error) {
-        console.log("  ❌ Not adopted by deployer (or no agreement found)");
+    // Check adoption status using adopter-keyed PDA (preferred)
+    console.log("\n🤝 Checking Adoption Status...");
+    try {
+      const adopter = provider.wallet.publicKey;
+      const [adoptionHead] = PublicKey.findProgramAddressSync(
+        [Buffer.from("adoption_head"), adopter.toBuffer()],
+        program.programId
+      );
+      const adoptedAgreement = await program.methods
+        .getAgreementForAdopter()
+        .accountsPartial({ adopter, adoptionHead })
+        .view();
+
+      if (adoptedAgreement.toString() === agreementPubkey.toString()) {
+        console.log("  ✅ Adopted by current wallet:", adopter.toString());
+      } else {
+        console.log("  ❌ Current wallet adopted a different agreement:", adoptedAgreement.toString());
       }
+    } catch (error) {
+      console.log("  ❌ No adoption record found for current wallet");
     }
 
     // Save details to JSON file

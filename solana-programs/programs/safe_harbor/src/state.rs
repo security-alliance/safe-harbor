@@ -37,6 +37,15 @@ impl AdoptionEntry {
 }
 
 #[account]
+pub struct AdoptionHead {
+    pub agreement: Pubkey,
+}
+
+impl AdoptionHead {
+    pub const SPACE: usize = 8 + 32;
+}
+
+#[account]
 pub struct AgreementChainIndex {
     pub agreement: Pubkey,
     pub chain_id_hash: [u8; 32],
