@@ -140,6 +140,11 @@ pub mod safe_harbor {
     pub fn get_agreement_for_adopter(ctx: Context<GetAgreementForAdopter>) -> Result<Pubkey> {
         crate::instructions::get_agreement_for_adopter(ctx)
     }
+
+    // v2-style name for agreement lookup by adopter
+    pub fn get_agreement(ctx: Context<GetAgreementForAdopter>) -> Result<Pubkey> {
+        crate::instructions::get_agreement(ctx)
+    }
 }
 
 // -------------------- Contexts --------------------

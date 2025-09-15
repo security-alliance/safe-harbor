@@ -351,4 +351,9 @@ pub fn get_agreement_for_adopter(ctx: Context<crate::GetAgreementForAdopter>) ->
     Ok(ctx.accounts.adoption_head.agreement)
 }
 
+// v2-style name: returns current agreement for adopter via adopter-head PDA
+pub fn get_agreement(ctx: Context<crate::GetAgreementForAdopter>) -> Result<Pubkey> {
+    Ok(ctx.accounts.adoption_head.agreement)
+}
+
 
