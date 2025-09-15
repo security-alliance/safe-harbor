@@ -20,7 +20,7 @@ pub use crate::types::{
     BountyTerms,
     AgreementInitParams,
 };
-pub use crate::state::{Registry, Agreement, AdoptionEntry, AgreementChainIndex, AgreementAccountIndex};
+pub use crate::state::{Registry, Agreement, AdoptionEntry};
 // Expose AdoptionHead for client contexts
 pub use crate::state::AdoptionHead;
 
@@ -46,17 +46,12 @@ pub mod safe_harbor {
         crate::instructions::set_invalid_chains(ctx, chains)
     }
 
-    pub fn set_fallback_registry(ctx: Context<OwnerOnly>, fallback: Option<Pubkey>) -> Result<()> {
-        crate::instructions::set_fallback_registry(ctx, fallback)
-    }
+    // removed set_fallback_registry
 
     pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
         crate::instructions::adopt_safe_harbor(ctx)
     }
 
-    pub fn get_agreement(ctx: Context<GetAgreement>, adopter: Pubkey) -> Result<Pubkey> {
-        crate::instructions::get_agreement(ctx, adopter)
-    }
 
     pub fn is_chain_valid(ctx: Context<ReadOnlyRegistry>, caip2_chain_id: String) -> Result<bool> {
         crate::instructions::is_chain_valid(ctx, caip2_chain_id)
@@ -65,6 +60,8 @@ pub mod safe_harbor {
     pub fn get_valid_chains(ctx: Context<ReadOnlyRegistry>) -> Result<Vec<String>> {
         crate::instructions::get_valid_chains(ctx)
     }
+
+    //
 
     pub fn create_agreement(
         ctx: Context<CreateAgreement>,
@@ -130,8 +127,8 @@ pub mod safe_harbor {
         crate::instructions::create_and_adopt_agreement(ctx, params, owner)
     }
 
-    pub fn get_agreement_details(_ctx: Context<ReadOnlyAgreement>) -> Result<()> {
-        crate::instructions::get_agreement_details()
+    pub fn get_agreement_details(ctx: Context<ReadOnlyAgreement>) -> Result<crate::types::AgreementInitParams> {
+        crate::instructions::get_agreement_details(ctx)
     }
 
     // Optional PDA-based lookups
@@ -153,7 +150,7 @@ pub struct InitializeRegistry<'info> {
         init,
         payer = payer,
         space = Registry::INITIAL_SPACE,
-        seeds = [b"registry"],
+        seeds = [b"registry_v2"],
         bump
     )]
     pub registry: Account<'info, Registry>,
@@ -164,14 +161,14 @@ pub struct InitializeRegistry<'info> {
 
 #[derive(Accounts)]
 pub struct OwnerOnly<'info> {
-    #[account(mut, seeds=[b"registry"], bump)]
+    #[account(mut, seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
     pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct AdoptSafeHarbor<'info> {
-    #[account(mut, seeds=[b"registry"], bump)]
+    #[account(mut, seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub adopter: Signer<'info>,
@@ -199,7 +196,7 @@ pub struct AdoptSafeHarbor<'info> {
 
 #[derive(Accounts)]
 pub struct CreateAgreement<'info> {
-    #[account(mut, seeds=[b"registry"], bump)]
+    #[account(mut, seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
     #[account(
         init,
@@ -216,7 +213,7 @@ pub struct CreateAgreement<'info> {
 
 #[derive(Accounts)]
 pub struct CreateAndAdoptAgreement<'info> {
-    #[account(mut, seeds=[b"registry"], bump)]
+    #[account(mut, seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
     #[account(
         init,
@@ -259,7 +256,7 @@ pub struct AgreementOwnerOnly<'info> {
 
 #[derive(Accounts)]
 pub struct AgreementOwnerWithRegistry<'info> {
-    #[account(mut, seeds=[b"registry"], bump)]
+    #[account(mut, seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub agreement: Account<'info, Agreement>,
@@ -275,19 +272,12 @@ pub struct AgreementOwnerSignerOnly<'info> {
 }
 
 #[derive(Accounts)]
-pub struct VersionContext<'info> {
-    pub signer: Signer<'info>,
-}
+pub struct VersionContext {}
 
-#[derive(Accounts)]
-pub struct GetAgreement<'info> {
-    #[account(seeds=[b"registry"], bump)]
-    pub registry: Account<'info, Registry>,
-}
 
 #[derive(Accounts)]
 pub struct ReadOnlyRegistry<'info> {
-    #[account(seeds=[b"registry"], bump)]
+    #[account(seeds=[b"registry_v2"], bump)]
     pub registry: Account<'info, Registry>,
 }
 

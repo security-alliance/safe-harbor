@@ -18,7 +18,7 @@ async fn test_initialize_registry() {
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
     
     let owner = Keypair::new();
-    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry"], &program_id);
+    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry_v2"], &program_id);
     
     let accounts = safe_harbor::accounts::InitializeRegistry {
         registry: registry_pda,
@@ -56,7 +56,7 @@ async fn test_set_valid_chains() {
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
     
     let owner = Keypair::new();
-    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry"], &program_id);
+    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry_v2"], &program_id);
     
     // Initialize registry first
     let init_accounts = safe_harbor::accounts::InitializeRegistry {
@@ -115,7 +115,7 @@ async fn test_create_agreement() {
     
     let owner = Keypair::new();
     let agreement_keypair = Keypair::new();
-    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry"], &program_id);
+    let (registry_pda, _bump) = Pubkey::find_program_address(&[b"registry_v2"], &program_id);
     
     // Initialize registry first
     let init_accounts = safe_harbor::accounts::InitializeRegistry {

@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import { SafeHarbor } from "../target/types/safe_harbor";
 import { expect } from "chai";
 
 // Helper types matching Rust structs
@@ -77,10 +78,14 @@ describe("safe_harbor", () => {
   const provider = anchor.AnchorProvider.local();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.safe_harbor as Program;
+  const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
+  type AgreementAccount = {
+    protocolName: string;
+    chains: Array<{ caip2ChainId: string; accounts: unknown[] }>;
+  };
 
   const [registryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("registry")],
+    [Buffer.from("registry_v2")],
     program.programId
   );
 
@@ -92,13 +97,13 @@ describe("safe_harbor", () => {
         registry: registryPda,
         payer: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     // set_valid_chains
     await program.methods
       .setValidChains(["eip155:1", "eip155:2"]) // OwnerOnly expects signer to be registry.owner
-      .accounts({ registry: registryPda, signer: provider.wallet.publicKey })
+      .accounts({ registry: registryPda, signer: provider.wallet.publicKey } as any)
       .rpc();
   });
 
@@ -107,13 +112,13 @@ describe("safe_harbor", () => {
     const params = mockAgreementDetails("0xAABB");
 
     await program.methods
-      .createAgreement(params as any)
+      .createAgreement(params as any, provider.wallet.publicKey)
       .accounts({
         registry: registryPda,
         agreement: agreementKp.publicKey,
         owner: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-      })
+      } as any)
       .signers([agreementKp])
       .rpc();
 
@@ -130,7 +135,7 @@ describe("safe_harbor", () => {
         adoption: adoptionPda,
         agreement: agreementKp.publicKey,
         systemProgram: SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     // set_protocol_name
@@ -139,7 +144,7 @@ describe("safe_harbor", () => {
       .accounts({
         agreement: agreementKp.publicKey,
         owner: provider.wallet.publicKey,
-      })
+      } as any)
       .rpc();
 
     // add_accounts to eip155:1
@@ -150,13 +155,13 @@ describe("safe_harbor", () => {
       .accounts({
         agreement: agreementKp.publicKey,
         owner: provider.wallet.publicKey,
-      })
+      } as any)
       .rpc();
 
     // Fetch agreement account and assert
-    const acct: any = await program.account.agreement.fetch(
+    const acct = (await program.account.agreement.fetch(
       agreementKp.publicKey
-    );
+    )) as AgreementAccount;
     expect(acct.protocolName).to.eq("Updated Protocol");
     expect(acct.chains.length).to.eq(1);
     const chain = acct.chains[0];

@@ -38,8 +38,9 @@ Env:
     const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
 
     const adopter = provider.wallet.publicKey;
+    // Derive registry PDA (v2 only)
     const [registryPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("registry")],
+        [Buffer.from("registry_v2")],
         program.programId
     );
 

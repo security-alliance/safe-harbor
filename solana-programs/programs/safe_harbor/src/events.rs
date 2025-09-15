@@ -8,7 +8,6 @@ pub struct RegistryInitialized {
 #[event]
 pub struct SafeHarborAdoption {
     pub entity: Pubkey,
-    pub old_details: Pubkey,
     pub new_details: Pubkey,
 }
 

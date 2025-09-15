@@ -62,47 +62,57 @@ Examples:
 
   const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
 
-  // Derive registry PDA
+  // Derive registry PDA (v2 only)
   const [registryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("registry")],
+    [Buffer.from("registry_v2")],
     program.programId
   );
   console.log("Registry PDA:", registryPda.toString());
 
-  // Fetch agreement details
+  // Fetch agreement details via program method (stable snapshot)
   try {
-    const agreement = await program.account.agreement.fetch(agreementPubkey);
+    const snapshot = await program.methods
+      .getAgreementDetails()
+      .accounts({ agreement: agreementPubkey })
+      .view();
 
     console.log("\n📄 Agreement Details:");
     console.log("=".repeat(60));
     console.log("Address:", agreementPubkey.toString());
-    console.log("Owner:", agreement.owner.toString());
-    console.log("Protocol Name:", agreement.protocolName);
-    console.log("Agreement URI:", agreement.agreementUri);
+    // Owner is not part of the snapshot; fetch from account header for completeness
+    let ownerStr = "";
+    try {
+      const acct = await program.account.agreement.fetch(agreementPubkey);
+      ownerStr = acct.owner.toString();
+    } catch (_) { }
+
+    console.log("Owner:", ownerStr || "<unknown>");
+    console.log("Protocol Name:", snapshot.protocolName);
+    console.log("Agreement URI:", snapshot.agreementUri);
 
     console.log("\n👥 Contact Details:");
-    if (agreement.contactDetails.length === 0) {
+    if (snapshot.contactDetails.length === 0) {
       console.log("  No contacts specified");
     } else {
-      agreement.contactDetails.forEach((contact, index) => {
+      snapshot.contactDetails.forEach((contact, index) => {
         console.log(`  ${index + 1}. ${contact.name}: ${contact.contact}`);
       });
     }
 
     console.log("\n💰 Bounty Terms:");
-    console.log("  Bounty Percentage:", agreement.bountyTerms.bountyPercentage.toString() + "%");
-    console.log("  Bounty Cap USD:", agreement.bountyTerms.bountyCapUsd.toString());
-    console.log("  Retainable:", agreement.bountyTerms.retainable);
-    console.log("  Identity Requirements:", formatIdentityRequirements(agreement.bountyTerms.identity));
-    console.log("  Diligence Requirements:", agreement.bountyTerms.diligenceRequirements);
-    console.log("  Aggregate Bounty Cap USD:", agreement.bountyTerms.aggregateBountyCapUsd.toString());
+    console.log("  Bounty Percentage:", snapshot.bountyTerms.bountyPercentage.toString() + "%");
+    console.log("  Bounty Cap USD:", snapshot.bountyTerms.bountyCapUsd.toString());
+    console.log("  Retainable:", snapshot.bountyTerms.retainable);
+    console.log("  Identity Requirements:", formatIdentityRequirements(snapshot.bountyTerms.identity));
+    console.log("  Diligence Requirements:", snapshot.bountyTerms.diligenceRequirements);
+    console.log("  Aggregate Bounty Cap USD:", snapshot.bountyTerms.aggregateBountyCapUsd.toString());
 
     console.log("\n🔗 Chains and Accounts:");
-    if (agreement.chains.length === 0) {
+    if (snapshot.chains.length === 0) {
       console.log("  No chains specified");
     } else {
       let totalAccounts = 0;
-      agreement.chains.forEach((chain, chainIndex) => {
+      snapshot.chains.forEach((chain, chainIndex) => {
         console.log(`  Chain ${chainIndex + 1}: ${chain.caip2ChainId}`);
         console.log(`    Asset Recovery Address: ${chain.assetRecoveryAddress}`);
         console.log(`    Accounts (${chain.accounts.length}):`);
@@ -118,7 +128,7 @@ Examples:
         }
       });
 
-      console.log(`\n📊 Summary: ${agreement.chains.length} chains, ${totalAccounts} total accounts`);
+      console.log(`\n📊 Summary: ${snapshot.chains.length} chains, ${totalAccounts} total accounts`);
     }
 
     // Check adoption status using adopter-keyed PDA (preferred)
@@ -146,19 +156,19 @@ Examples:
     // Save details to JSON file
     const detailsOutput = {
       address: agreementPubkey.toString(),
-      owner: agreement.owner.toString(),
-      protocolName: agreement.protocolName,
-      agreementUri: agreement.agreementUri,
-      contactDetails: agreement.contactDetails,
+      owner: ownerStr,
+      protocolName: snapshot.protocolName,
+      agreementUri: snapshot.agreementUri,
+      contactDetails: snapshot.contactDetails,
       bountyTerms: {
-        bountyPercentage: agreement.bountyTerms.bountyPercentage.toString(),
-        bountyCapUsd: agreement.bountyTerms.bountyCapUsd.toString(),
-        retainable: agreement.bountyTerms.retainable,
-        identity: formatIdentityRequirements(agreement.bountyTerms.identity),
-        diligenceRequirements: agreement.bountyTerms.diligenceRequirements,
-        aggregateBountyCapUsd: agreement.bountyTerms.aggregateBountyCapUsd.toString(),
+        bountyPercentage: snapshot.bountyTerms.bountyPercentage.toString(),
+        bountyCapUsd: snapshot.bountyTerms.bountyCapUsd.toString(),
+        retainable: snapshot.bountyTerms.retainable,
+        identity: formatIdentityRequirements(snapshot.bountyTerms.identity),
+        diligenceRequirements: snapshot.bountyTerms.diligenceRequirements,
+        aggregateBountyCapUsd: snapshot.bountyTerms.aggregateBountyCapUsd.toString(),
       },
-      chains: agreement.chains.map(chain => ({
+      chains: snapshot.chains.map(chain => ({
         caip2ChainId: chain.caip2ChainId,
         assetRecoveryAddress: chain.assetRecoveryAddress,
         accounts: chain.accounts.map(account => ({

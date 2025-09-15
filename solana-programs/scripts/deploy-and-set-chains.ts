@@ -73,7 +73,7 @@ async function main() {
 
   // Derive registry PDA
   const [registryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("registry")],
+    [Buffer.from("registry_v2")],
     program.programId
   );
 
@@ -90,12 +90,12 @@ async function main() {
     console.log("Registry Owner:", registryOwner.toString());
     console.log("Current Wallet:", provider.wallet.publicKey.toString());
     console.log("Existing Valid Chains:", registryData.validChains.length);
-    
+
     // Check if we're the owner
     if (!registryOwner.equals(provider.wallet.publicKey)) {
       console.log("⚠️  You are not the owner of this registry. Cannot modify chains.");
       console.log("✅ Registry is already deployed and functional with existing chains.");
-      
+
       // Save deployment info for existing registry
       const deploymentInfo = {
         programId: program.programId.toString(),
@@ -106,19 +106,30 @@ async function main() {
         note: "Using existing registry - not owner",
         deployedAt: new Date().toISOString(),
       };
-      
+
       fs.writeFileSync(DEPLOYMENT_INFO_PATH, JSON.stringify(deploymentInfo, null, 2));
       console.log("📄 Deployment info saved to", DEPLOYMENT_INFO_PATH);
       return;
     }
   } catch (error) {
-    console.log("📝 Registry doesn't exist, will initialize");
+    console.log("📝 Registry fetch failed; checking raw account info...");
+    try {
+      const info = await anchor.getProvider().connection.getAccountInfo(registryPda);
+      if (info) {
+        registryExists = true;
+        console.log("ℹ️  Registry account exists on-chain; skipping init");
+      } else {
+        console.log("📝 Registry doesn't exist, will initialize");
+      }
+    } catch (e) {
+      console.log("📝 Registry existence check failed; assuming not initialized");
+    }
   }
 
   // Initialize registry if it doesn't exist
   if (!registryExists) {
     console.log("🔧 Initializing registry...");
-    
+
     try {
       const initTx = await program.methods
         .initializeRegistry(provider.wallet.publicKey)
@@ -140,7 +151,7 @@ async function main() {
   // Set valid chains in batches to avoid transaction size limits
   const BATCH_SIZE = 10; // Process chains in smaller batches
   const batches: string[][] = [];
-  
+
   for (let i = 0; i < SUPPORTED_CHAINS.length; i += BATCH_SIZE) {
     batches.push(SUPPORTED_CHAINS.slice(i, i + BATCH_SIZE));
   }
@@ -150,7 +161,7 @@ async function main() {
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     console.log(`Processing batch ${i + 1}/${batches.length} (${batch.length} chains)...`);
-    
+
     try {
       const setChainsTx = await program.methods
         .setValidChains(batch)
@@ -199,7 +210,7 @@ async function main() {
   console.log("Owner:", provider.wallet.publicKey.toString());
   console.log("Valid Chains:", SUPPORTED_CHAINS.length);
   console.log("📄 Deployment info saved to", DEPLOYMENT_INFO_PATH);
-  
+
   console.log("\n🔗 Supported Chains:");
   SUPPORTED_CHAINS.forEach((chain, index) => {
     console.log(`  ${index + 1}. ${chain}`);

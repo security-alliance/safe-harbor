@@ -7,11 +7,8 @@ use crate::{
     AgreementOwnerSignerOnly,
     CreateAgreement,
     CreateAndAdoptAgreement,
-    GetAgreement,
     InitializeRegistry,
-    ReadOnlyAgreement,
     ReadOnlyRegistry,
-    VersionContext,
     OwnerOnly,
 };
 use crate::errors::ErrorCode;
@@ -24,13 +21,12 @@ use crate::helpers::{
     validate_no_duplicate_chain_ids,
     VERSION,
 };
-use crate::state::{Agreement, Registry, AdoptionEntry, AdoptionHead};
+// state types are referenced via contexts; no direct imports needed
 use crate::types::{AccountInScope, AgreementInitParams, BountyTerms, Chain, Contact};
 
 pub fn initialize_registry(ctx: Context<InitializeRegistry>, owner: Pubkey) -> Result<()> {
     let reg = &mut ctx.accounts.registry;
     reg.owner = owner;
-    reg.fallback_registry = None;
     reg.valid_chains = Vec::new();
     reg.agreements = crate::state::AccountMap { items: Vec::new() };
 
@@ -79,17 +75,11 @@ pub fn set_invalid_chains(ctx: Context<OwnerOnly>, chains: Vec<String>) -> Resul
     Ok(())
 }
 
-pub fn set_fallback_registry(ctx: Context<OwnerOnly>, fallback: Option<Pubkey>) -> Result<()> {
-    let reg = &mut ctx.accounts.registry;
-    require_keys_eq!(ctx.accounts.signer.key(), reg.owner, ErrorCode::Unauthorized);
-    reg.fallback_registry = fallback;
-    Ok(())
-}
+// removed set_fallback_registry
 
 pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
-    let reg = &mut ctx.accounts.registry;
+    let _reg = &mut ctx.accounts.registry;
     let adopter = ctx.accounts.adopter.key();
-    let old_agreement = reg.agreements.get(adopter);
     // Write to PDA mapping
     let adoption = &mut ctx.accounts.adoption;
     adoption.agreement = ctx.accounts.agreement.key();
@@ -100,19 +90,12 @@ pub fn adopt_safe_harbor(ctx: Context<AdoptSafeHarbor>) -> Result<()> {
 
     emit!(SafeHarborAdoption {
         entity: adopter,
-        old_details: old_agreement.unwrap_or_default(),
         new_details: ctx.accounts.agreement.key(),
     });
     Ok(())
 }
 
-pub fn get_agreement(ctx: Context<GetAgreement>, adopter: Pubkey) -> Result<Pubkey> {
-    let reg = &ctx.accounts.registry;
-    if let Some(agreement) = reg.agreements.get(adopter) {
-        return Ok(agreement);
-    }
-    err!(ErrorCode::NoAgreement)
-}
+// removed legacy get_agreement
 
 // Optional PDA-based read path (O(1) without scanning registry)
 pub fn get_agreement_by_pda(ctx: Context<crate::GetAgreementByPda>) -> Result<Pubkey> {
@@ -128,6 +111,8 @@ pub fn get_valid_chains(ctx: Context<ReadOnlyRegistry>) -> Result<Vec<String>> {
     let reg = &ctx.accounts.registry;
     Ok(reg.valid_chains.clone())
 }
+
+// removed fallback-aware read helpers
 
 pub fn create_agreement(
     ctx: Context<CreateAgreement>,
@@ -335,7 +320,6 @@ pub fn create_and_adopt_agreement(
 
     // Write to PDA mapping
     let adoption = &mut ctx.accounts.adoption;
-    let old_agreement = registry.agreements.get(adopter);
     adoption.agreement = ctx.accounts.agreement.key();
     // Update adopter-keyed head mapping
     let head = &mut ctx.accounts.adoption_head;
@@ -345,14 +329,21 @@ pub fn create_and_adopt_agreement(
     emit!(AgreementUpdated { agreement: ctx.accounts.agreement.key() });
     emit!(SafeHarborAdoption {
         entity: adopter,
-        old_details: old_agreement.unwrap_or_default(),
         new_details: ctx.accounts.agreement.key(),
     });
     Ok(())
 }
 
-pub fn get_agreement_details() -> Result<()> {
-    Ok(())
+pub fn get_agreement_details(ctx: Context<crate::ReadOnlyAgreement>) -> Result<AgreementInitParams> {
+    let a = &ctx.accounts.agreement;
+    // Return a stable, client-friendly snapshot struct
+    Ok(AgreementInitParams {
+        protocol_name: a.protocol_name.clone(),
+        contact_details: a.contact_details.clone(),
+        chains: a.chains.clone(),
+        bounty_terms: a.bounty_terms.clone(),
+        agreement_uri: a.agreement_uri.clone(),
+    })
 }
 
 // New read path: returns agreement for the given adopter using adopter-keyed PDA

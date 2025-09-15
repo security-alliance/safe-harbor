@@ -61,11 +61,12 @@ Env:
     anchor.setProvider(provider);
     const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
 
-    // Derive registry PDA
+    // Derive registry PDA (v2 only)
     const [registryPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("registry")],
+        [Buffer.from("registry_v2")],
         program.programId
     );
+    console.log("Using Registry PDA:", registryPda.toString());
 
     const chain: any = {
         caip2ChainId: chainId,

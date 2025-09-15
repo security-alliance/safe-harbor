@@ -36,7 +36,8 @@ npm run deploy
 ### Scripts
 - deploy — initialize registry and set chains
 - adopt [file] [ownerPubkey?] — create (+adopt) from JSON (see agreement-data-sample.json)
-- query <agreement> — print agreement details
+- adopt-existing <agreement> — adopt an existing agreement for the current wallet
+- query <agreement> — print agreement details (uses adopter-keyed PDA for adoption status)
 
 ### Program ID
 If you change the program ID, update it in `programs/safe_harbor/src/lib.rs` and `Anchor.toml`.
@@ -70,6 +71,7 @@ If you change the program ID, update it in `programs/safe_harbor/src/lib.rs` and
 - `create_agreement(params: AgreementInitParams, owner: Pubkey)`
 - `create_and_adopt_agreement(params: AgreementInitParams, owner: Pubkey)`
 - `adopt_safe_harbor(agreement: Pubkey)`
+- `get_agreement_for_adopter()` — preferred O(1) lookup using adopter-keyed PDA
 - `add_chains(chains: Vec<Chain>)` (owner only)
 - `add_accounts(caip2_chain_id: String, accounts: Vec<AccountInScope>)` (owner only)
 
@@ -87,6 +89,9 @@ anchor test        # integration
 - Keep strings short; put details off-chain (URI) to reduce tx size.
 - For large agreements, use owner keypair; optionally set `PREFUND_AGREEMENT_SOL`.
 - Enable logs with `export ANCHOR_LOG=true`.
+
+### Deprecations
+- `get_agreement(adopter)` is deprecated and may not reflect current adoption. Use `get_agreement_for_adopter()` or derive/fetch the `AdoptionHead` PDA `["adoption_head", adopter]`.
 
 ## Quick Commands
 ```bash

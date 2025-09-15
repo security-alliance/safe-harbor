@@ -180,7 +180,7 @@ Large Agreement Support:
 
   // Derive registry PDA directly (don't depend on deployment info)
   const [registryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("registry")],
+    [Buffer.from("registry_v2")],
     program.programId
   );
   console.log("Registry PDA:", registryPda.toString());
