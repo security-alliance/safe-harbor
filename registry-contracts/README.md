@@ -12,10 +12,10 @@ These registry contracts were designed for EVM-compatible chains. For non-EVM ch
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation). To test the contracts, use `forge test`.
 
-There are 2 contracts in this system:
+There are 2 active versions in this system:
 
--   `SafeHarborRegistry` - Where adopted agreement addresses are stored, new agreements are registered, and agreements are validated.
--   `AgreementV1` - Adopted agreements created by protocols.
+-   `src/v2/SafeHarborRegistryV2.sol` and `src/v2/AgreementV2.sol` (current)
+-   `src/v1/SafeHarborRegistry.sol` and `src/v1/AgreementV1.sol` (legacy)
 
 ## Setup
 
@@ -45,12 +45,12 @@ The V2 adoption script supports configurable options and is the recommended appr
 |----------|----------|---------|-------------|
 | `DEPLOYER_PRIVATE_KEY` | ✅ | - | Private key for transaction signing |
 | `AGREEMENT_OWNER` | ❌ | Deployer address | Address that will own the agreement |
-| `ADOPT_TO_REGISTRY` | ❌ | `true` | Whether to adopt the agreement to the registry |
+| `ADOPT_TO_REGISTRY` | ❌ | `false` | Whether to adopt the agreement to the registry |
 
 **Usage:**
 ```bash
 cd registry-contracts
-forge script script/v2/AdoptSafeHarborV2.s.sol --rpc-url <URL> --verify --broadcast
+forge script script/v2/AdoptSafeHarborV2.s.sol:AdoptSafeHarborV2 --rpc-url <URL> --verify --broadcast
 ```
 
 **Configuration:** The script reads agreement details from `agreementDetailsV2.json`. Make sure this file exists and contains valid agreement configuration before running the script.
@@ -63,10 +63,74 @@ For V1 adoptions:
 3. Run the script using:
 
 ```bash
-forge script script/v1/AdoptSafeHarborV1.s.sol --rpc-url <URL> --verify --broadcast
+forge script script/v1/AdoptSafeHarborV1.s.sol:AdoptSafeHarborV1 --rpc-url <URL> --verify --broadcast
 ```
 
 If you would like to deploy from the protocol multisig, please contact us directly.
+
+### V2 Utilities
+
+#### Add chains to an existing AgreementV2
+
+The add-chains script reads from `addChainsV2.json` and calls `AgreementV2.addChains`.
+
+**Requirements:**
+
+- `DEPLOYER_PRIVATE_KEY` in env (must be the current `owner()` of the agreement)
+- `addChainsV2.json` in the repo root with fields:
+  - `agreementAddress` (checksummed address)
+  - `chains[]` objects with `id` (CAIP-2), `assetRecoveryAddress`, `accounts[]` where each account has `accountAddress` and `childContractScope` (enum as uint)
+
+**Usage:**
+
+```bash
+cd registry-contracts
+forge script script/v2/AddChainsV2.s.sol:AddChainsV2 --rpc-url <URL> --broadcast
+```
+
+#### Change AgreementV2 owner
+
+Transfer ownership of an `AgreementV2` to a new address.
+
+**CLI (recommended):**
+
+```bash
+cd registry-contracts
+forge script script/v2/ChangeOwnerV2.s.sol:ChangeOwnerV2 \
+  --sig 'run(address,address)' 0xAgreementAddress 0xNewOwnerAddress \
+  --rpc-url <URL> --broadcast
+```
+
+**Env-based:**
+
+```bash
+export DEPLOYER_PRIVATE_KEY=0x...
+export AGREEMENT_ADDRESS=0xAgreementAddress
+export NEW_OWNER=0xNewOwnerAddress
+cd registry-contracts
+forge script script/v2/ChangeOwnerV2.s.sol:ChangeOwnerV2 --rpc-url <URL> --broadcast
+```
+
+#### Get AgreementV2 details
+
+Logs the current `AgreementDetailsV2` to the console.
+
+**CLI:**
+
+```bash
+cd registry-contracts
+forge script script/v2/GetAgreementDetailsV2.s.sol:GetAgreementDetailsV2 \
+  --sig 'run(address)' 0xAgreementAddress \
+  --rpc-url <URL>
+```
+
+**Env-based:**
+
+```bash
+export AGREEMENT_ADDRESS=0xAgreementAddress
+cd registry-contracts
+forge script script/v2/GetAgreementDetailsV2.s.sol:GetAgreementDetailsV2 --rpc-url <URL>
+```
 
 ### Signed Accounts
 
@@ -94,10 +158,11 @@ The Safe Harbor Registry will be deployed using the deterministic deployment pro
 To deploy the registry to an EVM-compatible chain where it is not currently deployed:
 
 1. Ensure the deterministic-deployment-proxy is deployed at 0x4e59b44847b379578588920cA78FbF26c0B4956C, and if it's not, deploy it using [the process mentioned above](https://github.com/Arachnid/deterministic-deployment-proxy).
-2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/SafeHarborRegistryDeploy.s.sol`](script/SafeHarborRegistryDeploy.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
+2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/v2/DeployRegistryV2.s.sol`](script/v2/DeployRegistryV2.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
 
 ```
-forge script DeployRegistryV2 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
+cd registry-contracts
+forge script script/v2/DeployRegistryV2.s.sol:DeployRegistryV2 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
 ```
 
 *https://chainlist.org*

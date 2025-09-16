@@ -15,7 +15,7 @@ contract SetChains is Script {
         uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
 
         // CAIP-2 chain IDs for various chains
-        string[] memory caip2ChainIds = new string[](51);
+        string[] memory caip2ChainIds = new string[](52);
         caip2ChainIds[0] = "eip155:1"; // Ethereum
         caip2ChainIds[1] = "eip155:56"; // BSC
         caip2ChainIds[2] = "eip155:42161"; // Arbitrum
@@ -67,6 +67,7 @@ contract SetChains is Script {
         caip2ChainIds[48] = "eip155:14"; // Flare
         caip2ChainIds[49] = "eip155:1868"; // Soneium
         caip2ChainIds[50] = "eip155:295"; // Hedera
+        caip2ChainIds[51] = "eip155:1868"; // Soneium
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);

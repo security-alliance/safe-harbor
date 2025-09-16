@@ -100,7 +100,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse chains array
-    function parseChains(string memory json) internal view returns (ChainV2[] memory) {
+    function parseChains(string memory json) public view returns (ChainV2[] memory) {
         uint256 chainCount = getArrayLength(json, ".chains", ".id");
 
         ChainV2[] memory chains = new ChainV2[](chainCount);
