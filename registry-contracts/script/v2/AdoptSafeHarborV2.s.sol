@@ -63,7 +63,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse the complete agreement details
-    function parseAgreementDetails(string memory json) internal view returns (AgreementDetailsV2 memory) {
+    function parseAgreementDetails(string memory json) public view returns (AgreementDetailsV2 memory) {
         return AgreementDetailsV2({
             protocolName: json.readString(".protocolName"),
             contactDetails: parseContacts(json),
@@ -74,7 +74,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse contacts array
-    function parseContacts(string memory json) internal view returns (Contact[] memory) {
+    function parseContacts(string memory json) public view returns (Contact[] memory) {
         uint256 contactCount = getArrayLength(json, ".contact", ".name");
 
         Contact[] memory contacts = new Contact[](contactCount);
@@ -88,7 +88,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse bounty terms
-    function parseBountyTerms(string memory json) internal pure returns (BountyTerms memory) {
+    function parseBountyTerms(string memory json) public pure returns (BountyTerms memory) {
         return BountyTerms({
             bountyPercentage: json.readUint(".bountyTerms.bountyPercentage"),
             bountyCapUSD: json.readUint(".bountyTerms.bountyCapUSD"),
@@ -100,7 +100,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse chains array
-    function parseChains(string memory json) internal view returns (ChainV2[] memory) {
+    function parseChains(string memory json) public view returns (ChainV2[] memory) {
         uint256 chainCount = getArrayLength(json, ".chains", ".id");
 
         ChainV2[] memory chains = new ChainV2[](chainCount);
@@ -116,7 +116,7 @@ contract AdoptSafeHarborV2 is ScriptBase {
     }
 
     // Helper function to parse accounts for a specific chain
-    function parseAccounts(string memory json, string memory chainIndex) internal view returns (AccountV2[] memory) {
+    function parseAccounts(string memory json, string memory chainIndex) public view returns (AccountV2[] memory) {
         uint256 accountCount =
             getArrayLength(json, string.concat(".chains[", chainIndex, "].accounts"), ".accountAddress");
 

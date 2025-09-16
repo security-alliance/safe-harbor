@@ -1,0 +1,33 @@
+{
+    "agreementAddress": "FILL ME IN",
+    "chains": [
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D",
+                    "childContractScope": 1
+                },
+                {
+                    "accountAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+                    "childContractScope": 2
+                }
+            ],
+            "assetRecoveryAddress": "0xBA9424d650A4F5c80a0dA641254d1AcCE2A37057",
+            "id": "eip155:8453"
+        },
+        {
+            "accounts": [
+                {
+                    "accountAddress": "0xff75B6da14FfbbfD355Daf7a2731456b3562Ba6D",
+                    "childContractScope": 1
+                },
+                {
+                    "accountAddress": "0x6807dc923806fE8Fd134338EABCA509979a7e0cB",
+                    "childContractScope": 2
+                }
+            ],
+            "assetRecoveryAddress": "0x25Ec457d1778b0E5316e7f38f3c22baF413F1A8C",
+            "id": "eip155:56"
+        }
+    ]
+}
