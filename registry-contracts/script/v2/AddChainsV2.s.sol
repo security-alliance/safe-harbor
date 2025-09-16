@@ -12,7 +12,7 @@ import {Chain as ChainV2} from "../../src/v2/AgreementDetailsV2.sol";
 contract AddChainsV2 is Script {
     using stdJson for string;
 
-    // Path to the JSON input file (can be overridden with --ffi and env if needed)
+    // Path to the JSON input file
     string constant INPUT_JSON_PATH = "addChainsV2.json";
 
     function run() public {
