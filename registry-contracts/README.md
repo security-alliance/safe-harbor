@@ -162,7 +162,7 @@ To deploy the registry to an EVM-compatible chain where it is not currently depl
 
 ```
 cd registry-contracts
-forge script script/v2/DeployRegistryV2.s.sol:DeployRegistryV2 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
+forge script script/v1/DeployRegistryV1.s.sol:DeployRegistryV1 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
 ```
 
 *https://chainlist.org*
