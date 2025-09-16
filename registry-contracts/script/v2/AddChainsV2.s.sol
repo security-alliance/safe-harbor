@@ -36,6 +36,4 @@ contract AddChainsV2 is Script {
 
         console.log("Added chains successfully");
     }
-
-    // Parsing helpers are reused from AdoptSafeHarborV2.parseChains
 }
