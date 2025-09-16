@@ -10,9 +10,7 @@ import {logAgreementDetails} from "../../test/v2/mock.sol";
 contract GetAgreementDetailsV2 is ScriptBase {
     function run() public view {
         address agreementAddress = vm.envAddress("AGREEMENT_ADDRESS");
-        AgreementV2 agreement = AgreementV2(agreementAddress);
-        AgreementDetailsV2 memory details = agreement.getDetails();
-        logAgreementDetails(details);
+        run(agreementAddress);
     }
 
     /// @notice CLI entry: forge script ... --sig 'run(address)' <agreementAddress>
