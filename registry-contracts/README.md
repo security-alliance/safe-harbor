@@ -158,7 +158,7 @@ The Safe Harbor Registry will be deployed using the deterministic deployment pro
 To deploy the registry to an EVM-compatible chain where it is not currently deployed:
 
 1. Ensure the deterministic-deployment-proxy is deployed at 0x4e59b44847b379578588920cA78FbF26c0B4956C, and if it's not, deploy it using [the process mentioned above](https://github.com/Arachnid/deterministic-deployment-proxy).
-2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/v2/DeployRegistryV2.s.sol`](script/v2/DeployRegistryV2.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
+2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/v1/DeployRegistryV1.s.sol`](script/v1/DeployRegistryV1.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
 
 ```
 cd registry-contracts
