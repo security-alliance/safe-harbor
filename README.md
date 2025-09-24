@@ -83,3 +83,16 @@ If the whitehat decides to proceed with a whitehat rescue, they must follow the 
 To find out more information about adopting Safe Harbor, please check out the [Safe Harbor SEAL Framework](https://frameworks.securityalliance.org/safe-harbor/index.html). Or reach out to us at [safe-harbor@securityalliance.org](mailto:safe-harbor@securityalliance.org).
 
 
+# Solana programs 
+To clone repo with solana programs 
+```bash
+$ git clone git@github.com:security-alliance/safe-harbor.git
+$ cd safe-harbor
+$ git submodule update --init --recursive
+```
+
+or 
+
+```sh
+$ git clone --recursive git@github.com:security-alliance/safe-harbor.git
+```
