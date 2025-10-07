@@ -30,7 +30,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Set Chains V2 (Simulation)
-        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }}
+        run: forge script SetChains --rpc-url ${{ github.event.inputs.rpc_url }} -vvvv
         working-directory: registry-contracts
         env:
           REGISTRY_DEPLOYER_PRIVATE_KEY: ${{ secrets.REGISTRY_DEPLOYER_PRIVATE_KEY }}
