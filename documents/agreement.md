@@ -202,7 +202,7 @@ For good and valuable consideration, the receipt and sufficiency of which is her
 
                4) ##### the BountyTerms bountyTerms (being a struct specifying the Bounty Percentage (the bountyPercentage string), the Bounty Cap (the bountyCapUSD integer), the Aggregate Bounty Cap (the aggregateBountyCapUSD integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehats in connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the retainable boolean); if aggregateBountyCapUSD is specified, retainable must be set to false to ensure accurate enforcement of the Aggregate Bounty Cap), the IdentityRequirement identityRequirement struct (specifying whether the Eligible Whitehat can be Anonymous or Pseudonymous or rather must confirm their legal name (Named) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in order to qualify for payment of the Bounty (the diligenceRequirements string); 
 
-               5) the agreementURI (being the IPFS hash of the exact text of the official version of this Agreement as of the date of adoption).
+               5) the agreementURI (being the IPFS hash or EIP-831 compatible URI of the exact text of the official version of this Agreement as of the date of adoption).
 
             3) In the event that a Protocol does not have a DAO, the Security Team may utilize the DAO Adoption Procedures to indicate adoption of this Agreement with respect to the Protocol, and, in such event, references in this Agreement to the DAO shall instead be treated as references to the Security Team. 
 
