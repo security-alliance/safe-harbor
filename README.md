@@ -96,3 +96,7 @@ or
 ```sh
 $ git clone --recursive git@github.com:security-alliance/safe-harbor.git
 ```
+
+
+# Acknowledgements
+- [Cyfrin](https://www.cyfrin.io/) and [patrickalphac](https://x.com/PatrickAlphaC)

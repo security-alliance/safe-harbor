@@ -4,7 +4,7 @@
 	branch = v1.4.0
 [submodule "registry-contracts/lib/openzeppelin-contracts"]
 	path = registry-contracts/lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "solana-programs/safe-harbor"]
 	path = solana-programs/safe-harbor
 	url = git@github.com:otter-sec/safe-harbor.git
