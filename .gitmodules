@@ -7,5 +7,5 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "solana-programs/safe-harbor"]
 	path = solana-programs/safe-harbor
-	url = git@github.com:otter-sec/safe-harbor.git
+	url = https://github.com/otter-sec/safe-harbor.git
 	branch = main
