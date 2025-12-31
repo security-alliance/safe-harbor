@@ -30,6 +30,8 @@ contract HelperConfig is Script {
     address public constant AAVE = 0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A;
     address public constant IDLE_FINANCE = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
     address public constant ENS = 0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7;
+    address public constant RHEO = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+    address public constant ENSURO = 0x261af6C5A12e268Bb919548c694fC75486B0EBBe;
 
     // ----- STATE -----
     NetworkConfig public activeNetworkConfig;
@@ -73,7 +75,7 @@ contract HelperConfig is Script {
 
     function getMainnetConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](5);
-        adopters[0] = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+        adopters[0] = RHEO;
         adopters[1] = OPS_COVEFI_ETH;
         adopters[2] = AAVE;
         adopters[3] = IDLE_FINANCE;
@@ -98,7 +100,7 @@ contract HelperConfig is Script {
 
     function getPolygonConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](1);
-        adopters[0] = 0x261af6C5A12e268Bb919548c694fC75486B0EBBe;
+        adopters[0] = ENSURO;
         address currentOwner = 0x31d23affb90bCAfcAAe9f27903b151DCDC82569E; // THIS IS AN EOA!!! This should be a
         // multisig
         return NetworkConfig({
