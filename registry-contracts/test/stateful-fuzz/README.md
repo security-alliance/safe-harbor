@@ -1,0 +1,1 @@
+Stateful fuzz tests feel like overkill at the moment. Please prove me wrong :) 

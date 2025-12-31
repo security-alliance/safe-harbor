@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {Test} from "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import {
     AgreementDetails,
     Contact,
@@ -10,10 +10,12 @@ import {
     Chain as SHChain,
     BountyTerms
 } from "src/types/AgreementTypes.sol";
-import {Agreement} from "src/Agreement.sol";
-import {SafeHarborRegistry} from "src/SafeHarborRegistry.sol";
-import {ChainValidator} from "src/ChainValidator.sol";
-import {getMockAgreementDetails} from "test/utils/GetAgreementDetails.sol";
+import { Agreement } from "src/Agreement.sol";
+import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
+import { ChainValidator } from "src/ChainValidator.sol";
+import { HelperConfig } from "script/HelperConfig.s.sol";
+import { DeploySafeHarbor } from "script/Deploy.s.sol";
+import { getMockAgreementDetails } from "test/utils/GetAgreementDetails.sol";
 
 contract AgreementTest is Test {
     uint256 mockKey;
@@ -23,24 +25,33 @@ contract AgreementTest is Test {
     Agreement agreement;
     SafeHarborRegistry registry;
     ChainValidator chainValidator;
+    HelperConfig helperConfig;
+    DeploySafeHarbor deployer;
 
     function setUp() public {
         mockKey = 0xA113;
         mockAddress = vm.addr(mockKey);
-        owner = address(0x1);
 
-        // Create chain validator and set valid chains
-        chainValidator = new ChainValidator(owner);
-        string[] memory validChains = new string[](2);
-        validChains[0] = "eip155:1";
-        validChains[1] = "eip155:2";
-        vm.prank(owner);
-        chainValidator.setValidChains(validChains);
+        // Use HelperConfig and DeploySafeHarbor for deployment
+        helperConfig = new HelperConfig();
+        deployer = new DeploySafeHarbor();
 
-        // Create registry with chain validator
-        registry = new SafeHarborRegistry(owner, address(chainValidator));
+        // Initialize deployer with helperConfig
+        deployer.initialize(helperConfig);
 
+        // Get network config (will use anvil config for local testing)
+        HelperConfig.NetworkConfig memory networkConfig = helperConfig.getNetworkConfig();
+        owner = networkConfig.owner;
+
+        // Deploy ChainValidator using CREATE3
+        chainValidator = ChainValidator(deployer.deployChainValidator());
+
+        // Deploy SafeHarborRegistry using CREATE3
+        registry = SafeHarborRegistry(deployer.deployRegistry());
+
+        // Create a test agreement
         AgreementDetails memory details = getMockAgreementDetails("0x01");
+        vm.prank(owner);
         agreement = new Agreement(details, address(registry), owner);
     }
 
@@ -92,7 +103,7 @@ contract AgreementTest is Test {
         accounts[0] = SHAccount({ accountAddress: "0x04", childContractScope: ChildContractScope.None });
 
         SHChain[] memory newChains = new SHChain[](1);
-        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:2" });
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
 
         // Should fail when called by non-owner
         vm.expectRevert();
@@ -100,10 +111,11 @@ contract AgreementTest is Test {
 
         // Should fail when the chain is invalid
         SHChain[] memory invalidChains = new SHChain[](1);
-        invalidChains[0] = SHChain({ assetRecoveryAddress: "0x06", accounts: accounts, caip2ChainId: "eip155:999" });
+        invalidChains[0] =
+            SHChain({ assetRecoveryAddress: "0x06", accounts: accounts, caip2ChainId: "eip155:99999999" });
 
         vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:999"));
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:99999999"));
         agreement.addChains(invalidChains);
 
         // Should succeed when called by owner
@@ -161,7 +173,7 @@ contract AgreementTest is Test {
         accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.None });
 
         SHChain[] memory newChains = new SHChain[](1);
-        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:2" });
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
 
         vm.prank(owner);
         agreement.addChains(newChains);
@@ -169,14 +181,14 @@ contract AgreementTest is Test {
         // Should fail when called by non-owner
         vm.expectRevert();
         string[] memory chainToRemove = new string[](1);
-        chainToRemove[0] = "eip155:2";
+        chainToRemove[0] = "eip155:56";
         agreement.removeChains(chainToRemove);
 
         // Should fail when removing non-existent chain
         vm.prank(owner);
         vm.expectRevert();
         string[] memory nonExistentChain = new string[](1);
-        nonExistentChain[0] = "eip155:999";
+        nonExistentChain[0] = "eip155:99999999";
         agreement.removeChains(nonExistentChain);
 
         // Should succeed when called by owner
@@ -316,9 +328,10 @@ contract AgreementTest is Test {
         SHAccount[] memory accounts = new SHAccount[](1);
         accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.All });
 
-        SHChain memory chain = SHChain({ accounts: accounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:999" });
+        SHChain memory chain =
+            SHChain({ accounts: accounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:99999999" });
 
-        SHChain[] memory invalidChains = new SHChain[](2);
+        SHChain[] memory invalidChains = new SHChain[](1);
         invalidChains[0] = chain;
 
         AgreementDetails memory invalidDetails = AgreementDetails({
@@ -329,7 +342,200 @@ contract AgreementTest is Test {
             agreementURI: "ipfs://testHash"
         });
 
-        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:999"));
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:99999999"));
         new Agreement(invalidDetails, address(registry), owner);
+    }
+
+    function testConstructorZeroRegistryAddress() public {
+        AgreementDetails memory details = getMockAgreementDetails("0x01");
+
+        vm.expectRevert(Agreement.Agreement__ZeroAddress.selector);
+        new Agreement(details, address(0), owner);
+    }
+
+    function testConstructorZeroAccountsValidation() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        SHAccount[] memory emptyAccounts = new SHAccount[](0);
+
+        SHChain memory chain = SHChain({ accounts: emptyAccounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1" });
+
+        SHChain[] memory chainsWithNoAccounts = new SHChain[](1);
+        chainsWithNoAccounts[0] = chain;
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: chainsWithNoAccounts,
+            contactDetails: baseDetails.contactDetails,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__ZeroAccountsForChainId.selector, "eip155:1"));
+        new Agreement(invalidDetails, address(registry), owner);
+    }
+
+    function testConstructorInvalidAssetRecoveryAddress() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.All });
+
+        SHChain memory chain = SHChain({
+            accounts: accounts,
+            assetRecoveryAddress: "", // Empty recovery address
+            caip2ChainId: "eip155:1"
+        });
+
+        SHChain[] memory chainsWithInvalidRecovery = new SHChain[](1);
+        chainsWithInvalidRecovery[0] = chain;
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: chainsWithInvalidRecovery,
+            contactDetails: baseDetails.contactDetails,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAssetRecoveryAddress.selector, "eip155:1"));
+        new Agreement(invalidDetails, address(registry), owner);
+    }
+
+    function testConstructorZeroLengthChainId() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.All });
+
+        SHChain memory chain = SHChain({
+            accounts: accounts,
+            assetRecoveryAddress: "0x01",
+            caip2ChainId: "" // Empty chain ID
+        });
+
+        SHChain[] memory chainsWithEmptyId = new SHChain[](1);
+        chainsWithEmptyId[0] = chain;
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: chainsWithEmptyId,
+            contactDetails: baseDetails.contactDetails,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(Agreement.Agreement__ChainIdHasZeroLength.selector);
+        new Agreement(invalidDetails, address(registry), owner);
+    }
+
+    function testAddOrSetChains() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "0x04", childContractScope: ChildContractScope.None });
+
+        // Test adding a new chain via addOrSetChains
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        // Should fail when called by non-owner
+        vm.expectRevert();
+        agreement.addOrSetChains(newChains);
+
+        // Should succeed when called by owner - adds new chain
+        vm.prank(owner);
+        agreement.addOrSetChains(newChains);
+
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 2); // Original chain + new chain
+
+        // Now test updating an existing chain via addOrSetChains
+        SHAccount[] memory updatedAccounts = new SHAccount[](1);
+        updatedAccounts[0] = SHAccount({ accountAddress: "0x99", childContractScope: ChildContractScope.All });
+
+        SHChain[] memory updateChains = new SHChain[](1);
+        updateChains[0] = SHChain({ assetRecoveryAddress: "0x88", accounts: updatedAccounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        agreement.addOrSetChains(updateChains);
+
+        details = agreement.getDetails();
+        assertEq(details.chains.length, 2); // Should still be 2 chains
+
+        // Verify the chain was updated
+        bool found = false;
+        for (uint256 i = 0; i < details.chains.length; i++) {
+            if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes("eip155:56"))) {
+                assertEq(details.chains[i].assetRecoveryAddress, "0x88");
+                assertEq(details.chains[i].accounts[0].accountAddress, "0x99");
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, "Chain eip155:56 not found after update");
+    }
+
+    function testRemoveOnlyChain() public {
+        // Remove the only chain (tests idx == lastIdx path in removeChains)
+        string[] memory chainToRemove = new string[](1);
+        chainToRemove[0] = "eip155:1";
+
+        vm.prank(owner);
+        agreement.removeChains(chainToRemove);
+
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 0);
+    }
+
+    function testRemoveFirstChainOfMultiple() public {
+        // Add a second chain so we have multiple
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "0x04", childContractScope: ChildContractScope.None });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        agreement.addChains(newChains);
+
+        // Verify we have 2 chains
+        AgreementDetails memory detailsBefore = agreement.getDetails();
+        assertEq(detailsBefore.chains.length, 2);
+
+        // Remove the FIRST chain (idx=0, lastIdx=1, so idx != lastIdx)
+        // This tests the branch where we swap with the last element
+        string[] memory chainToRemove = new string[](1);
+        chainToRemove[0] = "eip155:1"; // This is the first chain
+
+        vm.prank(owner);
+        agreement.removeChains(chainToRemove);
+
+        // Verify only second chain remains
+        AgreementDetails memory detailsAfter = agreement.getDetails();
+        assertEq(detailsAfter.chains.length, 1);
+        assertEq(detailsAfter.chains[0].caip2ChainId, "eip155:56");
+    }
+
+    function testGetters() public view {
+        // Test getProtocolName
+        string memory protocolName = agreement.getProtocolName();
+        assertEq(protocolName, "testProtocolV2");
+
+        // Test getBountyTerms
+        BountyTerms memory terms = agreement.getBountyTerms();
+        assertEq(terms.bountyPercentage, 10);
+        assertEq(terms.bountyCapUSD, 100);
+
+        // Test getAgreementURI
+        string memory uri = agreement.getAgreementURI();
+        assertEq(uri, "ipfs://testHash");
+
+        // Test getRegistry
+        address registryAddress = agreement.getRegistry();
+        assertEq(registryAddress, address(registry));
+
+        // Test getChainIds
+        string[] memory chainIds = agreement.getChainIds();
+        assertEq(chainIds.length, 1);
+        assertEq(chainIds[0], "eip155:1");
     }
 }

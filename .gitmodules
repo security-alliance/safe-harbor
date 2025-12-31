@@ -9,3 +9,6 @@
 	path = solana-programs/safe-harbor
 	url = https://github.com/otter-sec/safe-harbor.git
 	branch = main
+[submodule "registry-contracts/lib/createx"]
+	path = registry-contracts/lib/createx
+	url = https://github.com/pcaversaccio/createx

@@ -17,7 +17,14 @@ contract ChainValidator is IChainValidator, Ownable {
     event ChainValiditySet(string caip2ChainId, bool valid);
 
     // ----- CONSTRUCTOR -----
-    constructor(address _initialOwner) Ownable(_initialOwner) { }
+    constructor(address _initialOwner, string[] memory _initialValidChains) Ownable(_initialOwner) {
+        uint256 length = _initialValidChains.length;
+        for (uint256 i = 0; i < length; i++) {
+            validChains[_initialValidChains[i]] = true;
+            validChainsList.push(_initialValidChains[i]);
+            emit ChainValiditySet(_initialValidChains[i], true);
+        }
+    }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 

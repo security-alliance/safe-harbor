@@ -1,0 +1,82 @@
+# =============================================================================
+# MAINNET CHAINS
+# =============================================================================
+
+[mainnet]
+endpoint_url = "${MAINNET_RPC_URL}"
+
+[mainnet.address]
+legacy_registry = "0x1eaCD100B0546E433fbf4d773109cAD482c34686"
+# owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# -----------------------------------------------------------------------------
+
+[optimism]
+endpoint_url = "${OPTIMISM_RPC_URL}"
+
+[optimism.address]
+legacy_registry = ""
+# owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# -----------------------------------------------------------------------------
+
+[arbitrum]
+endpoint_url = "${ARBITRUM_RPC_URL}"
+
+[arbitrum.address]
+legacy_registry = ""
+owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# -----------------------------------------------------------------------------
+
+[base]
+endpoint_url = "${BASE_RPC_URL}"
+
+[base.address]
+legacy_registry = ""
+owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# -----------------------------------------------------------------------------
+
+[polygon]
+endpoint_url = "${POLYGON_RPC_URL}"
+
+[polygon.address]
+legacy_registry = ""
+owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# =============================================================================
+# TESTNET CHAINS
+# =============================================================================
+
+[sepolia]
+endpoint_url = "${SEPOLIA_RPC_URL}"
+
+[sepolia.address]
+legacy_registry = ""
+owner = ""
+createx = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed"
+adopters = []
+
+# =============================================================================
+# LOCAL DEVELOPMENT
+# =============================================================================
+
+[anvil]
+endpoint_url = "http://127.0.0.1:8545"
+
+[anvil.address]
+legacy_registry = ""
+owner = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+createx = ""
+adopters = []

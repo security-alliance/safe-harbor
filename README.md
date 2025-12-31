@@ -82,6 +82,32 @@ If the whitehat decides to proceed with a whitehat rescue, they must follow the 
 
 To find out more information about adopting Safe Harbor, please check out the [Safe Harbor SEAL Framework](https://frameworks.securityalliance.org/safe-harbor/index.html). Or reach out to us at [safe-harbor@securityalliance.org](mailto:safe-harbor@securityalliance.org).
 
+# Tests
+
+## Unit
+```bash
+forge test
+```
+
+## Integration
+
+There is currently a [foundry bug that prvevents vm.deployCode](https://github.com/foundry-rs/foundry/issues/12967) to work with `--no-match-*`, so to run integration tests, uncomment the contracts in `test/integration` and:
+
+```bash
+# set your MAINNET_RPC_URL and POLYGON_RPC_URL environment variables
+# then run:
+forge test
+```
+
+## Fork
+
+All tests are compatible to run against a forked environment.
+
+```bash
+forge test --fork-url $MAINNET_RPC_URL
+```
+
+
 
 # Solana programs 
 To clone repo with solana programs 

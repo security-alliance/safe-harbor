@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { IRegistry } from "src/interface/IRegistry.sol";
-import { IChainValidator } from "src/interface/IChainValidator.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IRegistry} from "src/interface/IRegistry.sol";
+import {IChainValidator} from "src/interface/IChainValidator.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 string constant VERSION = "3.0.0";
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 // aderyn-ignore-next-line(centralization-risk)
-contract SafeHarborRegistry is IRegistry, Ownable, Initializable {
+contract SafeHarborRegistry is IRegistry, Ownable {
     // ----- ERRORS -----
     error SafeHarborRegistry__NoAgreement();
     error SafeHarborRegistry__ZeroAddress();
@@ -25,47 +24,50 @@ contract SafeHarborRegistry is IRegistry, Ownable, Initializable {
     // ----- EVENTS -----
     event SafeHarborAdoption(address indexed adopter, address agreementAddress);
     event ChainValidatorSet(address indexed newValidator);
-    event Initialized(address indexed legacyRegistry, uint256 migratedCount);
+    event LegacyDataMigrated(address indexed legacyRegistry, uint256 migratedCount);
 
-    // ----- CONSTRUCTOR & INITIALIZER -----
-    /// @notice Sets the initial owner and chain validator addresses
-    constructor(address _initialOwner, address _chainValidator) Ownable(_initialOwner) {
+    // ----- CONSTRUCTOR -----
+    /// @notice Deploys the registry with optional migration from a legacy registry.
+    /// @dev For fresh deployments, pass address(0) for _legacyRegistry and empty array for _adopters.
+    ///      For migrations, pass the legacy registry address and array of known adopters.
+    /// @param _initialOwner The owner of the registry.
+    /// @param _chainValidator The address of the chain validator contract.
+    /// @param _legacyRegistry The address of the legacy SafeHarborRegistryV2 contract (or address(0) for fresh deploy).
+    /// @param _adopters Array of addresses that have adopted Safe Harbor in the legacy registry.
+    constructor(
+        address _initialOwner,
+        address _chainValidator,
+        address _legacyRegistry,
+        address[] memory _adopters
+    ) Ownable(_initialOwner) {
         if (_chainValidator == address(0)) {
             revert SafeHarborRegistry__ZeroAddress();
         }
         chainValidator = IChainValidator(_chainValidator);
-    }
 
-    /// @notice Initializes the registry by migrating data from a legacy registry.
-    /// @dev Can only be called once by the owner. Queries the legacy registry for each adopter's agreement.
-    /// @param _legacyRegistry The address of the legacy SafeHarborRegistryV2 contract.
-    /// @param _adopters Array of addresses that have adopted Safe Harbor in the legacy registry.
-    // aderyn-ignore-next-line(centralization-risk)
-    function initialize(address _legacyRegistry, address[] calldata _adopters) external onlyOwner initializer {
-        if (_legacyRegistry == address(0)) {
-            revert SafeHarborRegistry__ZeroAddress();
-        }
+        // Migrate data from legacy registry if provided
+        if (_legacyRegistry != address(0) && _adopters.length > 0) {
+            IRegistry legacyRegistry = IRegistry(_legacyRegistry);
+            uint256 length = _adopters.length;
+            uint256 migratedCount = 0;
 
-        IRegistry legacyRegistry = IRegistry(_legacyRegistry);
-        uint256 length = _adopters.length;
-        uint256 migratedCount = 0;
-        // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
-            address adopter = _adopters[i];
-            // Query the legacy registry for this adopter's agreement
-            try legacyRegistry.getAgreement(adopter) returns (address agreementAddress) {
-                if (agreementAddress != address(0)) {
-                    agreements[adopter] = agreementAddress;
-                    emit SafeHarborAdoption(adopter, agreementAddress);
-                    migratedCount++;
+            for (uint256 i = 0; i < length; i++) {
+                address adopter = _adopters[i];
+                // Query the legacy registry for this adopter's agreement
+                try legacyRegistry.getAgreement(adopter) returns (address agreementAddress) {
+                    if (agreementAddress != address(0)) {
+                        agreements[adopter] = agreementAddress;
+                        emit SafeHarborAdoption(adopter, agreementAddress);
+                        migratedCount++;
+                    }
+                } catch {
+                    // Skip adopters that don't have agreements or cause errors
+                    continue;
                 }
-            } catch {
-                // Skip adopters that don't have agreements or cause errors
-                continue;
             }
-        }
 
-        emit Initialized(_legacyRegistry, migratedCount);
+            emit LegacyDataMigrated(_legacyRegistry, migratedCount);
+        }
     }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
