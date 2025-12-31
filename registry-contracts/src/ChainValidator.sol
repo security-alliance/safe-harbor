@@ -60,6 +60,7 @@ contract ChainValidator is IChainValidator, Ownable {
         uint256 length = validChainsList.length;
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
+            // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(validChainsList[i]) == targetHash) {
                 // Replace with last element and pop
                 validChainsList[i] = validChainsList[length - 1];
