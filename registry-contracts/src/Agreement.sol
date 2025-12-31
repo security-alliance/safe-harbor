@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {
-    AgreementDetails,
-    Chain,
-    Account,
-    Contact,
-    BountyTerms,
-    ChildContractScope,
-    IdentityRequirements
-} from "src/types/AgreementTypes.sol";
-import {SafeHarborRegistry, VERSION} from "src/SafeHarborRegistry.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { AgreementDetails, Chain, Account, Contact, BountyTerms } from "src/types/AgreementTypes.sol";
+import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { _hashString } from "src/utils/Utils.sol";
 
 /// @notice Contract that contains the AgreementDetails that will be deployed by the Agreement Factory.
 /**
@@ -21,31 +14,46 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * fit in a single transaction, or wish to delegate the management of their agreement to a different
  * address than the deployer.
  */
+// aderyn-ignore-next-line(centralization-risk)
 contract Agreement is Ownable {
-    // ----- STATE VARIABLES -----
+    // ----- ERRORS -----
+    error Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable();
+    error Agreement__ChainNotFoundByCaip2Id(string caip2ChainId);
+    error Agreement__AccountNotFoundByAddress(string caip2ChainId, string accountAddress);
+    error Agreement__DuplicateChainId(string caip2ChainId);
+    error Agreement__InvalidChainId(string caip2ChainId);
+    error Agreement__ZeroAccountsForChainId(string caip2ChainId);
+    error Agreement__ChainIdHasZeroLength();
+    error Agreement__InvalidAssetRecoveryAddress(string caip2ChainId);
+    error Agreement__ZeroAddress();
 
-    /// @notice The details of the agreement.
-    AgreementDetails private details;
+    // ----- STATE VARIABLES -----
+    /// @notice Slot used for transient storage duplicate chain ID checking
+    bytes32 private constant _DUPLICATE_CHECK_SLOT = keccak256("Agreement.duplicateChainIdCheck");
+
     /// @notice The Safe Harbor Registry contract
     SafeHarborRegistry private registry;
 
-    /// @notice Temporary mapping used for duplicate chain ID validation
-    mapping(bytes32 => bool) private _tempChainIdSeen;
+    // Agreement details stored as separate variables to avoid requiring via-ir compiler
+    string private protocolName;
+    Contact[] private contactDetails;
+    BountyTerms private bountyTerms;
+    string private agreementURI;
+
+    // Chain data stored separately to avoid nested struct issues
+    string[] private chainIds;
+    mapping(string caip2ChainId => string assetRecoveryAddress) private assetRecoveryAddresses;
+    mapping(string caip2ChainId => Account[]) private accounts;
 
     // ----- EVENTS -----
-
-    /// @notice An event that records when a safe harbor agreement is updated.
-    event AgreementUpdated();
-
-    // ----- ERRORS -----
-
-    error ChainNotFound();
-    error AccountNotFound();
-    error CannotSetBothAggregateBountyCapUSDAndRetainable();
-    error ChainNotFoundByCaip2Id(string caip2ChainId);
-    error AccountNotFoundByAddress(string caip2ChainId, string accountAddress);
-    error DuplicateChainId(string caip2ChainId);
-    error InvalidChainId(string caip2ChainId);
+    event ProtocolNameUpdated(string newName);
+    event ContactDetailsSet(Contact[] newContactDetails);
+    event ChainAdded(string caip2ChainId, string assetRecoveryAddress, Account[] accounts);
+    event ChainSet(string caip2ChainId, string assetRecoveryAddress, Account[] accounts);
+    event ChainRemoved(string caip2ChainId);
+    event AccountAdded(string caip2ChainId, Account account);
+    event AccountRemoved(string caip2ChainId, string accountAddress);
+    event BountyTermsUpdated(BountyTerms newBountyTerms);
 
     // ----- CONSTRUCTOR -----
 
@@ -54,161 +62,346 @@ contract Agreement is Ownable {
     /// @param _registry The address of the Safe Harbor Registry contract
     /// @param _owner The owner of the agreement
     constructor(AgreementDetails memory _details, address _registry, address _owner) Ownable(_owner) {
+        if (_registry == address(0)) {
+            revert Agreement__ZeroAddress();
+        }
         registry = SafeHarborRegistry(_registry);
         _validateBountyTerms(_details.bountyTerms);
-        _validateNoDuplicateChainIds(_details.chains);
-        _validateChainIds(_details.chains);
-        details = _details;
+        _validateChains(_details.chains);
+        _setDetails(_details);
     }
 
-    // ----- EXTERNAL FUNCTIONS -----
+    // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 
     /// @notice Function that sets the protocol name
+    // aderyn-ignore-next-line(centralization-risk)
     function setProtocolName(string memory _protocolName) external onlyOwner {
-        details.protocolName = _protocolName;
-        emit AgreementUpdated();
+        emit ProtocolNameUpdated(_protocolName);
+        protocolName = _protocolName;
     }
 
     /// @notice Function that sets the agreement contact details.
+    // aderyn-ignore-next-line(centralization-risk)
     function setContactDetails(Contact[] memory _contactDetails) external onlyOwner {
-        details.contactDetails = _contactDetails;
-        emit AgreementUpdated();
+        emit ContactDetailsSet(_contactDetails);
+        delete contactDetails;
+        // aderyn-ignore-next-line(costly-loop)
+        for (uint256 i = 0; i < _contactDetails.length; i++) {
+            contactDetails.push(_contactDetails[i]);
+        }
     }
 
     /// @notice Function that adds multiple chains to the agreement.
+    // aderyn-ignore-next-line(centralization-risk)
     function addChains(Chain[] memory _chains) external onlyOwner {
-        _validateChainIds(_chains);
+        _validateChains(_chains);
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _chains.length; i++) {
-            details.chains.push(_chains[i]);
+            string memory chainId = _chains[i].caip2ChainId;
+            if (_chainExists(chainId)) {
+                revert Agreement__DuplicateChainId(chainId);
+            }
+            emit ChainAdded(chainId, _chains[i].assetRecoveryAddress, _chains[i].accounts);
+            chainIds.push(chainId);
+            assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
+            // aderyn-ignore-next-line(costly-loop)
+            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+                accounts[chainId].push(_chains[i].accounts[j]);
+            }
         }
-        _validateNoDuplicateChainIds(details.chains);
+    }
 
-        emit AgreementUpdated();
+    /// @notice Adds or updates chains in the agreement
+    function addOrSetChains(Chain[] memory _chains) external onlyOwner {
+        _validateChains(_chains);
+        // aderyn-ignore-next-line(costly-loop)
+        for (uint256 i = 0; i < _chains.length; i++) {
+            string memory chainId = _chains[i].caip2ChainId;
+            bool exists = _chainExists(chainId);
+            if (!exists) {
+                chainIds.push(chainId);
+                emit ChainAdded(chainId, _chains[i].assetRecoveryAddress, _chains[i].accounts);
+            } else {
+                emit ChainSet(chainId, _chains[i].assetRecoveryAddress, _chains[i].accounts);
+            }
+            assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
+            delete accounts[chainId];
+            // aderyn-ignore-next-line(costly-loop)
+            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+                accounts[chainId].push(_chains[i].accounts[j]);
+            }
+        }
     }
 
     /// @notice Function that sets multiple chains in the agreement, keeping existing chains.
     /// @dev This function replaces the existing chains with the new ones.
+    // aderyn-ignore-next-line(centralization-risk)
     function setChains(Chain[] memory _chains) external onlyOwner {
+        _validateChains(_chains);
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _chains.length; i++) {
-            uint256 chainIndex = _findChainIndex(_chains[i].caip2ChainId);
-            details.chains[chainIndex] = _chains[i];
+            string memory chainId = _chains[i].caip2ChainId;
+            if (!_chainExists(chainId)) {
+                revert Agreement__ChainNotFoundByCaip2Id(chainId);
+            }
+            emit ChainSet(chainId, _chains[i].assetRecoveryAddress, _chains[i].accounts);
+            assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
+            delete accounts[chainId];
+            // aderyn-ignore-next-line(costly-loop)
+            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+                accounts[chainId].push(_chains[i].accounts[j]);
+            }
         }
-
-        emit AgreementUpdated();
     }
 
     /// @notice Removes multiple chains from the agreement by CAIP-2 IDs.
     /// @param _caip2ChainIds Array of CAIP-2 IDs of the chains to remove
+    // aderyn-ignore-next-line(centralization-risk)
     function removeChains(string[] memory _caip2ChainIds) external onlyOwner {
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
-            uint256 chainIndex = _findChainIndex(_caip2ChainIds[i]);
-            details.chains[chainIndex] = details.chains[details.chains.length - 1];
-            details.chains.pop();
+            string memory chainId = _caip2ChainIds[i];
+            uint256 idx = _findChainIndex(chainId);
+            emit ChainRemoved(chainId);
+            delete assetRecoveryAddresses[chainId];
+            delete accounts[chainId];
+            uint256 lastIdx = chainIds.length - 1;
+            if (idx != lastIdx) {
+                chainIds[idx] = chainIds[lastIdx];
+            }
+            chainIds.pop();
         }
-        emit AgreementUpdated();
     }
 
     /// @notice Function that adds multiple accounts to the agreement.
     /// @param _caip2ChainId The CAIP-2 ID of the chain
     /// @param _accounts Array of accounts to add
     function addAccounts(string memory _caip2ChainId, Account[] memory _accounts) external onlyOwner {
-        uint256 chainIndex = _findChainIndex(_caip2ChainId);
-
-        for (uint256 i = 0; i < _accounts.length; i++) {
-            details.chains[chainIndex].accounts.push(_accounts[i]);
+        if (!_chainExists(_caip2ChainId)) {
+            revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
         }
-
-        emit AgreementUpdated();
+        // aderyn-ignore-next-line(costly-loop)
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            emit AccountAdded(_caip2ChainId, _accounts[i]);
+            accounts[_caip2ChainId].push(_accounts[i]);
+        }
     }
 
     /// @notice Function that removes multiple accounts from the agreement by addresses.
     /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
     /// @param _accountAddresses Array of account addresses to remove
     function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
-        uint256 chainIndex = _findChainIndex(_caip2ChainId);
-        for (uint256 i = 0; i < _accountAddresses.length; i++) {
-            uint256 accountIndex = _findAccountIndex(chainIndex, _accountAddresses[i]);
-
-            uint256 lastAccountId = details.chains[chainIndex].accounts.length - 1;
-            details.chains[chainIndex].accounts[accountIndex] = details.chains[chainIndex].accounts[lastAccountId];
-            details.chains[chainIndex].accounts.pop();
+        if (!_chainExists(_caip2ChainId)) {
+            revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
         }
-        emit AgreementUpdated();
+        // aderyn-ignore-next-line(costly-loop)
+        for (uint256 i = 0; i < _accountAddresses.length; i++) {
+            uint256 accountIndex = _findAccountIndex(_caip2ChainId, _accountAddresses[i]);
+            emit AccountRemoved(_caip2ChainId, _accountAddresses[i]);
+
+            uint256 lastAccountId = accounts[_caip2ChainId].length - 1;
+            accounts[_caip2ChainId][accountIndex] = accounts[_caip2ChainId][lastAccountId];
+            accounts[_caip2ChainId].pop();
+        }
     }
 
     /// @notice Function that sets the bounty terms of the agreement.
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
         _validateBountyTerms(_bountyTerms);
-        details.bountyTerms = _bountyTerms;
-        emit AgreementUpdated();
+        emit BountyTermsUpdated(_bountyTerms);
+        bountyTerms = _bountyTerms;
     }
+
+    // ----- INTERNAL STATE-CHANGING FUNCTIONS -----
+
+    /// @notice Internal function to set all agreement details
+    function _setDetails(AgreementDetails memory _details) internal {
+        protocolName = _details.protocolName;
+        agreementURI = _details.agreementURI;
+        bountyTerms = _details.bountyTerms;
+
+        // Copy contact details
+        delete contactDetails;
+        for (uint256 i = 0; i < _details.contactDetails.length; ++i) {
+            contactDetails.push(_details.contactDetails[i]);
+        }
+
+        // Copy chains
+        delete chainIds;
+        for (uint256 i = 0; i < _details.chains.length; ++i) {
+            string memory chainId = _details.chains[i].caip2ChainId;
+            chainIds.push(chainId);
+            assetRecoveryAddresses[chainId] = _details.chains[i].assetRecoveryAddress;
+
+            delete accounts[chainId];
+            for (uint256 j = 0; j < _details.chains[i].accounts.length; ++j) {
+                accounts[chainId].push(_details.chains[i].accounts[j]);
+            }
+        }
+    }
+
+    /// @notice Internal function to validate chains (IDs, duplicates, accounts, recovery addresses)
+    /// @dev Uses transient storage (tstore/tload) for duplicate checking
+    function _validateChains(Chain[] memory _chains) internal {
+        // Validate all chain data and check for duplicates in a single pass
+        for (uint256 i = 0; i < _chains.length; i++) {
+            // Validate chain ID
+            if (bytes(_chains[i].caip2ChainId).length == 0) {
+                revert Agreement__ChainIdHasZeroLength();
+            }
+            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
+                revert Agreement__InvalidChainId(_chains[i].caip2ChainId);
+            }
+            // Validate accounts
+            if (_chains[i].accounts.length == 0) {
+                revert Agreement__ZeroAccountsForChainId(_chains[i].caip2ChainId);
+            }
+            // Validate asset recovery address
+            if (bytes(_chains[i].assetRecoveryAddress).length == 0) {
+                revert Agreement__InvalidAssetRecoveryAddress(_chains[i].caip2ChainId);
+            }
+            // Check for duplicates using transient storage
+            bytes32 slot = _duplicateCheckSlot(_chains[i].caip2ChainId);
+            bool seen;
+            assembly {
+                seen := tload(slot)
+            }
+            if (seen) {
+                revert Agreement__DuplicateChainId(_chains[i].caip2ChainId);
+            }
+            assembly {
+                tstore(slot, 1)
+            }
+        }
+
+        // Clear the transient storage in case this is within a batched transaction
+        for (uint256 i = 0; i < _chains.length; i++) {
+            bytes32 slot = _duplicateCheckSlot(_chains[i].caip2ChainId);
+            assembly {
+                tstore(slot, 0)
+            }
+        }
+    }
+
+    // ----- USER-FACING READ-ONLY FUNCTIONS -----
 
     /// @notice Function that returns the agreement details
-    /// @dev You need a view function, else it won't convert storage to memory automatically for the nested structs.
-    function getDetails() external view returns (AgreementDetails memory) {
-        return details;
-    }
+    function getDetails() external view returns (AgreementDetails memory _details) {
+        _details.protocolName = protocolName;
+        _details.agreementURI = agreementURI;
+        _details.bountyTerms = bountyTerms;
 
-    // ----- INTERNAL FUNCTIONS -----
-
-    /// @notice Internal function to validate that chains don't have duplicate CAIP-2 IDs
-    function _validateNoDuplicateChainIds(Chain[] memory _chains) internal {
-        // Clean up the temporary mapping
-        for (uint256 i = 0; i < _chains.length; i++) {
-            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
-            delete _tempChainIdSeen[chainIdHash];
+        // Copy contact details
+        uint256 contactsLength = contactDetails.length;
+        _details.contactDetails = new Contact[](contactsLength);
+        for (uint256 i = 0; i < contactsLength; ++i) {
+            _details.contactDetails[i] = contactDetails[i];
         }
 
-        // Check for duplicates
-        for (uint256 i = 0; i < _chains.length; i++) {
-            bytes32 chainIdHash = keccak256(bytes(_chains[i].caip2ChainId));
-            if (_tempChainIdSeen[chainIdHash]) {
-                revert DuplicateChainId(_chains[i].caip2ChainId);
-            }
-            _tempChainIdSeen[chainIdHash] = true;
-        }
-    }
+        // Reconstruct chains
+        uint256 chainsLength = chainIds.length;
+        _details.chains = new Chain[](chainsLength);
+        for (uint256 i = 0; i < chainsLength; ++i) {
+            string memory chainId = chainIds[i];
+            _details.chains[i].caip2ChainId = chainId;
+            _details.chains[i].assetRecoveryAddress = assetRecoveryAddresses[chainId];
 
-    /// @notice Internal function to validate that all chain IDs in the agreement are valid
-    function _validateChainIds(Chain[] memory _chains) internal view {
-        for (uint256 i = 0; i < _chains.length; i++) {
-            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
-                revert InvalidChainId(_chains[i].caip2ChainId);
+            Account[] storage accts = accounts[chainId];
+            _details.chains[i].accounts = new Account[](accts.length);
+            for (uint256 j = 0; j < accts.length; ++j) {
+                _details.chains[i].accounts[j] = accts[j];
             }
         }
     }
+
+    /// @notice Returns the protocol name
+    function getProtocolName() external view returns (string memory) {
+        return protocolName;
+    }
+
+    /// @notice Returns the bounty terms
+    function getBountyTerms() external view returns (BountyTerms memory) {
+        return bountyTerms;
+    }
+
+    /// @notice Returns the agreement URI
+    function getAgreementURI() external view returns (string memory) {
+        return agreementURI;
+    }
+
+    /// @notice Returns the registry address
+    function getRegistry() external view returns (address) {
+        return address(registry);
+    }
+
+    /// @notice Returns all chain IDs
+    function getChainIds() external view returns (string[] memory) {
+        return chainIds;
+    }
+
+    // ----- INTERNAL READ-ONLY FUNCTIONS -----
 
     /// @notice Internal function to validate bounty terms
     function _validateBountyTerms(BountyTerms memory _bountyTerms) internal pure {
         if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
-            revert CannotSetBothAggregateBountyCapUSDAndRetainable();
+            revert Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable();
         }
+    }
+
+    /// @notice Checks if a chain exists
+    function _chainExists(string memory _caip2ChainId) internal view returns (bool) {
+        bytes32 targetHash = _hashString(_caip2ChainId);
+        uint256 length = chainIds.length;
+        for (uint256 i = 0; i < length; ++i) {
+            // aderyn-ignore-next-line(storage-array-memory-edit)
+            if (_hashString(chainIds[i]) == targetHash) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// @notice Internal function to find chain index by CAIP-2 ID
     function _findChainIndex(string memory _caip2ChainId) internal view returns (uint256 chainIndex) {
-        for (uint256 i = 0; i < details.chains.length; i++) {
-            if (keccak256(bytes(details.chains[i].caip2ChainId)) == keccak256(bytes(_caip2ChainId))) {
+        bytes32 targetHash = _hashString(_caip2ChainId);
+        uint256 length = chainIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            // aderyn-ignore-next-line(storage-array-memory-edit)
+            if (_hashString(chainIds[i]) == targetHash) {
                 return i;
             }
         }
-        revert ChainNotFoundByCaip2Id(_caip2ChainId);
+        revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
     }
 
     /// @notice Internal function to find account index by address within a chain
-    function _findAccountIndex(uint256 _chainIndex, string memory _accountAddress)
+    function _findAccountIndex(
+        string memory _caip2ChainId,
+        string memory _accountAddress
+    )
         internal
         view
         returns (uint256 accountIndex)
     {
-        for (uint256 i = 0; i < details.chains[_chainIndex].accounts.length; i++) {
-            if (
-                keccak256(bytes(details.chains[_chainIndex].accounts[i].accountAddress))
-                    == keccak256(bytes(_accountAddress))
-            ) {
+        bytes32 targetHash = _hashString(_accountAddress);
+        Account[] storage chainAccounts = accounts[_caip2ChainId];
+        for (uint256 i = 0; i < chainAccounts.length; i++) {
+            // aderyn-ignore-next-line(storage-array-memory-edit)
+            if (_hashString(chainAccounts[i].accountAddress) == targetHash) {
                 return i;
             }
         }
-        revert AccountNotFoundByAddress(details.chains[_chainIndex].caip2ChainId, _accountAddress);
+        revert Agreement__AccountNotFoundByAddress(_caip2ChainId, _accountAddress);
+    }
+
+    /// @notice Computes the transient storage slot for duplicate chain ID checking
+    function _duplicateCheckSlot(string memory _chainId) internal pure returns (bytes32 result) {
+        bytes32 slot = _DUPLICATE_CHECK_SLOT;
+        bytes32 chainIdHash = _hashString(_chainId);
+        assembly {
+            mstore(0x00, slot)
+            mstore(0x20, chainIdHash)
+            result := keccak256(0x00, 0x40)
+        }
     }
 }

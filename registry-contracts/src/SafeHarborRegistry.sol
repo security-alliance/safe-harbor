@@ -1,54 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {Agreement} from "src/Agreement.sol";
-import {IRegistry} from "src/interface/IRegistry.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { IRegistry } from "src/interface/IRegistry.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { _hashString } from "src/utils/Utils.sol";
 
 string constant VERSION = "3.0.0";
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
 // aderyn-ignore-next-line(centralization-risk)
-contract SafeHarborRegistry is Ownable {
-    // ----- STATE VARIABLES -----
+contract SafeHarborRegistry is IRegistry, Ownable {
+    // ----- ERRORS -----
+    error SafeHarborRegistry__NoAgreement();
 
+    // ----- STATE VARIABLES -----
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
-
-    /// @notice A mapping CAIP-2 IDs and if they are valid.
-    mapping(string => bool) private validChains;
-
-    /// @notice Array to keep track of all valid chain IDs
+    mapping(string caip2 => bool valid) private validChains;
     string[] private validChainsList;
 
-    /// @notice The fallback registry.
-    IRegistry fallbackRegistry;
-
     // ----- EVENTS -----
-
-    /// @notice An event that records when an address either newly adopts the Safe Harbor, or alters its previous terms.
-    event SafeHarborAdoption(address indexed entity, address oldDetails, address newDetails);
-
-    /// @notice An event that records when a chain is set as valid or invalid.
+    event SafeHarborAdoption(address indexed adopter, address agreementAddress);
     event ChainValiditySet(string caip2ChainId, bool valid);
 
-    // ----- ERRORS -----
-
-    error NoAgreement();
-
-    // ----- CONSTRUCTOR -----
-
+    // ----- CONSTRUCTOR & INITIALIZER -----
     /// @notice Sets the factory and fallback registry addresses
-    constructor(address _owner) Ownable(_owner) {}
+    constructor(address _initialOwner) Ownable(_initialOwner) { }
 
-    // ----- EXTERNAL FUNCTIONS -----
-    function setFallbackRegistry(IRegistry _fallbackRegistry) external onlyOwner {
-        fallbackRegistry = _fallbackRegistry;
-    }
+    // aderyn-ignore-next-line(centralization-risk)
+    function initialize() external onlyOwner { }
 
-    function version() external pure returns (string memory) {
-        return VERSION;
-    }
+    // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 
     /// @notice Function that sets a list of chains as valid in the registry.
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
@@ -74,14 +56,32 @@ contract SafeHarborRegistry is Ownable {
         }
     }
 
-    /// @notice Function that creates a new AgreementV2 contract and records it as an adoption by msg.sender.
-    /// @param agreementAddress The address of the agreement to adopt.
-    function adoptSafeHarbor(address agreementAddress) external {
+    /// @notice Function that records an adoption by msg.sender.
+    /// @param _agreementAddress The address of the agreement to adopt.
+    function adoptSafeHarbor(address _agreementAddress) external {
         address adopter = msg.sender;
+        emit SafeHarborAdoption(adopter, _agreementAddress);
+        agreements[adopter] = _agreementAddress;
+    }
 
-        address oldDetails = agreements[adopter];
-        agreements[adopter] = agreementAddress;
-        emit SafeHarborAdoption(adopter, oldDetails, agreementAddress);
+    // ----- INTERNAL STATE-CHANGING FUNCTIONS -----
+    /// @notice Internal function to remove a chain ID from the valid chains list.
+    /// @param _caip2ChainId The CAIP-2 chain ID to remove.
+    function _removeFromValidChainsList(string calldata _caip2ChainId) internal {
+        bytes32 targetHash = _hashString(_caip2ChainId);
+        for (uint256 i = 0; i < validChainsList.length; i++) {
+            if (_hashString(validChainsList[i]) == targetHash) {
+                // Replace with last element and pop
+                validChainsList[i] = validChainsList[validChainsList.length - 1];
+                validChainsList.pop();
+                break;
+            }
+        }
+    }
+
+    // ----- USER-FACING READ-ONLY FUNCTIONS -----
+    function version() external pure returns (string memory) {
+        return VERSION;
     }
 
     /// @notice Get the agreement address for the adopter. Recursively queries fallback registries.
@@ -94,11 +94,7 @@ contract SafeHarborRegistry is Ownable {
             return agreement;
         }
 
-        if (address(fallbackRegistry) != address(0)) {
-            return fallbackRegistry.getAgreement(adopter);
-        }
-
-        revert NoAgreement();
+        revert SafeHarborRegistry__NoAgreement();
     }
 
     /// @notice Function that returns if a chain is valid.
@@ -114,18 +110,5 @@ contract SafeHarborRegistry is Ownable {
         return validChainsList;
     }
 
-    // ----- INTERNAL FUNCTIONS -----
-
-    /// @notice Internal function to remove a chain ID from the valid chains list.
-    /// @param _caip2ChainId The CAIP-2 chain ID to remove.
-    function _removeFromValidChainsList(string calldata _caip2ChainId) internal {
-        for (uint256 i = 0; i < validChainsList.length; i++) {
-            if (keccak256(bytes(validChainsList[i])) == keccak256(bytes(_caip2ChainId))) {
-                // Replace with last element and pop
-                validChainsList[i] = validChainsList[validChainsList.length - 1];
-                validChainsList.pop();
-                break;
-            }
-        }
-    }
+    // ----- INTERNAL READ-ONLY FUNCTIONS -----
 }
