@@ -32,7 +32,7 @@ contract Agreement is Ownable {
     bytes32 private constant _DUPLICATE_CHECK_SLOT = keccak256("Agreement.duplicateChainIdCheck");
 
     /// @notice The Safe Harbor Registry contract
-    SafeHarborRegistry private registry;
+    SafeHarborRegistry private immutable REGISTRY;
 
     // Agreement details stored as separate variables to avoid requiring via-ir compiler
     string private protocolName;
@@ -60,12 +60,12 @@ contract Agreement is Ownable {
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
     /// @param _registry The address of the Safe Harbor Registry contract
-    /// @param _owner The owner of the agreement
-    constructor(AgreementDetails memory _details, address _registry, address _owner) Ownable(_owner) {
+    /// @param _initialOwner The owner of the agreement
+    constructor(AgreementDetails memory _details, address _registry, address _initialOwner) Ownable(_initialOwner) {
         if (_registry == address(0)) {
             revert Agreement__ZeroAddress();
         }
-        registry = SafeHarborRegistry(_registry);
+        REGISTRY = SafeHarborRegistry(_registry);
         _validateBountyTerms(_details.bountyTerms);
         _validateChains(_details.chains);
         _setDetails(_details);
@@ -112,6 +112,7 @@ contract Agreement is Ownable {
     }
 
     /// @notice Adds or updates chains in the agreement
+    // aderyn-ignore-next-line(centralization-risk)
     function addOrSetChains(Chain[] memory _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
@@ -176,6 +177,7 @@ contract Agreement is Ownable {
     /// @notice Function that adds multiple accounts to the agreement.
     /// @param _caip2ChainId The CAIP-2 ID of the chain
     /// @param _accounts Array of accounts to add
+    // aderyn-ignore-next-line(centralization-risk)
     function addAccounts(string memory _caip2ChainId, Account[] memory _accounts) external onlyOwner {
         if (!_chainExists(_caip2ChainId)) {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
@@ -190,6 +192,7 @@ contract Agreement is Ownable {
     /// @notice Function that removes multiple accounts from the agreement by addresses.
     /// @param _caip2ChainId The CAIP-2 ID of the chain containing the accounts
     /// @param _accountAddresses Array of account addresses to remove
+    // aderyn-ignore-next-line(centralization-risk)
     function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
         if (!_chainExists(_caip2ChainId)) {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
@@ -206,6 +209,7 @@ contract Agreement is Ownable {
     }
 
     /// @notice Function that sets the bounty terms of the agreement.
+    // aderyn-ignore-next-line(centralization-risk)
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
         _validateBountyTerms(_bountyTerms);
         emit BountyTermsUpdated(_bountyTerms);
@@ -249,7 +253,7 @@ contract Agreement is Ownable {
             if (bytes(_chains[i].caip2ChainId).length == 0) {
                 revert Agreement__ChainIdHasZeroLength();
             }
-            if (!registry.isChainValid(_chains[i].caip2ChainId)) {
+            if (!REGISTRY.isChainValid(_chains[i].caip2ChainId)) {
                 revert Agreement__InvalidChainId(_chains[i].caip2ChainId);
             }
             // Validate accounts
@@ -331,7 +335,7 @@ contract Agreement is Ownable {
 
     /// @notice Returns the registry address
     function getRegistry() external view returns (address) {
-        return address(registry);
+        return address(REGISTRY);
     }
 
     /// @notice Returns all chain IDs

@@ -28,13 +28,17 @@ contract SafeHarborRegistry is IRegistry, Ownable {
     constructor(address _initialOwner) Ownable(_initialOwner) { }
 
     // aderyn-ignore-next-line(centralization-risk)
-    function initialize() external onlyOwner { }
+    function initialize() external onlyOwner {
+        // TODO
+    }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 
     /// @notice Function that sets a list of chains as valid in the registry.
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
+    // aderyn-ignore-next-line(centralization-risk)
     function setValidChains(string[] calldata _caip2ChainIds) external onlyOwner {
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
             if (!validChains[_caip2ChainIds[i]]) {
                 validChains[_caip2ChainIds[i]] = true;
@@ -46,7 +50,9 @@ contract SafeHarborRegistry is IRegistry, Ownable {
 
     /// @notice Function that marks a list of chains as invalid in the registry.
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as invalid.
+    // aderyn-ignore-next-line(centralization-risk)
     function setInvalidChains(string[] calldata _caip2ChainIds) external onlyOwner {
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
             if (validChains[_caip2ChainIds[i]]) {
                 validChains[_caip2ChainIds[i]] = false;
@@ -69,7 +75,9 @@ contract SafeHarborRegistry is IRegistry, Ownable {
     /// @param _caip2ChainId The CAIP-2 chain ID to remove.
     function _removeFromValidChainsList(string calldata _caip2ChainId) internal {
         bytes32 targetHash = _hashString(_caip2ChainId);
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < validChainsList.length; i++) {
+            // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(validChainsList[i]) == targetHash) {
                 // Replace with last element and pop
                 validChainsList[i] = validChainsList[validChainsList.length - 1];
