@@ -119,7 +119,7 @@ This \textbf{WHITEHAT SAFE HARBOR AGREEMENT (this \textit{Agreement})} sets fort
 
               \item the \code{bountyTerms} (being a struct specifying theBounty Percentage (the \code{bountyPercentage} string), the Bounty Cap (the \code{bountyCapUSD} integer), the Aggregate Bounty Cap (the \code{aggregateBountyCapUSD} integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehats in connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the \code{retainable} boolean); if \code{aggregateBountyCapUSD} is specified, retainable must be set to false to ensure accurate enforcement of the Aggregate Bounty Cap), the IdentityRequirement identityRequirement struct (specifying whether the Eligible Whitehat can be \code{Anonymous} or \code{Pseudonymous} or rather must confirm their legal name (\code{Named})) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in order to qualify for payment of the Bounty (the \code{diligenceRequirements} string);
 
-              \item the \code{agreementURI} (being the IPFS hash of the exact text of the official version of this Agreement as of the date of adoption).
+              \item the \code{agreementURI} (being a valid URI pointing to or containing the exact text of the official version of this Agreement as of the date of adoption; acceptable URI schemes include, but are not limited to, IPFS (\code{ipfs://}), Arweave (\code{ar://}), and base64-encoded data URIs (\code{data:})).
 
           \end{enumerate}
 
