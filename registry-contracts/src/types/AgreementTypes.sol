@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // aderyn-ignore-next-line(unspecific-solidity-pragma,push-zero-opcode)
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 /// @notice Struct that contains the details of the agreement.
 struct AgreementDetails {

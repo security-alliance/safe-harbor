@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
 import {
     AgreementDetails,
     Contact,
@@ -11,9 +10,10 @@ import {
     Chain as SHChain,
     BountyTerms
 } from "src/types/AgreementTypes.sol";
-import { Agreement } from "src/Agreement.sol";
-import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
-import { getMockAgreementDetails } from "test/utils/GetAgreementDetails.sol";
+import {Agreement} from "src/Agreement.sol";
+import {SafeHarborRegistry} from "src/SafeHarborRegistry.sol";
+import {ChainValidator} from "src/ChainValidator.sol";
+import {getMockAgreementDetails} from "test/utils/GetAgreementDetails.sol";
 
 contract AgreementTest is Test {
     uint256 mockKey;
@@ -22,19 +22,23 @@ contract AgreementTest is Test {
 
     Agreement agreement;
     SafeHarborRegistry registry;
+    ChainValidator chainValidator;
 
     function setUp() public {
         mockKey = 0xA113;
         mockAddress = vm.addr(mockKey);
         owner = address(0x1);
 
-        // Create registry and set valid chains
-        registry = new SafeHarborRegistry(owner);
+        // Create chain validator and set valid chains
+        chainValidator = new ChainValidator(owner);
         string[] memory validChains = new string[](2);
         validChains[0] = "eip155:1";
         validChains[1] = "eip155:2";
         vm.prank(owner);
-        registry.setValidChains(validChains);
+        chainValidator.setValidChains(validChains);
+
+        // Create registry with chain validator
+        registry = new SafeHarborRegistry(owner, address(chainValidator));
 
         AgreementDetails memory details = getMockAgreementDetails("0x01");
         agreement = new Agreement(details, address(registry), owner);

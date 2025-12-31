@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // aderyn-ignore-next-line(unspecific-solidity-pragma,push-zero-opcode)
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 interface IRegistry {
     /// @notice Get the agreement address for the adopter. Recursively queries fallback registries.
