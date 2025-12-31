@@ -7,6 +7,11 @@ remappings = [
     'createx/=lib/createx/src/',
 ]
 fs_permissions = [{ access = "read", path = "./" }]
+no_match_path = "test/integration/*"
+
+[profile.integration]
+match_path = "test/integration/*"
+no_match_path = "SKIP_NOTHING_PLACEHOLDER"
 
 [fmt]
 bracket_spacing = true

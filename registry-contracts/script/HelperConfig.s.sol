@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import { Script, console2 } from "forge-std/Script.sol";
 import { SafeHarborRegistryV2 } from "test/mocks/LegacyRegistryV2.sol";
+import { CreateX } from "test/mocks/MockCreateX.sol";
 
 /// @title HelperConfig for Safe Harbor Registry Deployments
 /// @notice Provides deployment configuration for different networks
@@ -160,9 +161,9 @@ contract HelperConfig is Script {
             if (block.number < 100) {
                 vm.roll(100);
             }
-            // Deploy CreateX using deployCode to avoid pragma version conflicts
-            // CreateX.sol uses =0.8.23 which is incompatible with our =0.8.30 contracts
-            deployedCreateX = vm.deployCode("CreateX.sol:CreateX");
+            // Deploy MockCreateX (copy of CreateX with compatible pragma)
+            CreateX createx = new CreateX();
+            deployedCreateX = address(createx);
         }
 
         // Deploy LegacyRegistry locally if not yet deployed

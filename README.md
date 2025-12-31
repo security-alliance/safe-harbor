@@ -91,12 +91,10 @@ forge test
 
 ## Integration
 
-There is currently a [foundry bug that prvevents vm.deployCode](https://github.com/foundry-rs/foundry/issues/12967) to work with `--no-match-*`, so to run integration tests, uncomment the contracts in `test/integration` and:
-
 ```bash
 # set your MAINNET_RPC_URL and POLYGON_RPC_URL environment variables
 # then run:
-forge test
+FOUNDRY_PROFILE=integration forge test
 ```
 
 ## Fork
