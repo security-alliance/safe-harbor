@@ -8,6 +8,7 @@ remappings = [
 ]
 fs_permissions = [{ access = "read", path = "./" }]
 no_match_path = "test/integration/*"
+optimizer = false
 
 [profile.integration]
 match_path = "test/integration/*"
