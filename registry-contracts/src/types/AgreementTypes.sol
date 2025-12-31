@@ -12,7 +12,7 @@ struct AgreementDetails {
     Chain[] chains;
     // The terms of the agreement.
     BountyTerms bountyTerms;
-    // IPFS hash of the actual agreement document, which confirms all terms.
+    // IPFS hash or other URI of the actual agreement document, which confirms all terms.
     string agreementURI;
 }
 
