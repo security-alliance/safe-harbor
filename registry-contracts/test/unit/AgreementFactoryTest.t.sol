@@ -50,7 +50,7 @@ contract AgreementFactoryTest is Test {
         bytes32 salt = keccak256("test-salt");
 
         vm.prank(protocol);
-        address agreementAddress = factory.create(agreementDetails, address(registry), protocol, salt);
+        address agreementAddress = factory.create(agreementDetails, address(chainValidator), protocol, salt);
 
         Agreement agreement = Agreement(agreementAddress);
         AgreementDetails memory storedDetails = agreement.getDetails();
@@ -64,13 +64,13 @@ contract AgreementFactoryTest is Test {
 
         // Create first agreement
         vm.prank(protocol);
-        address agreement1 = factory.create(details1, address(registry), protocol, keccak256("salt1"));
+        address agreement1 = factory.create(details1, address(chainValidator), protocol, keccak256("salt1"));
 
         // Create second agreement with different details
         AgreementDetails memory details2 = getMockAgreementDetails("0xCCDD");
         address protocol2 = address(0xCD);
         vm.prank(protocol2);
-        address agreement2 = factory.create(details2, address(registry), protocol2, keccak256("salt2"));
+        address agreement2 = factory.create(details2, address(chainValidator), protocol2, keccak256("salt2"));
 
         // Verify they're different contracts
         assertTrue(agreement1 != agreement2, "Agreements should be at different addresses");
@@ -85,11 +85,12 @@ contract AgreementFactoryTest is Test {
         bytes32 salt = keccak256("test-salt");
 
         // Compute address before deployment
-        address predictedAddress = factory.computeAddress(agreementDetails, address(registry), protocol, salt, protocol);
+        address predictedAddress =
+            factory.computeAddress(agreementDetails, address(chainValidator), protocol, salt, protocol);
 
         // Deploy the agreement
         vm.prank(protocol);
-        address actualAddress = factory.create(agreementDetails, address(registry), protocol, salt);
+        address actualAddress = factory.create(agreementDetails, address(chainValidator), protocol, salt);
 
         // Verify computed address matches actual
         assertEq(predictedAddress, actualAddress, "Computed address should match actual address");
@@ -101,14 +102,14 @@ contract AgreementFactoryTest is Test {
 
         // Deploy on "chain 1" (current chain)
         vm.prank(protocol);
-        address agreement1 = factory.create(agreementDetails, address(registry), protocol, salt);
+        address agreement1 = factory.create(agreementDetails, address(chainValidator), protocol, salt);
 
         // Simulate different chain by changing chainid
         vm.chainId(137); // Polygon
 
         // Deploy with same salt on "chain 2"
         vm.prank(protocol);
-        address agreement2 = factory.create(agreementDetails, address(registry), protocol, salt);
+        address agreement2 = factory.create(agreementDetails, address(chainValidator), protocol, salt);
 
         // Addresses should be different due to chainid in salt
         assertTrue(agreement1 != agreement2, "Same salt should produce different addresses on different chains");

@@ -52,7 +52,7 @@ contract AgreementTest is Test {
         // Create a test agreement
         AgreementDetails memory details = getMockAgreementDetails("0x01");
         vm.prank(owner);
-        agreement = new Agreement(details, address(registry), owner);
+        agreement = new Agreement(details, address(chainValidator), owner);
     }
 
     function testOwner() public view {
@@ -295,7 +295,7 @@ contract AgreementTest is Test {
 
         // Should fail when both conditions are true in constructor
         vm.expectRevert(Agreement.Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable.selector);
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
     function testConstructorDuplicateChainValidation() public {
@@ -319,7 +319,7 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__DuplicateChainId.selector, "eip155:1"));
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
     function testConstructorInvalidChainValidation() public {
@@ -343,10 +343,10 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:99999999"));
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
-    function testConstructorZeroRegistryAddress() public {
+    function testConstructorZeroChainValidatorAddress() public {
         AgreementDetails memory details = getMockAgreementDetails("0x01");
 
         vm.expectRevert(Agreement.Agreement__ZeroAddress.selector);
@@ -358,7 +358,8 @@ contract AgreementTest is Test {
 
         SHAccount[] memory emptyAccounts = new SHAccount[](0);
 
-        SHChain memory chain = SHChain({ accounts: emptyAccounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1" });
+        SHChain memory chain =
+            SHChain({ accounts: emptyAccounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1" });
 
         SHChain[] memory chainsWithNoAccounts = new SHChain[](1);
         chainsWithNoAccounts[0] = chain;
@@ -372,7 +373,7 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__ZeroAccountsForChainId.selector, "eip155:1"));
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
     function testConstructorInvalidAssetRecoveryAddress() public {
@@ -399,7 +400,7 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAssetRecoveryAddress.selector, "eip155:1"));
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
     function testConstructorZeroLengthChainId() public {
@@ -426,7 +427,7 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(Agreement.Agreement__ChainIdHasZeroLength.selector);
-        new Agreement(invalidDetails, address(registry), owner);
+        new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
     function testAddOrSetChains() public {
@@ -453,7 +454,8 @@ contract AgreementTest is Test {
         updatedAccounts[0] = SHAccount({ accountAddress: "0x99", childContractScope: ChildContractScope.All });
 
         SHChain[] memory updateChains = new SHChain[](1);
-        updateChains[0] = SHChain({ assetRecoveryAddress: "0x88", accounts: updatedAccounts, caip2ChainId: "eip155:56" });
+        updateChains[0] =
+            SHChain({ assetRecoveryAddress: "0x88", accounts: updatedAccounts, caip2ChainId: "eip155:56" });
 
         vm.prank(owner);
         agreement.addOrSetChains(updateChains);
@@ -529,9 +531,9 @@ contract AgreementTest is Test {
         string memory uri = agreement.getAgreementURI();
         assertEq(uri, "ipfs://testHash");
 
-        // Test getRegistry
-        address registryAddress = agreement.getRegistry();
-        assertEq(registryAddress, address(registry));
+        // Test getChainValidator
+        address chainValidatorAddress = agreement.getChainValidator();
+        assertEq(chainValidatorAddress, address(chainValidator));
 
         // Test getChainIds
         string[] memory chainIds = agreement.getChainIds();
