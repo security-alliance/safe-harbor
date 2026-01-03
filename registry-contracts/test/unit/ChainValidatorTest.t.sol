@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {Test} from "forge-std/Test.sol";
-import {ChainValidator} from "src/ChainValidator.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
-import {DeploySafeHarbor} from "script/Deploy.s.sol";
+import { Test } from "forge-std/Test.sol";
+import { ChainValidator } from "src/ChainValidator.sol";
+import { HelperConfig } from "script/HelperConfig.s.sol";
+import { DeploySafeHarbor } from "script/Deploy.s.sol";
 
 contract ChainValidatorTest is Test {
     address owner;
@@ -22,8 +22,7 @@ contract ChainValidatorTest is Test {
         deployer.initialize(helperConfig);
 
         // Get network config
-        HelperConfig.NetworkConfig memory networkConfig = helperConfig
-            .getNetworkConfig();
+        HelperConfig.NetworkConfig memory networkConfig = helperConfig.getNetworkConfig();
         owner = networkConfig.owner;
 
         // Deploy ChainValidator using CREATE3
@@ -38,10 +37,7 @@ contract ChainValidatorTest is Test {
         initialChains[0] = "eip155:1";
         initialChains[1] = "eip155:137";
 
-        ChainValidator freshValidator = new ChainValidator(
-            owner,
-            initialChains
-        );
+        ChainValidator freshValidator = new ChainValidator(owner, initialChains);
 
         // Verify initial chains are valid
         assertTrue(freshValidator.isChainValid("eip155:1"));
