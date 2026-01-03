@@ -6,6 +6,7 @@ import { HelperConfig } from "./HelperConfig.s.sol";
 import { ICreateX } from "createx/ICreateX.sol";
 import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
 import { ChainValidator } from "src/ChainValidator.sol";
+import { AgreementFactory } from "src/AgreementFactory.sol";
 
 /// @title DeploySafeHarbor
 /// @notice Deployment script for Safe Harbor Registry using CREATE3 for deterministic addresses
@@ -14,6 +15,7 @@ contract DeploySafeHarbor is Script {
     // These salts ensure the same address across all chains
     bytes32 public constant CHAIN_VALIDATOR_SALT = keccak256("SafeHarbor.ChainValidator.v3");
     bytes32 public constant REGISTRY_SALT = keccak256("SafeHarbor.Registry.v3");
+    bytes32 public constant AGREEMENT_FACTORY_SALT = keccak256("SafeHarbor.AgreementFactory.v3");
 
     // ----- STATE -----
     HelperConfig public helperConfig;
@@ -23,6 +25,7 @@ contract DeploySafeHarbor is Script {
     // ----- DEPLOYED ADDRESSES -----
     address public chainValidator;
     address public registry;
+    address public agreementFactory;
 
     // ----- INITIALIZATION -----
 
@@ -66,6 +69,10 @@ contract DeploySafeHarbor is Script {
         registry = deployRegistry();
         console.log("SafeHarborRegistry deployed at:", registry);
 
+        // Deploy AgreementFactory
+        agreementFactory = deployAgreementFactory();
+        console.log("AgreementFactory deployed at:", agreementFactory);
+
         vm.stopBroadcast();
     }
 
@@ -107,12 +114,33 @@ contract DeploySafeHarbor is Script {
         return deployed;
     }
 
+    /// @notice Deploys the AgreementFactory contract using CREATE3
+    function deployAgreementFactory() public returns (address) {
+        ICreateX createx = ICreateX(networkConfig.createx);
+
+        // Encode creation bytecode (no constructor arguments)
+        bytes memory initCode = abi.encodePacked(type(AgreementFactory).creationCode);
+
+        // Deploy using CREATE3
+        address deployed = createx.deployCreate3(AGREEMENT_FACTORY_SALT, initCode);
+
+        // Store in state variable
+        agreementFactory = deployed;
+
+        return deployed;
+    }
+
     // ----- HELPER FUNCTIONS -----
 
     /// @notice Computes the expected addresses for the deployed contracts
-    function computeExpectedAddresses() public view returns (address expectedValidator, address expectedRegistry) {
+    function computeExpectedAddresses()
+        public
+        view
+        returns (address expectedValidator, address expectedRegistry, address expectedFactory)
+    {
         ICreateX createx = ICreateX(networkConfig.createx);
         expectedValidator = createx.computeCreate3Address(CHAIN_VALIDATOR_SALT);
         expectedRegistry = createx.computeCreate3Address(REGISTRY_SALT);
+        expectedFactory = createx.computeCreate3Address(AGREEMENT_FACTORY_SALT);
     }
 }
