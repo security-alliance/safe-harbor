@@ -2,7 +2,7 @@
 pragma solidity 0.8.30;
 
 import { AgreementDetails, Chain, Account, Contact, BountyTerms } from "src/types/AgreementTypes.sol";
-import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
+import { IChainValidator } from "src/interface/IChainValidator.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { _hashString } from "src/utils/Utils.sol";
 
@@ -31,8 +31,8 @@ contract Agreement is Ownable {
     /// @notice Slot used for transient storage duplicate chain ID checking
     bytes32 private constant _DUPLICATE_CHECK_SLOT = keccak256("Agreement.duplicateChainIdCheck");
 
-    /// @notice The Safe Harbor Registry contract
-    SafeHarborRegistry private immutable REGISTRY;
+    /// @notice The Chain Validator contract for validating CAIP-2 chain IDs
+    IChainValidator private immutable CHAIN_VALIDATOR;
 
     // Agreement details stored as separate variables to avoid requiring via-ir compiler
     string private protocolName;
@@ -59,13 +59,19 @@ contract Agreement is Ownable {
 
     /// @notice Constructor that sets the details of the agreement.
     /// @param _details The details of the agreement.
-    /// @param _registry The address of the Safe Harbor Registry contract
+    /// @param _chainValidator The address of the Chain Validator contract
     /// @param _initialOwner The owner of the agreement
-    constructor(AgreementDetails memory _details, address _registry, address _initialOwner) Ownable(_initialOwner) {
-        if (_registry == address(0)) {
+    constructor(
+        AgreementDetails memory _details,
+        address _chainValidator,
+        address _initialOwner
+    )
+        Ownable(_initialOwner)
+    {
+        if (_chainValidator == address(0)) {
             revert Agreement__ZeroAddress();
         }
-        REGISTRY = SafeHarborRegistry(_registry);
+        CHAIN_VALIDATOR = IChainValidator(_chainValidator);
         _validateBountyTerms(_details.bountyTerms);
         _validateChains(_details.chains);
         _setDetails(_details);
@@ -253,7 +259,7 @@ contract Agreement is Ownable {
             if (bytes(_chains[i].caip2ChainId).length == 0) {
                 revert Agreement__ChainIdHasZeroLength();
             }
-            if (!REGISTRY.isChainValid(_chains[i].caip2ChainId)) {
+            if (!CHAIN_VALIDATOR.isChainValid(_chains[i].caip2ChainId)) {
                 revert Agreement__InvalidChainId(_chains[i].caip2ChainId);
             }
             // Validate accounts
@@ -333,9 +339,9 @@ contract Agreement is Ownable {
         return agreementURI;
     }
 
-    /// @notice Returns the registry address
-    function getRegistry() external view returns (address) {
-        return address(REGISTRY);
+    /// @notice Returns the chain validator address
+    function getChainValidator() external view returns (address) {
+        return address(CHAIN_VALIDATOR);
     }
 
     /// @notice Returns all chain IDs

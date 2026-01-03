@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { Script, console } from "forge-std/Script.sol";
-import { HelperConfig } from "./HelperConfig.s.sol";
-import { ICreateX } from "createx/ICreateX.sol";
-import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
-import { ChainValidator } from "src/ChainValidator.sol";
-import { AgreementFactory } from "src/AgreementFactory.sol";
+import {Script, console} from "forge-std/Script.sol";
+import {HelperConfig} from "./HelperConfig.s.sol";
+import {ICreateX} from "createx/ICreateX.sol";
+import {SafeHarborRegistry} from "src/SafeHarborRegistry.sol";
+import {ChainValidator} from "src/ChainValidator.sol";
+import {AgreementFactory} from "src/AgreementFactory.sol";
 
 /// @title DeploySafeHarbor
 /// @notice Deployment script for Safe Harbor Registry using CREATE3 for deterministic addresses
 contract DeploySafeHarbor is Script {
     // ----- CONSTANTS -----
     // These salts ensure the same address across all chains
-    bytes32 public constant CHAIN_VALIDATOR_SALT = keccak256("SafeHarbor.ChainValidator.v3");
+    bytes32 public constant CHAIN_VALIDATOR_SALT =
+        keccak256("SafeHarbor.ChainValidator.v3");
     bytes32 public constant REGISTRY_SALT = keccak256("SafeHarbor.Registry.v3");
-    bytes32 public constant AGREEMENT_FACTORY_SALT = keccak256("SafeHarbor.AgreementFactory.v3");
+    bytes32 public constant AGREEMENT_FACTORY_SALT =
+        keccak256("SafeHarbor.AgreementFactory.v3");
 
     // ----- STATE -----
     HelperConfig public helperConfig;
@@ -55,7 +57,7 @@ contract DeploySafeHarbor is Script {
 
         console.log("Deploying Safe Harbor Registry...");
         console.log("Chain ID:", block.chainid);
-        console.log("Owner:", networkConfig.owner);
+        console.log("ChainValidator Owner:", networkConfig.owner);
         console.log("CreateX:", networkConfig.createx);
         console.log("Legacy Registry:", networkConfig.legacyRegistry);
 
@@ -86,11 +88,16 @@ contract DeploySafeHarbor is Script {
         string[] memory validChains = helperConfig.getValidChains();
 
         // Encode constructor arguments (owner, initialValidChains)
-        bytes memory initCode =
-            abi.encodePacked(type(ChainValidator).creationCode, abi.encode(networkConfig.owner, validChains));
+        bytes memory initCode = abi.encodePacked(
+            type(ChainValidator).creationCode,
+            abi.encode(networkConfig.owner, validChains)
+        );
 
         // Deploy using CREATE3
-        address deployed = createx.deployCreate3(CHAIN_VALIDATOR_SALT, initCode);
+        address deployed = createx.deployCreate3(
+            CHAIN_VALIDATOR_SALT,
+            initCode
+        );
 
         // Store in state variable for use by deployRegistry
         chainValidator = deployed;
@@ -102,10 +109,10 @@ contract DeploySafeHarbor is Script {
     function deployRegistry() public returns (address) {
         ICreateX createx = ICreateX(networkConfig.createx);
 
-        // Encode constructor arguments
+        // Encode constructor arguments (legacyRegistry, adopters)
         bytes memory initCode = abi.encodePacked(
             type(SafeHarborRegistry).creationCode,
-            abi.encode(networkConfig.owner, chainValidator, networkConfig.legacyRegistry, networkConfig.adopters)
+            abi.encode(networkConfig.legacyRegistry, networkConfig.adopters)
         );
 
         // Deploy using CREATE3
@@ -119,10 +126,15 @@ contract DeploySafeHarbor is Script {
         ICreateX createx = ICreateX(networkConfig.createx);
 
         // Encode creation bytecode (no constructor arguments)
-        bytes memory initCode = abi.encodePacked(type(AgreementFactory).creationCode);
+        bytes memory initCode = abi.encodePacked(
+            type(AgreementFactory).creationCode
+        );
 
         // Deploy using CREATE3
-        address deployed = createx.deployCreate3(AGREEMENT_FACTORY_SALT, initCode);
+        address deployed = createx.deployCreate3(
+            AGREEMENT_FACTORY_SALT,
+            initCode
+        );
 
         // Store in state variable
         agreementFactory = deployed;
@@ -136,7 +148,11 @@ contract DeploySafeHarbor is Script {
     function computeExpectedAddresses()
         public
         view
-        returns (address expectedValidator, address expectedRegistry, address expectedFactory)
+        returns (
+            address expectedValidator,
+            address expectedRegistry,
+            address expectedFactory
+        )
     {
         ICreateX createx = ICreateX(networkConfig.createx);
         expectedValidator = createx.computeCreate3Address(CHAIN_VALIDATOR_SALT);

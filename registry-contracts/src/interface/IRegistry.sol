@@ -7,9 +7,4 @@ interface IRegistry {
     /// @param adopter The adopter to query.
     /// @return address The agreement address.
     function getAgreement(address adopter) external view returns (address);
-
-    /// @notice Check if a chain ID is valid in the registry.
-    /// @param caip2ChainId The CAIP-2 ID of the chain to check.
-    /// @return bool True if the chain is valid, false otherwise.
-    function isChainValid(string calldata caip2ChainId) external view returns (bool);
 }
