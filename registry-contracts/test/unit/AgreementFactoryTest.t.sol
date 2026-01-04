@@ -42,7 +42,7 @@ contract AgreementFactoryTest is Test {
         registry = SafeHarborRegistry(deployer.deployRegistry());
 
         // Deploy the factory
-        factory = new AgreementFactory();
+        factory = AgreementFactory(deployer.deployAgreementFactory());
     }
 
     function test_create() public {

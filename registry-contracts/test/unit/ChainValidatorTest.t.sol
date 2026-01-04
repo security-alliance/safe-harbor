@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import { Test } from "forge-std/Test.sol";
 import { ChainValidator } from "src/ChainValidator.sol";
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { HelperConfig } from "script/HelperConfig.s.sol";
 import { DeploySafeHarbor } from "script/Deploy.s.sol";
 
@@ -29,15 +30,18 @@ contract ChainValidatorTest is Test {
         chainValidator = ChainValidator(deployer.deployChainValidator());
     }
 
-    // ----- CONSTRUCTOR TESTS -----
+    // ----- INITIALIZER TESTS -----
 
-    function test_constructor() public {
-        // Deploy a fresh ChainValidator with custom chains
+    function test_initialize() public {
+        // Deploy a fresh ChainValidator via proxy with custom chains
         string[] memory initialChains = new string[](2);
         initialChains[0] = "eip155:1";
         initialChains[1] = "eip155:137";
 
-        ChainValidator freshValidator = new ChainValidator(owner, initialChains);
+        ChainValidator impl = new ChainValidator();
+        bytes memory initData = abi.encodeCall(ChainValidator.initialize, (owner, initialChains));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), initData);
+        ChainValidator freshValidator = ChainValidator(address(proxy));
 
         // Verify initial chains are valid
         assertTrue(freshValidator.isChainValid("eip155:1"));
@@ -48,15 +52,44 @@ contract ChainValidatorTest is Test {
         assertEq(freshValidator.owner(), owner);
     }
 
-    function test_constructor_emptyChains() public {
-        // Deploy with no initial chains
+    function test_initialize_emptyChains() public {
+        // Deploy with no initial chains via proxy
         string[] memory emptyChains = new string[](0);
-        ChainValidator emptyValidator = new ChainValidator(owner, emptyChains);
+
+        ChainValidator impl = new ChainValidator();
+        bytes memory initData = abi.encodeCall(ChainValidator.initialize, (owner, emptyChains));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), initData);
+        ChainValidator emptyValidator = ChainValidator(address(proxy));
 
         // No chains should be valid
         assertFalse(emptyValidator.isChainValid("eip155:1"));
         string[] memory validChains = emptyValidator.getValidChains();
         assertEq(validChains.length, 0);
+    }
+
+    function test_initialize_cannotReinitialize() public {
+        // Deploy and initialize via proxy
+        string[] memory initialChains = new string[](1);
+        initialChains[0] = "eip155:1";
+
+        ChainValidator impl = new ChainValidator();
+        bytes memory initData = abi.encodeCall(ChainValidator.initialize, (owner, initialChains));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), initData);
+        ChainValidator freshValidator = ChainValidator(address(proxy));
+
+        // Try to reinitialize - should fail
+        vm.expectRevert();
+        freshValidator.initialize(owner, initialChains);
+    }
+
+    function test_implementationCannotBeInitialized() public {
+        // Implementation should have initializers disabled
+        ChainValidator impl = new ChainValidator();
+        string[] memory chains = new string[](1);
+        chains[0] = "eip155:1";
+
+        vm.expectRevert();
+        impl.initialize(owner, chains);
     }
 
     // ----- SET VALID CHAINS TESTS -----

@@ -4,6 +4,7 @@ pragma solidity 0.8.30;
 import { Script, console } from "forge-std/Script.sol";
 import { HelperConfig } from "./HelperConfig.s.sol";
 import { ICreateX } from "createx/ICreateX.sol";
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
 import { ChainValidator } from "src/ChainValidator.sol";
 import { AgreementFactory } from "src/AgreementFactory.sol";
@@ -13,10 +14,10 @@ import { AgreementFactory } from "src/AgreementFactory.sol";
 contract DeploySafeHarbor is Script {
     // ----- CONSTANTS -----
     // These salts ensure the same address across all chains
-    // v3.1 - Updated architecture: Agreement uses ChainValidator directly, Registry has no owner
-    bytes32 public constant CHAIN_VALIDATOR_SALT = keccak256("SafeHarbor.ChainValidator.v3.1");
-    bytes32 public constant REGISTRY_SALT = keccak256("SafeHarbor.Registry.v3.1");
-    bytes32 public constant AGREEMENT_FACTORY_SALT = keccak256("SafeHarbor.AgreementFactory.v3.1");
+    bytes32 public constant CHAIN_VALIDATOR_IMPL_SALT = keccak256("SafeHarbor.ChainValidator.impl.v3");
+    bytes32 public constant CHAIN_VALIDATOR_PROXY_SALT = keccak256("SafeHarbor.ChainValidator.proxy.v3");
+    bytes32 public constant REGISTRY_SALT = keccak256("SafeHarbor.Registry.v3");
+    bytes32 public constant AGREEMENT_FACTORY_SALT = keccak256("SafeHarbor.AgreementFactory.v3");
 
     // ----- STATE -----
     HelperConfig public helperConfig;
@@ -24,7 +25,8 @@ contract DeploySafeHarbor is Script {
     bool private _initialized;
 
     // ----- DEPLOYED ADDRESSES -----
-    address public chainValidator;
+    address public chainValidatorImpl;
+    address public chainValidator; // proxy address
     address public registry;
     address public agreementFactory;
 
@@ -79,24 +81,32 @@ contract DeploySafeHarbor is Script {
 
     // ----- DEPLOYMENT FUNCTIONS -----
 
-    /// @notice Deploys the ChainValidator contract using CREATE3
-    function deployChainValidator() public returns (address) {
+    /// @notice Deploys the ChainValidator implementation and proxy using CREATE3
+    /// @return proxy The address of the deployed proxy
+    function deployChainValidator() public returns (address proxy) {
         ICreateX createx = ICreateX(networkConfig.createx);
 
         // Get valid chains from helper config
         string[] memory validChains = helperConfig.getValidChains();
 
-        // Encode constructor arguments (owner, initialValidChains)
-        bytes memory initCode =
-            abi.encodePacked(type(ChainValidator).creationCode, abi.encode(networkConfig.owner, validChains));
+        // 1. Deploy implementation
+        bytes memory implInitCode = abi.encodePacked(type(ChainValidator).creationCode);
+        chainValidatorImpl = createx.deployCreate3(CHAIN_VALIDATOR_IMPL_SALT, implInitCode);
+        console.log("ChainValidator implementation deployed at:", chainValidatorImpl);
 
-        // Deploy using CREATE3
-        address deployed = createx.deployCreate3(CHAIN_VALIDATOR_SALT, initCode);
+        // 2. Encode the initialize call for the proxy
+        bytes memory initData = abi.encodeCall(ChainValidator.initialize, (networkConfig.owner, validChains));
 
-        // Store in state variable for use by deployRegistry
-        chainValidator = deployed;
+        // 3. Deploy ERC1967Proxy pointing to implementation
+        bytes memory proxyInitCode = abi.encodePacked(
+            type(ERC1967Proxy).creationCode, abi.encode(chainValidatorImpl, initData)
+        );
+        proxy = createx.deployCreate3(CHAIN_VALIDATOR_PROXY_SALT, proxyInitCode);
 
-        return deployed;
+        // Store proxy address
+        chainValidator = proxy;
+
+        return proxy;
     }
 
     /// @notice Deploys the SafeHarborRegistry contract using CREATE3
@@ -136,10 +146,16 @@ contract DeploySafeHarbor is Script {
     function computeExpectedAddresses()
         public
         view
-        returns (address expectedValidator, address expectedRegistry, address expectedFactory)
+        returns (
+            address expectedValidatorImpl,
+            address expectedValidatorProxy,
+            address expectedRegistry,
+            address expectedFactory
+        )
     {
         ICreateX createx = ICreateX(networkConfig.createx);
-        expectedValidator = createx.computeCreate3Address(CHAIN_VALIDATOR_SALT);
+        expectedValidatorImpl = createx.computeCreate3Address(CHAIN_VALIDATOR_IMPL_SALT);
+        expectedValidatorProxy = createx.computeCreate3Address(CHAIN_VALIDATOR_PROXY_SALT);
         expectedRegistry = createx.computeCreate3Address(REGISTRY_SALT);
         expectedFactory = createx.computeCreate3Address(AGREEMENT_FACTORY_SALT);
     }

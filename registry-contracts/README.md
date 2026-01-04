@@ -24,8 +24,11 @@ forge build
 # Run unit tests
 forge test
 
-# Run integration/fork tests
+# Set your MAINNET_RPC_URL and POLYGON_RPC_URL environment variables to run integration tests
 FOUNDRY_PROFILE=integration forge test
+
+# Fork tests
+forge test --fork-url <RPC_URL>
 ```
 
 ### Coverage
