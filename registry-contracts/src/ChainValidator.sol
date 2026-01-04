@@ -2,13 +2,15 @@
 pragma solidity 0.8.30;
 
 import { IChainValidator } from "src/interface/IChainValidator.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { _hashString } from "src/utils/Utils.sol";
 
 /// @title Chain Validator for Safe Harbor Registry
 /// @notice Manages the list of valid chains for Safe Harbor agreements
-// aderyn-ignore-next-line(centralization-risk)
-contract ChainValidator is IChainValidator, Ownable {
+// aderyn-ignore-next-line(centralization-risk,contract-locks-ether)
+contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     // ----- STATE VARIABLES -----
     mapping(string caip2 => bool valid) private validChains;
     string[] private validChainsList;
@@ -17,14 +19,31 @@ contract ChainValidator is IChainValidator, Ownable {
     event ChainValiditySet(string caip2ChainId, bool valid);
 
     // ----- CONSTRUCTOR -----
-    constructor(address _initialOwner, string[] memory _initialValidChains) Ownable(_initialOwner) {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    // ----- INITIALIZER -----
+    /// @notice Initializes the contract with the owner and initial valid chains.
+    /// @param _initialOwner The owner of the contract.
+    /// @param _initialValidChains The initial list of valid CAIP-2 chain IDs.
+    function initialize(address _initialOwner, string[] memory _initialValidChains) external initializer {
+        __Ownable_init(_initialOwner);
         uint256 length = _initialValidChains.length;
+        // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
             validChains[_initialValidChains[i]] = true;
             validChainsList.push(_initialValidChains[i]);
             emit ChainValiditySet(_initialValidChains[i], true);
         }
     }
+
+    // ----- UUPS -----
+    /// @notice Authorizes an upgrade to a new implementation.
+    /// @param newImplementation The address of the new implementation.
+    // aderyn-ignore-next-line(centralization-risk)
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 

@@ -12,3 +12,6 @@
 [submodule "registry-contracts/lib/createx"]
 	path = registry-contracts/lib/createx
 	url = https://github.com/pcaversaccio/createx
+[submodule "registry-contracts/lib/openzeppelin-contracts-upgradeable"]
+	path = registry-contracts/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable

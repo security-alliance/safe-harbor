@@ -1,50 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {IRegistry} from "src/interface/IRegistry.sol";
-import {IChainValidator} from "src/interface/IChainValidator.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { IRegistry } from "src/interface/IRegistry.sol";
 
 string constant VERSION = "3.0.0";
 
 /// @title The Safe Harbor Registry. See www.securityalliance.org for details.
-// aderyn-ignore-next-line(centralization-risk)
-contract SafeHarborRegistry is IRegistry, Ownable {
+contract SafeHarborRegistry is IRegistry {
     // ----- ERRORS -----
     error SafeHarborRegistry__NoAgreement();
-    error SafeHarborRegistry__ZeroAddress();
 
     // ----- STATE VARIABLES -----
     /// @notice A mapping which records the agreement details for a given governance/admin address.
     mapping(address entity => address details) private agreements;
 
-    /// @notice The chain validator contract used to validate chain IDs.
-    IChainValidator private chainValidator;
-
     // ----- EVENTS -----
     event SafeHarborAdoption(address indexed adopter, address agreementAddress);
-    event ChainValidatorSet(address indexed newValidator);
     event LegacyDataMigrated(address indexed legacyRegistry, uint256 migratedCount);
 
     // ----- CONSTRUCTOR -----
     /// @notice Deploys the registry with optional migration from a legacy registry.
     /// @dev For fresh deployments, pass address(0) for _legacyRegistry and empty array for _adopters.
     ///      For migrations, pass the legacy registry address and array of known adopters.
-    /// @param _initialOwner The owner of the registry.
-    /// @param _chainValidator The address of the chain validator contract.
     /// @param _legacyRegistry The address of the legacy SafeHarborRegistryV2 contract (or address(0) for fresh deploy).
     /// @param _adopters Array of addresses that have adopted Safe Harbor in the legacy registry.
-    constructor(
-        address _initialOwner,
-        address _chainValidator,
-        address _legacyRegistry,
-        address[] memory _adopters
-    ) Ownable(_initialOwner) {
-        if (_chainValidator == address(0)) {
-            revert SafeHarborRegistry__ZeroAddress();
-        }
-        chainValidator = IChainValidator(_chainValidator);
-
+    constructor(address _legacyRegistry, address[] memory _adopters) {
         // Migrate data from legacy registry if provided
         if (_legacyRegistry != address(0) && _adopters.length > 0) {
             IRegistry legacyRegistry = IRegistry(_legacyRegistry);
@@ -72,17 +52,6 @@ contract SafeHarborRegistry is IRegistry, Ownable {
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 
-    /// @notice Function to update the chain validator contract.
-    /// @param _newChainValidator The address of the new chain validator contract.
-    // aderyn-ignore-next-line(centralization-risk)
-    function setChainValidator(address _newChainValidator) external onlyOwner {
-        if (_newChainValidator == address(0)) {
-            revert SafeHarborRegistry__ZeroAddress();
-        }
-        emit ChainValidatorSet(_newChainValidator);
-        chainValidator = IChainValidator(_newChainValidator);
-    }
-
     /// @notice Function that records an adoption by msg.sender.
     /// @param _agreementAddress The address of the agreement to adopt.
     function adoptSafeHarbor(address _agreementAddress) external {
@@ -93,6 +62,8 @@ contract SafeHarborRegistry is IRegistry, Ownable {
 
     // ----- USER-FACING READ-ONLY FUNCTIONS -----
 
+    /// @notice Returns the version of the registry.
+    /// @return string The version string.
     function version() external pure returns (string memory) {
         return VERSION;
     }
@@ -108,24 +79,5 @@ contract SafeHarborRegistry is IRegistry, Ownable {
         }
 
         revert SafeHarborRegistry__NoAgreement();
-    }
-
-    /// @notice Function that returns if a chain is valid.
-    /// @param _caip2ChainId The CAIP-2 ID of the chain to check.
-    /// @return bool True if the chain is valid, false otherwise.
-    function isChainValid(string calldata _caip2ChainId) external view returns (bool) {
-        return chainValidator.isChainValid(_caip2ChainId);
-    }
-
-    /// @notice Function that returns all currently valid chain IDs.
-    /// @return string[] Array of all valid CAIP-2 chain IDs.
-    function getValidChains() external view returns (string[] memory) {
-        return chainValidator.getValidChains();
-    }
-
-    /// @notice Returns the current chain validator contract address.
-    /// @return address The chain validator contract address.
-    function getChainValidator() external view returns (address) {
-        return address(chainValidator);
     }
 }

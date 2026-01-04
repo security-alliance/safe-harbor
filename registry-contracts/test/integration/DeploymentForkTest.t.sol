@@ -16,20 +16,24 @@ contract DeploymentIntegrationTest is Test {
         vm.createSelectFork("mainnet");
         console.log("Forked Mainnet, chainId:", block.chainid);
         ICreateX createxMainnet = ICreateX(CREATEX);
-        address chainValidatorMainnet = createxMainnet.computeCreate3Address(keccak256("SafeHarbor.ChainValidator.v3"));
+        address chainValidatorProxyMainnet =
+            createxMainnet.computeCreate3Address(keccak256("SafeHarbor.ChainValidator.proxy.v3"));
         address registryMainnet = createxMainnet.computeCreate3Address(keccak256("SafeHarbor.Registry.v3"));
-        console.log("Mainnet ChainValidator:", chainValidatorMainnet);
+        console.log("Mainnet ChainValidator Proxy:", chainValidatorProxyMainnet);
         console.log("Mainnet Registry:", registryMainnet);
         // Fork polygon and compute addresses
         vm.createSelectFork("polygon");
         console.log("\nForked Polygon, chainId:", block.chainid);
         ICreateX createxPolygon = ICreateX(CREATEX);
-        address chainValidatorPolygon = createxPolygon.computeCreate3Address(keccak256("SafeHarbor.ChainValidator.v3"));
+        address chainValidatorProxyPolygon =
+            createxPolygon.computeCreate3Address(keccak256("SafeHarbor.ChainValidator.proxy.v3"));
         address registryPolygon = createxPolygon.computeCreate3Address(keccak256("SafeHarbor.Registry.v3"));
-        console.log("Polygon ChainValidator:", chainValidatorPolygon);
+        console.log("Polygon ChainValidator Proxy:", chainValidatorProxyPolygon);
         console.log("Polygon Registry:", registryPolygon);
         // Verify addresses match across chains
-        assertEq(chainValidatorMainnet, chainValidatorPolygon, "ChainValidator address mismatch between chains");
+        assertEq(
+            chainValidatorProxyMainnet, chainValidatorProxyPolygon, "ChainValidator proxy address mismatch between chains"
+        );
         assertEq(registryMainnet, registryPolygon, "Registry address mismatch between chains");
         console.log("\nSUCCESS: Addresses match across chains!");
     }
@@ -37,8 +41,16 @@ contract DeploymentIntegrationTest is Test {
     function test_saltsMatchDeployScript() public {
         // Verify our test uses the same salts as the deploy script
         DeploySafeHarbor deployer = new DeploySafeHarbor();
-        string memory error = "ChainValidator salt mismatch";
-        assertEq(deployer.CHAIN_VALIDATOR_SALT(), keccak256("SafeHarbor.ChainValidator.v3"), error);
+        assertEq(
+            deployer.CHAIN_VALIDATOR_IMPL_SALT(),
+            keccak256("SafeHarbor.ChainValidator.impl.v3"),
+            "ChainValidator impl salt mismatch"
+        );
+        assertEq(
+            deployer.CHAIN_VALIDATOR_PROXY_SALT(),
+            keccak256("SafeHarbor.ChainValidator.proxy.v3"),
+            "ChainValidator proxy salt mismatch"
+        );
         assertEq(deployer.REGISTRY_SALT(), keccak256("SafeHarbor.Registry.v3"), "Registry salt mismatch");
     }
 }
