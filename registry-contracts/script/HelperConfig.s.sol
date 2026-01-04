@@ -23,7 +23,11 @@ contract HelperConfig is Script {
     address public constant CREATEX_ADDRESS = 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed;
     uint256 public constant LOCAL_CHAIN_ID = 31_337;
     address public constant DEFAULT_ANVIL_OWNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    // V2
     address public constant DEFAULT_LEGACY_REGISTRY = 0x1eaCD100B0546E433fbf4d773109cAD482c34686;
+    // V1
+    address public constant LEGACY_REGISTRY_V1 = 0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6;
+    address public constant LEGACY_REGISTRY_V1_ZKSYNC = 0x5f5eEc1a37F42883Df9DacdAb11985467F813877;
 
     // ----- ADDRESS CONSTANTS -----
     address public constant SEAL_MAINNET_OWNER = 0xD9b8653Ab0bBa82C397b350F7319bA0c76d9F26a;
@@ -127,10 +131,7 @@ contract HelperConfig is Script {
     function getOptimismConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](0);
         return NetworkConfig({
-            owner: address(0), // TODO: Set optimism owner
-            legacyRegistry: address(0),
-            createx: CREATEX_ADDRESS,
-            adopters: adopters
+            owner: SEAL_MAINNET_OWNER, legacyRegistry: LEGACY_REGISTRY_V1, createx: CREATEX_ADDRESS, adopters: adopters
         });
     }
 
@@ -138,30 +139,25 @@ contract HelperConfig is Script {
         address[] memory adopters = new address[](2);
         adopters[0] = ENSURO;
         adopters[1] = POLYMARKET;
-        address currentOwner = 0x31d23affb90bCAfcAAe9f27903b151DCDC82569E; // THIS IS AN EOA!!! This should be a
-        // multisig
         return NetworkConfig({
-            owner: currentOwner, legacyRegistry: DEFAULT_LEGACY_REGISTRY, createx: CREATEX_ADDRESS, adopters: adopters
+            owner: SEAL_MAINNET_OWNER,
+            legacyRegistry: DEFAULT_LEGACY_REGISTRY,
+            createx: CREATEX_ADDRESS,
+            adopters: adopters
         });
     }
 
     function getArbitrumConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](0);
         return NetworkConfig({
-            owner: address(0), // TODO: Set arbitrum owner
-            legacyRegistry: address(0),
-            createx: CREATEX_ADDRESS,
-            adopters: adopters
+            owner: SEAL_MAINNET_OWNER, legacyRegistry: LEGACY_REGISTRY_V1, createx: CREATEX_ADDRESS, adopters: adopters
         });
     }
 
     function getBaseConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](0);
         return NetworkConfig({
-            owner: address(0), // TODO: Set base owner
-            legacyRegistry: address(0),
-            createx: CREATEX_ADDRESS,
-            adopters: adopters
+            owner: SEAL_MAINNET_OWNER, legacyRegistry: LEGACY_REGISTRY_V1, createx: CREATEX_ADDRESS, adopters: adopters
         });
     }
 
@@ -169,8 +165,8 @@ contract HelperConfig is Script {
         address[] memory adopters = new address[](1);
         adopters[0] = PANCAKESWAP;
         return NetworkConfig({
-            owner: address(0), // TODO: Set bsc owner
-            legacyRegistry: address(0),
+            owner: SEAL_MAINNET_OWNER,
+            legacyRegistry: DEFAULT_LEGACY_REGISTRY,
             createx: CREATEX_ADDRESS,
             adopters: adopters
         });
@@ -179,9 +175,11 @@ contract HelperConfig is Script {
     function getZksyncConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](1);
         adopters[0] = ZKSYNC;
+        // TODO: ZkSync owner not yet configured
+        revert("HelperConfig: ZkSync owner not configured yet");
         return NetworkConfig({
             owner: address(0), // TODO: Set zksync owner
-            legacyRegistry: address(0),
+            legacyRegistry: LEGACY_REGISTRY_V1_ZKSYNC,
             createx: CREATEX_ADDRESS,
             adopters: adopters
         });
@@ -192,10 +190,7 @@ contract HelperConfig is Script {
     function getSepoliaConfig() public pure returns (NetworkConfig memory) {
         address[] memory adopters = new address[](0);
         return NetworkConfig({
-            owner: address(0), // TODO: Set sepolia owner
-            legacyRegistry: address(0),
-            createx: CREATEX_ADDRESS,
-            adopters: adopters
+            owner: SEAL_MAINNET_OWNER, legacyRegistry: address(0), createx: CREATEX_ADDRESS, adopters: adopters
         });
     }
 
