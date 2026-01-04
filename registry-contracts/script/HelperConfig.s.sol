@@ -34,6 +34,7 @@ contract HelperConfig is Script {
     address public constant IDLE_FINANCE = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
     address public constant ENS = 0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7;
     address public constant RHEO = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+    address public constant PARETO = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
 
     // Polygon V2
     address public constant ENSURO = 0x261af6C5A12e268Bb919548c694fC75486B0EBBe;
@@ -51,7 +52,11 @@ contract HelperConfig is Script {
     // POLYGON V1
     address public constant POLYMARKET = 0x566345A70D70CE724cc1A441dCA748b6b6C31265;
 
-    // TODO ADD BSC & ZKSYNC
+    // BSC V1
+    address public constant PANCAKESWAP = 0xeCc90d54B10ADd1ab746ABE7E83abe178B72aa9E;
+
+    // ZKSYNC V1
+    address public constant ZKSYNC = 0xC3e970cB015B5FC36edDf293D2370ef5D00F7a19;
 
     // ----- STATE -----
     NetworkConfig public activeNetworkConfig;
@@ -70,6 +75,10 @@ contract HelperConfig is Script {
             activeNetworkConfig = getArbitrumConfig();
         } else if (block.chainid == 8453) {
             activeNetworkConfig = getBaseConfig();
+        } else if (block.chainid == 56) {
+            activeNetworkConfig = getBscConfig();
+        } else if (block.chainid == 324) {
+            activeNetworkConfig = getZksyncConfig();
         } else if (block.chainid == 11_155_111) {
             activeNetworkConfig = getSepoliaConfig();
         } else if (block.chainid == LOCAL_CHAIN_ID) {
@@ -94,20 +103,21 @@ contract HelperConfig is Script {
     // ----- MAINNET CONFIGS -----
 
     function getMainnetConfig() public pure returns (NetworkConfig memory) {
-        address[] memory adopters = new address[](10);
+        address[] memory adopters = new address[](14);
         adopters[0] = RHEO;
         adopters[1] = OPS_COVEFI_ETH;
         adopters[2] = AAVE;
         adopters[3] = IDLE_FINANCE;
         adopters[4] = ENS;
-        adopters[5] = SILO;
-        adopters[6] = SANDCLOCK;
-        adopters[7] = BALANCER;
-        adopters[8] = UNISWAP;
-        adopters[9] = INVERSE_FINANCE;
-        adopters[10] = PENDLE;
-        adopters[11] = ALCHEMIX;
-        adopters[12] = SINGULARITY;
+        adopters[5] = PARETO;
+        adopters[6] = SILO;
+        adopters[7] = SANDCLOCK;
+        adopters[8] = BALANCER;
+        adopters[9] = UNISWAP;
+        adopters[10] = INVERSE_FINANCE;
+        adopters[11] = PENDLE;
+        adopters[12] = ALCHEMIX;
+        adopters[13] = SINGULARITY;
         return NetworkConfig({
             owner: SEAL_MAINNET_OWNER,
             legacyRegistry: DEFAULT_LEGACY_REGISTRY,
@@ -151,6 +161,28 @@ contract HelperConfig is Script {
         address[] memory adopters = new address[](0);
         return NetworkConfig({
             owner: address(0), // TODO: Set base owner
+            legacyRegistry: address(0),
+            createx: CREATEX_ADDRESS,
+            adopters: adopters
+        });
+    }
+
+    function getBscConfig() public pure returns (NetworkConfig memory) {
+        address[] memory adopters = new address[](1);
+        adopters[0] = PANCAKESWAP;
+        return NetworkConfig({
+            owner: address(0), // TODO: Set bsc owner
+            legacyRegistry: address(0),
+            createx: CREATEX_ADDRESS,
+            adopters: adopters
+        });
+    }
+
+    function getZksyncConfig() public pure returns (NetworkConfig memory) {
+        address[] memory adopters = new address[](1);
+        adopters[0] = ZKSYNC;
+        return NetworkConfig({
+            owner: address(0), // TODO: Set zksync owner
             legacyRegistry: address(0),
             createx: CREATEX_ADDRESS,
             adopters: adopters
