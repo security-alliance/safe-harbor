@@ -31,16 +31,15 @@ contract HelperConfig is Script {
     // Ethereum V2
     address public constant OPS_COVEFI_ETH = 0x71BDC5F3AbA49538C76d58Bc2ab4E3A1118dAe4c;
     address public constant AAVE = 0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A;
-    address public constant IDLE_FINANCE = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
+    address public constant PARETO = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
     address public constant ENS = 0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7;
     address public constant RHEO = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
-    address public constant PARETO = 0xFb3bD022D5DAcF95eE28a6B07825D4Ff9C5b3814;
 
     // Polygon V2
     address public constant ENSURO = 0x261af6C5A12e268Bb919548c694fC75486B0EBBe;
 
     // Ethereum V1
-    address public constant SILO = 0x4Bfd964DdCd745beD4d002D36380DA293e0AC507;
+    address public constant SILO = 0xE8e8041cB5E3158A0829A19E014CA1cf91098554;
     address public constant SANDCLOCK = 0x6cF38285FdFAf8D67205ca444A899025b5B18e83;
     address public constant BALANCER = 0x10A19e7eE7d7F8a52822f6817de8ea18204F2e4f;
     address public constant UNISWAP = 0x1a9C8182C09F50C8318d769245beA52c32BE35BC;
@@ -103,21 +102,20 @@ contract HelperConfig is Script {
     // ----- MAINNET CONFIGS -----
 
     function getMainnetConfig() public pure returns (NetworkConfig memory) {
-        address[] memory adopters = new address[](14);
+        address[] memory adopters = new address[](13);
         adopters[0] = RHEO;
         adopters[1] = OPS_COVEFI_ETH;
         adopters[2] = AAVE;
-        adopters[3] = IDLE_FINANCE;
+        adopters[3] = PARETO;
         adopters[4] = ENS;
-        adopters[5] = PARETO;
-        adopters[6] = SILO;
-        adopters[7] = SANDCLOCK;
-        adopters[8] = BALANCER;
-        adopters[9] = UNISWAP;
-        adopters[10] = INVERSE_FINANCE;
-        adopters[11] = PENDLE;
-        adopters[12] = ALCHEMIX;
-        adopters[13] = SINGULARITY;
+        adopters[5] = SILO;
+        adopters[6] = SANDCLOCK;
+        adopters[7] = BALANCER;
+        adopters[8] = UNISWAP;
+        adopters[9] = INVERSE_FINANCE;
+        adopters[10] = PENDLE;
+        adopters[11] = ALCHEMIX;
+        adopters[12] = SINGULARITY;
         return NetworkConfig({
             owner: SEAL_MAINNET_OWNER,
             legacyRegistry: DEFAULT_LEGACY_REGISTRY,
