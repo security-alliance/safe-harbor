@@ -5,14 +5,18 @@ import { IChainValidator } from "src/interface/IChainValidator.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { _hashString } from "src/utils/Utils.sol";
 
 /// @title Chain Validator for Safe Harbor Registry
 /// @notice Manages the list of valid chains for Safe Harbor agreements
 // aderyn-ignore-next-line(centralization-risk,contract-locks-ether)
 contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, UUPSUpgradeable {
+    // ----- CONSTANTS -----
+    /// @notice Value indicating a chain is not valid (index + 1 = 0 means not present)
+    uint256 private constant NOT_VALID = 0;
+
     // ----- STATE VARIABLES -----
-    mapping(string caip2 => bool valid) private validChains;
+    /// @notice Maps chain ID to its index + 1 in validChainsList (0 = not valid)
+    mapping(string caip2 => uint256 indexPlusOne) private validChains;
     string[] private validChainsList;
 
     // ----- EVENTS -----
@@ -33,7 +37,8 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
         uint256 length = _initialValidChains.length;
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
-            validChains[_initialValidChains[i]] = true;
+            // Store index + 1 (so 0 means not valid)
+            validChains[_initialValidChains[i]] = i + 1;
             validChainsList.push(_initialValidChains[i]);
             emit ChainValiditySet(_initialValidChains[i], true);
         }
@@ -42,7 +47,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     // ----- UUPS -----
     /// @notice Authorizes an upgrade to a new implementation.
     /// @param newImplementation The address of the new implementation.
-    // aderyn-ignore-next-line(centralization-risk)
+    // aderyn-ignore-next-line(centralization-risk,empty-block)
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
@@ -54,8 +59,9 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
         uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
-            if (!validChains[_caip2ChainIds[i]]) {
-                validChains[_caip2ChainIds[i]] = true;
+            if (validChains[_caip2ChainIds[i]] == NOT_VALID) {
+                // Store index + 1 (current length + 1 before push)
+                validChains[_caip2ChainIds[i]] = validChainsList.length + 1;
                 validChainsList.push(_caip2ChainIds[i]);
             }
             emit ChainValiditySet(_caip2ChainIds[i], true);
@@ -69,9 +75,10 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
         uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
-            if (validChains[_caip2ChainIds[i]]) {
-                validChains[_caip2ChainIds[i]] = false;
-                _removeFromValidChainsList(_caip2ChainIds[i]);
+            uint256 indexPlusOne = validChains[_caip2ChainIds[i]];
+            if (indexPlusOne != NOT_VALID) {
+                _removeFromValidChainsList(indexPlusOne - 1);
+                validChains[_caip2ChainIds[i]] = NOT_VALID;
             }
             emit ChainValiditySet(_caip2ChainIds[i], false);
         }
@@ -79,21 +86,20 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
 
     // ----- INTERNAL STATE-CHANGING FUNCTIONS -----
 
-    /// @notice Internal function to remove a chain ID from the valid chains list.
-    /// @param _caip2ChainId The CAIP-2 chain ID to remove.
-    function _removeFromValidChainsList(string calldata _caip2ChainId) internal {
-        bytes32 targetHash = _hashString(_caip2ChainId);
-        uint256 length = validChainsList.length;
-        // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
-            // aderyn-ignore-next-line(storage-array-memory-edit)
-            if (_hashString(validChainsList[i]) == targetHash) {
-                // Replace with last element and pop
-                validChainsList[i] = validChainsList[length - 1];
-                validChainsList.pop();
-                break;
-            }
+    /// @notice Internal function to remove a chain ID from the valid chains list using O(1) swap-and-pop.
+    /// @param _index The index of the chain ID to remove.
+    function _removeFromValidChainsList(uint256 _index) internal {
+        uint256 lastIndex = validChainsList.length - 1;
+
+        if (_index != lastIndex) {
+            // Swap with last element
+            string memory lastChainId = validChainsList[lastIndex];
+            validChainsList[_index] = lastChainId;
+            // Update the swapped element's index in the mapping
+            validChains[lastChainId] = _index + 1;
         }
+
+        validChainsList.pop();
     }
 
     // ----- USER-FACING READ-ONLY FUNCTIONS -----
@@ -102,7 +108,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     /// @param _caip2ChainId The CAIP-2 ID of the chain to check.
     /// @return bool True if the chain is valid, false otherwise.
     function isChainValid(string calldata _caip2ChainId) external view returns (bool) {
-        return validChains[_caip2ChainId];
+        return validChains[_caip2ChainId] != NOT_VALID;
     }
 
     /// @notice Function that returns all currently valid chain IDs.
