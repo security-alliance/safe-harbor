@@ -26,28 +26,31 @@ contract SafeHarborRegistry is IRegistry {
     /// @param _adopters Array of addresses that have adopted Safe Harbor in the legacy registry.
     constructor(address _legacyRegistry, address[] memory _adopters) {
         // Migrate data from legacy registry if provided
-        if (_legacyRegistry != address(0) && _adopters.length > 0) {
-            IRegistry legacyRegistry = IRegistry(_legacyRegistry);
-            uint256 length = _adopters.length;
-            uint256 migratedCount = 0;
+        if (_legacyRegistry == address(0) || _adopters.length <= 0) {
+            return;
+        }
+        IRegistry legacyRegistry = IRegistry(_legacyRegistry);
+        uint256 length = _adopters.length;
+        uint256 migratedCount = 0;
 
-            for (uint256 i = 0; i < length; i++) {
-                address adopter = _adopters[i];
-                // Query the legacy registry for this adopter's agreement
-                try legacyRegistry.getAgreement(adopter) returns (address agreementAddress) {
-                    if (agreementAddress != address(0)) {
-                        agreements[adopter] = agreementAddress;
-                        emit SafeHarborAdoption(adopter, agreementAddress);
-                        migratedCount++;
-                    }
-                } catch {
-                    // Skip adopters that don't have agreements or cause errors
+        for (uint256 i = 0; i < length; i++) {
+            address adopter = _adopters[i];
+            // Query the legacy registry for this adopter's agreement
+            try legacyRegistry.getAgreement(adopter) returns (address agreementAddress) {
+                if (agreementAddress == address(0)) {
                     continue;
                 }
+                agreements[adopter] = agreementAddress;
+                emit SafeHarborAdoption(adopter, agreementAddress);
+                migratedCount++;
+            } catch {
+                // Skip adopters that don't have agreements or cause errors
+                continue;
             }
-
-            emit LegacyDataMigrated(_legacyRegistry, migratedCount);
         }
+
+        emit LegacyDataMigrated(_legacyRegistry, migratedCount);
+    }
     }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
