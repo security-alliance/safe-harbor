@@ -37,8 +37,11 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
         uint256 length = _initialValidChains.length;
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < length; i++) {
-            // Store index + 1 (so 0 means not valid)
-            validChains[_initialValidChains[i]] = i + 1;
+            if (validChains[_initialValidChains[i]] != NOT_VALID) {
+                continue;
+            }
+            // Store index + 1 (current length + 1 before push)
+            validChains[_initialValidChains[i]] = validChainsList.length + 1;
             validChainsList.push(_initialValidChains[i]);
             emit ChainValiditySet(_initialValidChains[i], true);
         }
