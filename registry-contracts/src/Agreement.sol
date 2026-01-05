@@ -53,7 +53,7 @@ contract Agreement is Ownable {
     event ChainRemoved(string caip2ChainId);
     event AccountAdded(string caip2ChainId, Account account);
     event AccountRemoved(string caip2ChainId, string accountAddress);
-    event BountyTermsUpdated(BountyTerms newBountyTerms);
+    event BountyTermsSet(BountyTerms newBountyTerms);
 
     // ----- CONSTRUCTOR -----
 
@@ -218,7 +218,7 @@ contract Agreement is Ownable {
     // aderyn-ignore-next-line(centralization-risk)
     function setBountyTerms(BountyTerms memory _bountyTerms) external onlyOwner {
         _validateBountyTerms(_bountyTerms);
-        emit BountyTermsUpdated(_bountyTerms);
+        emit BountyTermsSet(_bountyTerms);
         bountyTerms = _bountyTerms;
     }
 

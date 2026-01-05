@@ -287,7 +287,7 @@ contract AgreementTest is Test {
 
         // Should succeed when called by owner and emit event
         vm.expectEmit();
-        emit Agreement.BountyTermsUpdated(newTerms);
+        emit Agreement.BountyTermsSet(newTerms);
         vm.prank(owner);
         agreement.setBountyTerms(newTerms);
 
