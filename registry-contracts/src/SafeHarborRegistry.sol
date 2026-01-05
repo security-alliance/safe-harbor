@@ -51,7 +51,6 @@ contract SafeHarborRegistry is IRegistry {
 
         emit LegacyDataMigrated(_legacyRegistry, migratedCount);
     }
-    }
 
     // ----- USER-FACING STATE-CHANGING FUNCTIONS -----
 

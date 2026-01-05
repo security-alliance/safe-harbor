@@ -29,7 +29,13 @@ contract AgreementFactory {
         returns (address agreementAddress)
     {
         // Include chainid in salt to prevent cross-chain address collisions
-        bytes32 finalSalt = keccak256(abi.encode(block.chainid, msg.sender, salt));
+        bytes32 finalSalt;
+        assembly {
+            mstore(0x00, chainid())
+            mstore(0x20, caller())
+            mstore(0x40, salt)
+            finalSalt := keccak256(0x00, 0x60)
+        }
 
         Agreement agreement = new Agreement{ salt: finalSalt }(details, chainValidator, owner);
         agreementAddress = address(agreement);
@@ -57,10 +63,19 @@ contract AgreementFactory {
         view
         returns (address)
     {
-        bytes32 finalSalt = keccak256(abi.encode(block.chainid, deployer, salt));
+        bytes32 finalSalt;
+        assembly {
+            mstore(0x00, chainid())
+            mstore(0x20, deployer)
+            mstore(0x40, salt)
+            finalSalt := keccak256(0x00, 0x60)
+        }
 
-        bytes32 bytecodeHash =
-            keccak256(bytes.concat(type(Agreement).creationCode, abi.encode(details, chainValidator, owner)));
+        bytes memory initCode = bytes.concat(type(Agreement).creationCode, abi.encode(details, chainValidator, owner));
+        bytes32 bytecodeHash;
+        assembly {
+            bytecodeHash := keccak256(add(initCode, 0x20), mload(initCode))
+        }
 
         return address(
             uint160(uint256(keccak256(bytes.concat(bytes1(0xff), bytes20(address(this)), finalSalt, bytecodeHash))))
