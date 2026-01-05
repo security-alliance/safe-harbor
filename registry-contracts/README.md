@@ -111,6 +111,37 @@ The `ChainValidator` contract maintains a list of valid CAIP-2 chain IDs. Only c
 - `setValidChains(string[] calldata _caip2ChainIds)` - Add chains to the valid list
 - `setInvalidChains(string[] calldata _caip2ChainIds)` - Remove chains from the valid list
 
+## Access Control
+
+| Contract | Owner | Permissions |
+|----------|-------|-------------|
+| **ChainValidator** | SEAL multisig | Add/remove valid chains, upgrade contract (UUPS) |
+| **SafeHarborRegistry** | None | Permissionless - anyone can call `adoptSafeHarbor()` |
+| **AgreementFactory** | None | Permissionless - anyone can create agreements |
+| **Agreement** | Protocol | Modify agreement terms (bounty, chains, contacts, etc.) |
+
+### ChainValidator (Upgradeable)
+
+The `ChainValidator` is deployed behind a UUPS proxy and can be upgraded by the owner. This allows adding support for new chain ID formats or fixing bugs without redeploying the entire system.
+
+### Agreement Ownership
+
+Each `Agreement` contract is owned by the address that created it (typically a protocol's governance or multisig). Only the owner can:
+- Update bounty terms
+- Add/remove chains and accounts
+- Modify contact details
+- Transfer ownership
+
+## Security Considerations for Whitehats
+
+**MEV and Front-running**: The registry does not provide protection against MEV or front-running. If a protocol modifies their agreement terms (e.g., bounty percentage, retainability) while a recovery transaction is in flight, the new terms will apply. Whitehats should:
+
+1. **Use private mempools** (e.g., Flashbots Protect) when submitting recovery transactions
+2. **Assume protocols may act adversarially** - verify terms immediately before submitting
+3. **Snapshot agreement terms off-chain** as evidence before initiating any recovery
+
+The protocol makes no guarantees about the timing or atomicity of agreement changes relative to recovery transactions.
+
 ## License
 
 MIT
