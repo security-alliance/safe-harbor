@@ -46,7 +46,7 @@ contract Agreement is Ownable {
     mapping(string caip2ChainId => Account[]) private accounts;
 
     // ----- EVENTS -----
-    event ProtocolNameUpdated(string newName);
+    event ProtocolNameSet(string newName);
     event ContactDetailsSet(Contact[] newContactDetails);
     event ChainAdded(string caip2ChainId, string assetRecoveryAddress, Account[] accounts);
     event ChainSet(string caip2ChainId, string assetRecoveryAddress, Account[] accounts);
@@ -82,7 +82,7 @@ contract Agreement is Ownable {
     /// @notice Function that sets the protocol name
     // aderyn-ignore-next-line(centralization-risk)
     function setProtocolName(string memory _protocolName) external onlyOwner {
-        emit ProtocolNameUpdated(_protocolName);
+        emit ProtocolNameSet(_protocolName);
         protocolName = _protocolName;
     }
 

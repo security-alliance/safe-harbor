@@ -73,9 +73,10 @@ contract AgreementTest is Test {
         vm.expectRevert();
         agreement.setProtocolName(newName);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.ProtocolNameSet(newName);
         vm.prank(owner);
-        // TODO: Expect event
         agreement.setProtocolName(newName);
 
         AgreementDetails memory _details = agreement.getDetails();
@@ -90,7 +91,9 @@ contract AgreementTest is Test {
         vm.expectRevert();
         agreement.setContactDetails(newContacts);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.ContactDetailsSet(newContacts);
         vm.prank(owner);
         agreement.setContactDetails(newContacts);
 
@@ -118,7 +121,9 @@ contract AgreementTest is Test {
         vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidChainId.selector, "eip155:99999999"));
         agreement.addChains(invalidChains);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.ChainAdded("eip155:56", "0x05", accounts);
         vm.prank(owner);
         agreement.addChains(newChains);
 
@@ -159,7 +164,9 @@ contract AgreementTest is Test {
         vm.expectRevert();
         agreement.setChains(nonExistentChains);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.ChainSet("eip155:1", "0x05", accounts);
         vm.prank(owner);
         agreement.setChains(chains);
 
@@ -191,7 +198,9 @@ contract AgreementTest is Test {
         nonExistentChain[0] = "eip155:99999999";
         agreement.removeChains(nonExistentChain);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.ChainRemoved("eip155:56");
         vm.prank(owner);
         agreement.removeChains(chainToRemove);
 
@@ -215,7 +224,9 @@ contract AgreementTest is Test {
         vm.expectRevert();
         agreement.addAccounts("eip155:999", accounts);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.AccountAdded("eip155:1", accounts[0]);
         vm.prank(owner);
         agreement.addAccounts("eip155:1", accounts);
 
@@ -251,7 +262,9 @@ contract AgreementTest is Test {
         nonExistentAccount[0] = "0x999";
         agreement.removeAccounts("eip155:1", nonExistentAccount);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.AccountRemoved("eip155:1", "0x02");
         vm.prank(owner);
         agreement.removeAccounts("eip155:1", accountToRemove);
 
@@ -272,7 +285,9 @@ contract AgreementTest is Test {
         vm.expectRevert();
         agreement.setBountyTerms(newTerms);
 
-        // Should succeed when called by owner
+        // Should succeed when called by owner and emit event
+        vm.expectEmit();
+        emit Agreement.BountyTermsUpdated(newTerms);
         vm.prank(owner);
         agreement.setBountyTerms(newTerms);
 
