@@ -314,9 +314,7 @@ contract AgreementTest is Test {
         uint256 maxPercentage = agreement.MAX_BOUNTY_PERCENTAGE();
         vm.prank(owner);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 150, maxPercentage
-            )
+            abi.encodeWithSelector(Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 150, maxPercentage)
         );
         agreement.setBountyTerms(invalidTerms);
     }

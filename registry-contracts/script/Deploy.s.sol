@@ -98,9 +98,8 @@ contract DeploySafeHarbor is Script {
         bytes memory initData = abi.encodeCall(ChainValidator.initialize, (networkConfig.owner, validChains));
 
         // 3. Deploy ERC1967Proxy pointing to implementation
-        bytes memory proxyInitCode = abi.encodePacked(
-            type(ERC1967Proxy).creationCode, abi.encode(chainValidatorImpl, initData)
-        );
+        bytes memory proxyInitCode =
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(chainValidatorImpl, initData));
         proxy = createx.deployCreate3(CHAIN_VALIDATOR_PROXY_SALT, proxyInitCode);
 
         // Store proxy address

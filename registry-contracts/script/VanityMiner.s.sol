@@ -93,15 +93,7 @@ contract VanityMiner is Script {
     }
 
     /// @notice Check if address matches the prefix and suffix pattern
-    function _matchesPattern(
-        address addr,
-        bytes memory prefix,
-        bytes memory suffix
-    )
-        internal
-        pure
-        returns (bool)
-    {
+    function _matchesPattern(address addr, bytes memory prefix, bytes memory suffix) internal pure returns (bool) {
         bytes memory addrStr = _addressToAscii(addr);
 
         // Check prefix

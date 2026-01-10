@@ -32,7 +32,9 @@ contract DeploymentIntegrationTest is Test {
         console.log("Polygon Registry:", registryPolygon);
         // Verify addresses match across chains
         assertEq(
-            chainValidatorProxyMainnet, chainValidatorProxyPolygon, "ChainValidator proxy address mismatch between chains"
+            chainValidatorProxyMainnet,
+            chainValidatorProxyPolygon,
+            "ChainValidator proxy address mismatch between chains"
         );
         assertEq(registryMainnet, registryPolygon, "Registry address mismatch between chains");
         console.log("\nSUCCESS: Addresses match across chains!");
