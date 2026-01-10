@@ -312,6 +312,63 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(_details)), keccak256(abi.encode(expectedDetails)));
     }
 
+    function testRemoveAccountsCannotRemoveAll() public {
+        // The agreement starts with 1 account on eip155:1 chain
+        AgreementDetails memory detailsBefore = agreement.getDetails();
+        assertEq(detailsBefore.chains[0].accounts.length, 1);
+
+        string memory chainId = detailsBefore.chains[0].caip2ChainId;
+        string memory accountAddr = detailsBefore.chains[0].accounts[0].accountAddress;
+
+        // Try to remove the only account - should fail
+        string[] memory toRemove = new string[](1);
+        toRemove[0] = accountAddr;
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__CannotRemoveAllAccounts.selector, chainId));
+        agreement.removeAccounts(chainId, toRemove);
+
+        // Verify account is still there
+        AgreementDetails memory detailsAfter = agreement.getDetails();
+        assertEq(detailsAfter.chains[0].accounts.length, 1);
+    }
+
+    function testRemoveAccountsCannotRemoveAllMultiple() public {
+        // Add another account first
+        SHAccount[] memory newAccounts = new SHAccount[](2);
+        newAccounts[0] = SHAccount({ accountAddress: "0x02", childContractScope: ChildContractScope.None });
+        newAccounts[1] = SHAccount({ accountAddress: "0x03", childContractScope: ChildContractScope.All });
+
+        vm.prank(owner);
+        agreement.addAccounts("eip155:1", newAccounts);
+
+        // Verify we have 3 accounts now
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains[0].accounts.length, 3);
+
+        // Try to remove all 3 accounts at once - should fail
+        string[] memory toRemove = new string[](3);
+        toRemove[0] = "0x01"; // Original account
+        toRemove[1] = "0x02";
+        toRemove[2] = "0x03";
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__CannotRemoveAllAccounts.selector, "eip155:1"));
+        agreement.removeAccounts("eip155:1", toRemove);
+
+        // Removing 2 out of 3 should succeed (leaves 1 account)
+        string[] memory toRemoveTwo = new string[](2);
+        toRemoveTwo[0] = "0x02";
+        toRemoveTwo[1] = "0x03";
+
+        vm.prank(owner);
+        agreement.removeAccounts("eip155:1", toRemoveTwo);
+
+        // Verify 1 account remains
+        AgreementDetails memory detailsAfter = agreement.getDetails();
+        assertEq(detailsAfter.chains[0].accounts.length, 1);
+    }
+
     // Test setting bounty terms
     function testSetBountyTerms() public {
         AgreementDetails memory initialDetails = getMockAgreementDetails("0x01");

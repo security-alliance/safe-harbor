@@ -30,6 +30,7 @@ contract Agreement is Ownable {
     error Agreement__AggregateBountyCapLessThanBountyCap(uint256 aggregateBountyCapUSD, uint256 bountyCapUSD);
     error Agreement__InvalidAccountAddress(string caip2ChainId, uint256 accountIndex);
     error Agreement__InvalidContactDetails(uint256 contactIndex);
+    error Agreement__CannotRemoveAllAccounts(string caip2ChainId);
 
     // ----- CONSTANTS -----
     /// @notice Maximum allowed bounty percentage (100%)
@@ -212,6 +213,10 @@ contract Agreement is Ownable {
     function removeAccounts(string memory _caip2ChainId, string[] memory _accountAddresses) external onlyOwner {
         if (!_chainExists(_caip2ChainId)) {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
+        }
+        // Ensure at least one account remains after removal
+        if (_accountAddresses.length >= accounts[_caip2ChainId].length) {
+            revert Agreement__CannotRemoveAllAccounts(_caip2ChainId);
         }
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _accountAddresses.length; i++) {
