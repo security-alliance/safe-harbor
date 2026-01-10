@@ -280,6 +280,9 @@ contract AgreementTest is Test {
         BountyTerms memory newTerms = initialDetails.bountyTerms;
         newTerms.bountyPercentage = 20;
         newTerms.bountyCapUSD = 2_000_000;
+        // Set to 0 (no aggregate cap) to avoid triggering aggregateBountyCapUSD < bountyCapUSD validation
+        // The mock has aggregateBountyCapUSD = 1000 which is less than our new bountyCapUSD of 2_000_000
+        newTerms.aggregateBountyCapUSD = 0;
 
         // Should fail when called by non-owner
         vm.expectRevert();
@@ -296,11 +299,74 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(newTerms)), keccak256(abi.encode(_details.bountyTerms)));
 
         // Should fail when trying to set both aggregateBountyCapUSD and retainable
-        newTerms.aggregateBountyCapUSD = 1_000_000;
+        newTerms.aggregateBountyCapUSD = 3_000_000;
         newTerms.retainable = true;
         vm.prank(owner);
         vm.expectRevert(Agreement.Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable.selector);
         agreement.setBountyTerms(newTerms);
+    }
+
+    function testSetBountyTermsBountyPercentageExceedsMaximum() public {
+        BountyTerms memory invalidTerms = agreement.getBountyTerms();
+        invalidTerms.bountyPercentage = 150; // 150% is invalid
+
+        // Cache the value before vm.prank to avoid the external call consuming the prank
+        uint256 maxPercentage = agreement.MAX_BOUNTY_PERCENTAGE();
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 150, maxPercentage
+            )
+        );
+        agreement.setBountyTerms(invalidTerms);
+    }
+
+    function testSetBountyTermsAggregateBountyCapLessThanBountyCap() public {
+        BountyTerms memory invalidTerms = agreement.getBountyTerms();
+        invalidTerms.bountyCapUSD = 2_000_000; // $2M individual cap
+        invalidTerms.aggregateBountyCapUSD = 1_000_000; // $1M aggregate cap (less than individual)
+        invalidTerms.retainable = false; // Ensure retainable is false
+
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__AggregateBountyCapLessThanBountyCap.selector, 1_000_000, 2_000_000
+            )
+        );
+        agreement.setBountyTerms(invalidTerms);
+    }
+
+    function testSetBountyTermsValidBoundaryConditions() public {
+        // Test bounty percentage at exactly 100%
+        BountyTerms memory validTerms = agreement.getBountyTerms();
+        validTerms.bountyPercentage = 100;
+        validTerms.bountyCapUSD = 500_000;
+        validTerms.aggregateBountyCapUSD = 500_000; // Equal to individual cap
+        validTerms.retainable = false;
+
+        vm.prank(owner);
+        agreement.setBountyTerms(validTerms);
+
+        BountyTerms memory storedTerms = agreement.getBountyTerms();
+        assertEq(storedTerms.bountyPercentage, 100);
+        assertEq(storedTerms.bountyCapUSD, 500_000);
+        assertEq(storedTerms.aggregateBountyCapUSD, 500_000);
+    }
+
+    function testSetBountyTermsZeroAggregateCapAllowed() public {
+        // Test that zero aggregate cap is allowed regardless of individual cap
+        BountyTerms memory validTerms = agreement.getBountyTerms();
+        validTerms.bountyPercentage = 50;
+        validTerms.bountyCapUSD = 10_000_000; // $10M individual cap
+        validTerms.aggregateBountyCapUSD = 0; // No aggregate cap
+        validTerms.retainable = false;
+
+        vm.prank(owner);
+        agreement.setBountyTerms(validTerms);
+
+        BountyTerms memory storedTerms = agreement.getBountyTerms();
+        assertEq(storedTerms.aggregateBountyCapUSD, 0);
+        assertEq(storedTerms.bountyCapUSD, 10_000_000);
     }
 
     function testConstructorCannotSetBothAggregateBountyCapUSDAndRetainable() public {
@@ -311,6 +377,62 @@ contract AgreementTest is Test {
         // Should fail when both conditions are true in constructor
         vm.expectRevert(Agreement.Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable.selector);
         new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorBountyPercentageExceedsMaximum() public {
+        AgreementDetails memory invalidDetails = getMockAgreementDetails("0x01");
+        invalidDetails.bountyTerms.bountyPercentage = 101; // Exceeds 100%
+
+        // Should fail when bounty percentage exceeds maximum
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 101, agreement.MAX_BOUNTY_PERCENTAGE()
+            )
+        );
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorBountyPercentageAtMaximum() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyPercentage = 100; // At maximum, should succeed
+
+        // Should succeed when bounty percentage is exactly 100%
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().bountyPercentage, 100);
+    }
+
+    function testConstructorAggregateBountyCapLessThanBountyCap() public {
+        AgreementDetails memory invalidDetails = getMockAgreementDetails("0x01");
+        invalidDetails.bountyTerms.bountyCapUSD = 1_000_000; // $1M individual cap
+        invalidDetails.bountyTerms.aggregateBountyCapUSD = 500_000; // $500K aggregate cap (less than individual)
+
+        // Should fail when aggregate cap is less than individual cap
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__AggregateBountyCapLessThanBountyCap.selector, 500_000, 1_000_000
+            )
+        );
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorAggregateBountyCapEqualToBountyCap() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyCapUSD = 1_000_000;
+        validDetails.bountyTerms.aggregateBountyCapUSD = 1_000_000; // Equal, should succeed
+
+        // Should succeed when aggregate cap equals individual cap
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().aggregateBountyCapUSD, 1_000_000);
+    }
+
+    function testConstructorZeroAggregateBountyCapWithHighBountyCap() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyCapUSD = 10_000_000; // $10M individual cap
+        validDetails.bountyTerms.aggregateBountyCapUSD = 0; // No aggregate cap
+
+        // Should succeed when aggregate cap is 0 (no aggregate cap applies)
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().aggregateBountyCapUSD, 0);
     }
 
     function testConstructorDuplicateChainValidation() public {

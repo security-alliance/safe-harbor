@@ -26,6 +26,12 @@ contract Agreement is Ownable {
     error Agreement__ChainIdHasZeroLength();
     error Agreement__InvalidAssetRecoveryAddress(string caip2ChainId);
     error Agreement__ZeroAddress();
+    error Agreement__BountyPercentageExceedsMaximum(uint256 bountyPercentage, uint256 maxPercentage);
+    error Agreement__AggregateBountyCapLessThanBountyCap(uint256 aggregateBountyCapUSD, uint256 bountyCapUSD);
+
+    // ----- CONSTANTS -----
+    /// @notice Maximum allowed bounty percentage (100%)
+    uint256 public constant MAX_BOUNTY_PERCENTAGE = 100;
 
     // ----- STATE VARIABLES -----
     /// @notice Slot used for transient storage duplicate chain ID checking
@@ -352,7 +358,25 @@ contract Agreement is Ownable {
     // ----- INTERNAL READ-ONLY FUNCTIONS -----
 
     /// @notice Internal function to validate bounty terms
+    /// @dev Validates:
+    ///      1. bountyPercentage <= MAX_BOUNTY_PERCENTAGE (100%)
+    ///      2. aggregateBountyCapUSD >= bountyCapUSD when aggregateBountyCapUSD is set
+    ///      3. Cannot set both aggregateBountyCapUSD and retainable
     function _validateBountyTerms(BountyTerms memory _bountyTerms) internal pure {
+        // Validate bounty percentage does not exceed maximum (100%)
+        if (_bountyTerms.bountyPercentage > MAX_BOUNTY_PERCENTAGE) {
+            revert Agreement__BountyPercentageExceedsMaximum(_bountyTerms.bountyPercentage, MAX_BOUNTY_PERCENTAGE);
+        }
+
+        // Validate aggregate cap is >= individual cap when aggregate cap is set
+        // Note: aggregateBountyCapUSD == 0 means no aggregate cap applies
+        if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.aggregateBountyCapUSD < _bountyTerms.bountyCapUSD) {
+            revert Agreement__AggregateBountyCapLessThanBountyCap(
+                _bountyTerms.aggregateBountyCapUSD, _bountyTerms.bountyCapUSD
+            );
+        }
+
+        // Cannot set both aggregate bounty cap and retainable
         if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
             revert Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable();
         }
