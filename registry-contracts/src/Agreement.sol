@@ -199,6 +199,12 @@ contract Agreement is Ownable {
         if (!_chainExists(_caip2ChainId)) {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
         }
+        // Validate each account has a non-empty address
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            if (bytes(_accounts[i].accountAddress).length == 0) {
+                revert Agreement__InvalidAccountAddress(_caip2ChainId, i);
+            }
+        }
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _accounts.length; i++) {
             emit AccountAdded(_caip2ChainId, _accounts[i]);

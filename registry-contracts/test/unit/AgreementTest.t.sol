@@ -275,6 +275,27 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
     }
 
+    // Test adding accounts with empty account address fails
+    function testAddAccountsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "", childContractScope: ChildContractScope.None });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        agreement.addAccounts("eip155:1", accounts);
+    }
+
+    // Test adding multiple accounts where second has empty address fails
+    function testAddAccountsEmptyAccountAddressAtIndex1() public {
+        SHAccount[] memory accounts = new SHAccount[](2);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.None });
+        accounts[1] = SHAccount({ accountAddress: "", childContractScope: ChildContractScope.All });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 1));
+        agreement.addAccounts("eip155:1", accounts);
+    }
+
     function testRemoveAccounts() public {
         SHAccount[] memory accounts = new SHAccount[](1);
         accounts[0] = SHAccount({ accountAddress: "0x02", childContractScope: ChildContractScope.None });
