@@ -513,6 +513,98 @@ contract AgreementTest is Test {
         new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
+    function testConstructorEmptyAccountAddress() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.All
+        });
+
+        SHChain memory chain = SHChain({ accounts: accounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1" });
+
+        SHChain[] memory chainsWithEmptyAccount = new SHChain[](1);
+        chainsWithEmptyAccount[0] = chain;
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: chainsWithEmptyAccount,
+            contactDetails: baseDetails.contactDetails,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testAddChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 0));
+        agreement.addChains(newChains);
+    }
+
+    function testAddChainsEmptyAccountAddressAtIndex1() public {
+        // Test that validation correctly reports the index of the empty account
+        SHAccount[] memory accounts = new SHAccount[](2);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.None });
+        accounts[1] = SHAccount({
+            accountAddress: "", // Empty at index 1
+            childContractScope: ChildContractScope.All
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 1));
+        agreement.addChains(newChains);
+    }
+
+    function testSetChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory chains = new SHChain[](1);
+        chains[0] = SHChain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:1" // Existing chain
+        });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        agreement.setChains(chains);
+    }
+
+    function testAddOrSetChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 0));
+        agreement.addOrSetChains(newChains);
+    }
+
     function testConstructorInvalidAssetRecoveryAddress() public {
         AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
 

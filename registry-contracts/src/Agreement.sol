@@ -28,6 +28,7 @@ contract Agreement is Ownable {
     error Agreement__ZeroAddress();
     error Agreement__BountyPercentageExceedsMaximum(uint256 bountyPercentage, uint256 maxPercentage);
     error Agreement__AggregateBountyCapLessThanBountyCap(uint256 aggregateBountyCapUSD, uint256 bountyCapUSD);
+    error Agreement__InvalidAccountAddress(string caip2ChainId, uint256 accountIndex);
 
     // ----- CONSTANTS -----
     /// @notice Maximum allowed bounty percentage (100%)
@@ -271,6 +272,12 @@ contract Agreement is Ownable {
             // Validate accounts
             if (_chains[i].accounts.length == 0) {
                 revert Agreement__ZeroAccountsForChainId(_chains[i].caip2ChainId);
+            }
+            // Validate each account has a non-empty address
+            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+                if (bytes(_chains[i].accounts[j].accountAddress).length == 0) {
+                    revert Agreement__InvalidAccountAddress(_chains[i].caip2ChainId, j);
+                }
             }
             // Validate asset recovery address
             if (bytes(_chains[i].assetRecoveryAddress).length == 0) {
