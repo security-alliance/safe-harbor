@@ -29,6 +29,7 @@ contract Agreement is Ownable {
     error Agreement__BountyPercentageExceedsMaximum(uint256 bountyPercentage, uint256 maxPercentage);
     error Agreement__AggregateBountyCapLessThanBountyCap(uint256 aggregateBountyCapUSD, uint256 bountyCapUSD);
     error Agreement__InvalidAccountAddress(string caip2ChainId, uint256 accountIndex);
+    error Agreement__InvalidContactDetails(uint256 contactIndex);
 
     // ----- CONSTANTS -----
     /// @notice Maximum allowed bounty percentage (100%)
@@ -80,6 +81,7 @@ contract Agreement is Ownable {
         }
         CHAIN_VALIDATOR = IChainValidator(_chainValidator);
         _validateBountyTerms(_details.bountyTerms);
+        _validateContactDetails(_details.contactDetails);
         _validateChains(_details.chains);
         _setDetails(_details);
     }
@@ -96,6 +98,7 @@ contract Agreement is Ownable {
     /// @notice Function that sets the agreement contact details.
     // aderyn-ignore-next-line(centralization-risk)
     function setContactDetails(Contact[] memory _contactDetails) external onlyOwner {
+        _validateContactDetails(_contactDetails);
         emit ContactDetailsSet(_contactDetails);
         delete contactDetails;
         // aderyn-ignore-next-line(costly-loop)
@@ -386,6 +389,16 @@ contract Agreement is Ownable {
         // Cannot set both aggregate bounty cap and retainable
         if (_bountyTerms.aggregateBountyCapUSD > 0 && _bountyTerms.retainable) {
             revert Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable();
+        }
+    }
+
+    /// @notice Internal function to validate contact details
+    /// @dev Validates that each contact has non-empty name and contact fields
+    function _validateContactDetails(Contact[] memory _contactDetails) internal pure {
+        for (uint256 i = 0; i < _contactDetails.length; i++) {
+            if (bytes(_contactDetails[i].name).length == 0 || bytes(_contactDetails[i].contact).length == 0) {
+                revert Agreement__InvalidContactDetails(i);
+            }
         }
     }
 

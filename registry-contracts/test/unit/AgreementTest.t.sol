@@ -86,6 +86,7 @@ contract AgreementTest is Test {
     function testSetContactDetails() public {
         Contact[] memory newContacts = new Contact[](2);
         newContacts[0] = Contact({ name: "New Contact 1", contact: "@newcontact1" });
+        newContacts[1] = Contact({ name: "New Contact 2", contact: "@newcontact2" });
 
         // Should fail when called by non-owner
         vm.expectRevert();
@@ -99,6 +100,43 @@ contract AgreementTest is Test {
 
         AgreementDetails memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(newContacts)), keccak256(abi.encode(_details.contactDetails)));
+    }
+
+    function testSetContactDetailsEmptyName() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "@validcontact" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsEmptyContact() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "Valid Name", contact: "" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsEmptyBothFields() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsInvalidAtIndex1() public {
+        Contact[] memory contacts = new Contact[](2);
+        contacts[0] = Contact({ name: "Valid Name", contact: "@validcontact" });
+        contacts[1] = Contact({ name: "", contact: "@anothercontact" }); // Invalid at index 1
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 1));
+        agreement.setContactDetails(contacts);
     }
 
     function testAddChains() public {
@@ -654,6 +692,42 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(Agreement.Agreement__ChainIdHasZeroLength.selector);
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorInvalidContactDetailsEmptyName() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "@validcontact" });
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: baseDetails.chains,
+            contactDetails: invalidContacts,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorInvalidContactDetailsEmptyContact() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "Valid Name", contact: "" });
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: baseDetails.chains,
+            contactDetails: invalidContacts,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
         new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
