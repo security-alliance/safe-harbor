@@ -91,14 +91,14 @@ contract Agreement is Ownable {
 
     /// @notice Function that sets the protocol name
     // aderyn-ignore-next-line(centralization-risk)
-    function setProtocolName(string memory _protocolName) external onlyOwner {
+    function setProtocolName(string calldata _protocolName) external onlyOwner {
         emit ProtocolNameSet(_protocolName);
         protocolName = _protocolName;
     }
 
     /// @notice Function that sets the agreement contact details.
     // aderyn-ignore-next-line(centralization-risk)
-    function setContactDetails(Contact[] memory _contactDetails) external onlyOwner {
+    function setContactDetails(Contact[] calldata _contactDetails) external onlyOwner {
         _validateContactDetails(_contactDetails);
         emit ContactDetailsSet(_contactDetails);
         delete contactDetails;
@@ -110,7 +110,7 @@ contract Agreement is Ownable {
 
     /// @notice Function that adds multiple chains to the agreement.
     // aderyn-ignore-next-line(centralization-risk)
-    function addChains(Chain[] memory _chains) external onlyOwner {
+    function addChains(Chain[] calldata _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i = 0; i < _chains.length; i++) {
@@ -195,7 +195,7 @@ contract Agreement is Ownable {
     /// @param _caip2ChainId The CAIP-2 ID of the chain
     /// @param _accounts Array of accounts to add
     // aderyn-ignore-next-line(centralization-risk)
-    function addAccounts(string memory _caip2ChainId, Account[] memory _accounts) external onlyOwner {
+    function addAccounts(string memory _caip2ChainId, Account[] calldata _accounts) external onlyOwner {
         if (!_chainExists(_caip2ChainId)) {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
         }

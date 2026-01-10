@@ -32,7 +32,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     /// @notice Initializes the contract with the owner and initial valid chains.
     /// @param _initialOwner The owner of the contract.
     /// @param _initialValidChains The initial list of valid CAIP-2 chain IDs.
-    function initialize(address _initialOwner, string[] memory _initialValidChains) external initializer {
+    function initialize(address _initialOwner, string[] calldata _initialValidChains) external initializer {
         __Ownable_init(_initialOwner);
         uint256 length = _initialValidChains.length;
         // aderyn-ignore-next-line(costly-loop)
