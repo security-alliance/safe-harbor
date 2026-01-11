@@ -43,8 +43,6 @@ contract AgreementFactory {
         agreementAddress = address(agreement);
 
         emit AgreementCreated(agreementAddress, owner, finalSalt);
-
-        return agreementAddress;
     }
 
     /// @notice Computes the address where an agreement would be deployed.
