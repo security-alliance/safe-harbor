@@ -344,8 +344,9 @@ contract Agreement is Ownable {
             _details.chains[i].assetRecoveryAddress = assetRecoveryAddresses[chainId];
 
             Account[] storage accts = accounts[chainId];
-            _details.chains[i].accounts = new Account[](accts.length);
-            for (uint256 j; j < accts.length; ++j) {
+            uint256 acctsLength = accts.length;
+            _details.chains[i].accounts = new Account[](acctsLength);
+            for (uint256 j; j < acctsLength; ++j) {
                 _details.chains[i].accounts[j] = accts[j];
             }
         }
@@ -450,7 +451,8 @@ contract Agreement is Ownable {
     {
         bytes32 targetHash = _hashString(_accountAddress);
         Account[] storage chainAccounts = accounts[_caip2ChainId];
-        for (uint256 i; i < chainAccounts.length; i++) {
+        uint256 chainAccountsLength = chainAccounts.length;
+        for (uint256 i; i < chainAccountsLength; i++) {
             // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(chainAccounts[i].accountAddress) == targetHash) {
                 return i;
