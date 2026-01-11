@@ -103,7 +103,7 @@ contract Agreement is Ownable {
         emit ContactDetailsSet(_contactDetails);
         delete contactDetails;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _contactDetails.length; i++) {
+        for (uint256 i; i < _contactDetails.length; i++) {
             contactDetails.push(_contactDetails[i]);
         }
     }
@@ -113,7 +113,7 @@ contract Agreement is Ownable {
     function addChains(Chain[] calldata _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _chains.length; i++) {
+        for (uint256 i; i < _chains.length; i++) {
             string memory chainId = _chains[i].caip2ChainId;
             if (_chainExists(chainId)) {
                 revert Agreement__DuplicateChainId(chainId);
@@ -122,7 +122,7 @@ contract Agreement is Ownable {
             chainIds.push(chainId);
             assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
             // aderyn-ignore-next-line(costly-loop)
-            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+            for (uint256 j; j < _chains[i].accounts.length; j++) {
                 accounts[chainId].push(_chains[i].accounts[j]);
             }
         }
@@ -133,7 +133,7 @@ contract Agreement is Ownable {
     function addOrSetChains(Chain[] memory _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _chains.length; i++) {
+        for (uint256 i; i < _chains.length; i++) {
             string memory chainId = _chains[i].caip2ChainId;
             bool exists = _chainExists(chainId);
             if (!exists) {
@@ -145,7 +145,7 @@ contract Agreement is Ownable {
             assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
             delete accounts[chainId];
             // aderyn-ignore-next-line(costly-loop)
-            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+            for (uint256 j; j < _chains[i].accounts.length; j++) {
                 accounts[chainId].push(_chains[i].accounts[j]);
             }
         }
@@ -157,7 +157,7 @@ contract Agreement is Ownable {
     function setChains(Chain[] memory _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _chains.length; i++) {
+        for (uint256 i; i < _chains.length; i++) {
             string memory chainId = _chains[i].caip2ChainId;
             if (!_chainExists(chainId)) {
                 revert Agreement__ChainNotFoundByCaip2Id(chainId);
@@ -166,7 +166,7 @@ contract Agreement is Ownable {
             assetRecoveryAddresses[chainId] = _chains[i].assetRecoveryAddress;
             delete accounts[chainId];
             // aderyn-ignore-next-line(costly-loop)
-            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+            for (uint256 j; j < _chains[i].accounts.length; j++) {
                 accounts[chainId].push(_chains[i].accounts[j]);
             }
         }
@@ -177,7 +177,7 @@ contract Agreement is Ownable {
     // aderyn-ignore-next-line(centralization-risk)
     function removeChains(string[] memory _caip2ChainIds) external onlyOwner {
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _caip2ChainIds.length; i++) {
+        for (uint256 i; i < _caip2ChainIds.length; i++) {
             string memory chainId = _caip2ChainIds[i];
             uint256 idx = _findChainIndex(chainId);
             emit ChainRemoved(chainId);
@@ -200,13 +200,13 @@ contract Agreement is Ownable {
             revert Agreement__ChainNotFoundByCaip2Id(_caip2ChainId);
         }
         // Validate each account has a non-empty address
-        for (uint256 i = 0; i < _accounts.length; i++) {
+        for (uint256 i; i < _accounts.length; i++) {
             if (bytes(_accounts[i].accountAddress).length == 0) {
                 revert Agreement__InvalidAccountAddress(_caip2ChainId, i);
             }
         }
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _accounts.length; i++) {
+        for (uint256 i; i < _accounts.length; i++) {
             emit AccountAdded(_caip2ChainId, _accounts[i]);
             accounts[_caip2ChainId].push(_accounts[i]);
         }
@@ -225,7 +225,7 @@ contract Agreement is Ownable {
             revert Agreement__CannotRemoveAllAccounts(_caip2ChainId);
         }
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < _accountAddresses.length; i++) {
+        for (uint256 i; i < _accountAddresses.length; i++) {
             uint256 accountIndex = _findAccountIndex(_caip2ChainId, _accountAddresses[i]);
             emit AccountRemoved(_caip2ChainId, _accountAddresses[i]);
 
@@ -253,19 +253,19 @@ contract Agreement is Ownable {
 
         // Copy contact details
         delete contactDetails;
-        for (uint256 i = 0; i < _details.contactDetails.length; ++i) {
+        for (uint256 i; i < _details.contactDetails.length; ++i) {
             contactDetails.push(_details.contactDetails[i]);
         }
 
         // Copy chains
         delete chainIds;
-        for (uint256 i = 0; i < _details.chains.length; ++i) {
+        for (uint256 i; i < _details.chains.length; ++i) {
             string memory chainId = _details.chains[i].caip2ChainId;
             chainIds.push(chainId);
             assetRecoveryAddresses[chainId] = _details.chains[i].assetRecoveryAddress;
 
             delete accounts[chainId];
-            for (uint256 j = 0; j < _details.chains[i].accounts.length; ++j) {
+            for (uint256 j; j < _details.chains[i].accounts.length; ++j) {
                 accounts[chainId].push(_details.chains[i].accounts[j]);
             }
         }
@@ -275,7 +275,7 @@ contract Agreement is Ownable {
     /// @dev Uses transient storage (tstore/tload) for duplicate checking
     function _validateChains(Chain[] memory _chains) internal {
         // Validate all chain data and check for duplicates in a single pass
-        for (uint256 i = 0; i < _chains.length; i++) {
+        for (uint256 i; i < _chains.length; i++) {
             // Validate chain ID
             if (bytes(_chains[i].caip2ChainId).length == 0) {
                 revert Agreement__ChainIdHasZeroLength();
@@ -288,7 +288,7 @@ contract Agreement is Ownable {
                 revert Agreement__ZeroAccountsForChainId(_chains[i].caip2ChainId);
             }
             // Validate each account has a non-empty address
-            for (uint256 j = 0; j < _chains[i].accounts.length; j++) {
+            for (uint256 j; j < _chains[i].accounts.length; j++) {
                 if (bytes(_chains[i].accounts[j].accountAddress).length == 0) {
                     revert Agreement__InvalidAccountAddress(_chains[i].caip2ChainId, j);
                 }
@@ -312,7 +312,7 @@ contract Agreement is Ownable {
         }
 
         // Clear the transient storage in case this is within a batched transaction
-        for (uint256 i = 0; i < _chains.length; i++) {
+        for (uint256 i; i < _chains.length; i++) {
             bytes32 slot = _duplicateCheckSlot(_chains[i].caip2ChainId);
             assembly {
                 tstore(slot, 0)
@@ -331,21 +331,21 @@ contract Agreement is Ownable {
         // Copy contact details
         uint256 contactsLength = contactDetails.length;
         _details.contactDetails = new Contact[](contactsLength);
-        for (uint256 i = 0; i < contactsLength; ++i) {
+        for (uint256 i; i < contactsLength; ++i) {
             _details.contactDetails[i] = contactDetails[i];
         }
 
         // Reconstruct chains
         uint256 chainsLength = chainIds.length;
         _details.chains = new Chain[](chainsLength);
-        for (uint256 i = 0; i < chainsLength; ++i) {
+        for (uint256 i; i < chainsLength; ++i) {
             string memory chainId = chainIds[i];
             _details.chains[i].caip2ChainId = chainId;
             _details.chains[i].assetRecoveryAddress = assetRecoveryAddresses[chainId];
 
             Account[] storage accts = accounts[chainId];
             _details.chains[i].accounts = new Account[](accts.length);
-            for (uint256 j = 0; j < accts.length; ++j) {
+            for (uint256 j; j < accts.length; ++j) {
                 _details.chains[i].accounts[j] = accts[j];
             }
         }
@@ -406,7 +406,7 @@ contract Agreement is Ownable {
     /// @notice Internal function to validate contact details
     /// @dev Validates that each contact has non-empty name and contact fields
     function _validateContactDetails(Contact[] memory _contactDetails) internal pure {
-        for (uint256 i = 0; i < _contactDetails.length; i++) {
+        for (uint256 i; i < _contactDetails.length; i++) {
             if (bytes(_contactDetails[i].name).length == 0 || bytes(_contactDetails[i].contact).length == 0) {
                 revert Agreement__InvalidContactDetails(i);
             }
@@ -417,7 +417,7 @@ contract Agreement is Ownable {
     function _chainExists(string memory _caip2ChainId) internal view returns (bool) {
         bytes32 targetHash = _hashString(_caip2ChainId);
         uint256 length = chainIds.length;
-        for (uint256 i = 0; i < length; ++i) {
+        for (uint256 i; i < length; ++i) {
             // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(chainIds[i]) == targetHash) {
                 return true;
@@ -430,7 +430,7 @@ contract Agreement is Ownable {
     function _findChainIndex(string memory _caip2ChainId) internal view returns (uint256 chainIndex) {
         bytes32 targetHash = _hashString(_caip2ChainId);
         uint256 length = chainIds.length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(chainIds[i]) == targetHash) {
                 return i;
@@ -450,7 +450,7 @@ contract Agreement is Ownable {
     {
         bytes32 targetHash = _hashString(_accountAddress);
         Account[] storage chainAccounts = accounts[_caip2ChainId];
-        for (uint256 i = 0; i < chainAccounts.length; i++) {
+        for (uint256 i; i < chainAccounts.length; i++) {
             // aderyn-ignore-next-line(storage-array-memory-edit)
             if (_hashString(chainAccounts[i].accountAddress) == targetHash) {
                 return i;

@@ -36,7 +36,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
         __Ownable_init(_initialOwner);
         uint256 length = _initialValidChains.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             if (validChains[_initialValidChains[i]] != NOT_VALID) {
                 continue;
             }
@@ -61,7 +61,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     function setValidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             if (validChains[_caip2ChainIds[i]] == NOT_VALID) {
                 // Store index + 1 (current length + 1 before push)
                 validChains[_caip2ChainIds[i]] = validChainsList.length + 1;
@@ -77,7 +77,7 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     function setInvalidChains(string[] calldata _caip2ChainIds) external onlyOwner {
         uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             uint256 indexPlusOne = validChains[_caip2ChainIds[i]];
             if (indexPlusOne != NOT_VALID) {
                 _removeFromValidChainsList(indexPlusOne - 1);
