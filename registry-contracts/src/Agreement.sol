@@ -110,7 +110,7 @@ contract Agreement is Ownable {
 
     /// @notice Function that adds multiple chains to the agreement.
     // aderyn-ignore-next-line(centralization-risk)
-    function addChains(Chain[] calldata _chains) external onlyOwner {
+    function addChains(Chain[] memory _chains) external onlyOwner {
         _validateChains(_chains);
         // aderyn-ignore-next-line(costly-loop)
         for (uint256 i; i < _chains.length; i++) {
