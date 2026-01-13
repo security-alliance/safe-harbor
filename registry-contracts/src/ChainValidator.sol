@@ -32,11 +32,11 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     /// @notice Initializes the contract with the owner and initial valid chains.
     /// @param _initialOwner The owner of the contract.
     /// @param _initialValidChains The initial list of valid CAIP-2 chain IDs.
-    function initialize(address _initialOwner, string[] memory _initialValidChains) external initializer {
+    function initialize(address _initialOwner, string[] calldata _initialValidChains) external initializer {
         __Ownable_init(_initialOwner);
         uint256 length = _initialValidChains.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             if (validChains[_initialValidChains[i]] != NOT_VALID) {
                 continue;
             }
@@ -59,9 +59,8 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as valid.
     // aderyn-ignore-next-line(centralization-risk)
     function setValidChains(string[] calldata _caip2ChainIds) external onlyOwner {
-        uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < _caip2ChainIds.length; i++) {
             if (validChains[_caip2ChainIds[i]] == NOT_VALID) {
                 // Store index + 1 (current length + 1 before push)
                 validChains[_caip2ChainIds[i]] = validChainsList.length + 1;
@@ -75,9 +74,8 @@ contract ChainValidator is IChainValidator, Initializable, OwnableUpgradeable, U
     /// @param _caip2ChainIds The CAIP-2 IDs of the chains to mark as invalid.
     // aderyn-ignore-next-line(centralization-risk)
     function setInvalidChains(string[] calldata _caip2ChainIds) external onlyOwner {
-        uint256 length = _caip2ChainIds.length;
         // aderyn-ignore-next-line(costly-loop)
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < _caip2ChainIds.length; i++) {
             uint256 indexPlusOne = validChains[_caip2ChainIds[i]];
             if (indexPlusOne != NOT_VALID) {
                 _removeFromValidChainsList(indexPlusOne - 1);

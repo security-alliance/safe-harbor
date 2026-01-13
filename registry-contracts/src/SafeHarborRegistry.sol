@@ -31,9 +31,9 @@ contract SafeHarborRegistry is IRegistry {
         }
         IRegistry legacyRegistry = IRegistry(_legacyRegistry);
         uint256 length = _adopters.length;
-        uint256 migratedCount = 0;
+        uint256 migratedCount;
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             address adopter = _adopters[i];
             // Query the legacy registry for this adopter's agreement
             try legacyRegistry.getAgreement(adopter) returns (address agreementAddress) {

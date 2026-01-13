@@ -86,6 +86,7 @@ contract AgreementTest is Test {
     function testSetContactDetails() public {
         Contact[] memory newContacts = new Contact[](2);
         newContacts[0] = Contact({ name: "New Contact 1", contact: "@newcontact1" });
+        newContacts[1] = Contact({ name: "New Contact 2", contact: "@newcontact2" });
 
         // Should fail when called by non-owner
         vm.expectRevert();
@@ -99,6 +100,43 @@ contract AgreementTest is Test {
 
         AgreementDetails memory _details = agreement.getDetails();
         assertEq(keccak256(abi.encode(newContacts)), keccak256(abi.encode(_details.contactDetails)));
+    }
+
+    function testSetContactDetailsEmptyName() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "@validcontact" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsEmptyContact() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "Valid Name", contact: "" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsEmptyBothFields() public {
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        agreement.setContactDetails(invalidContacts);
+    }
+
+    function testSetContactDetailsInvalidAtIndex1() public {
+        Contact[] memory contacts = new Contact[](2);
+        contacts[0] = Contact({ name: "Valid Name", contact: "@validcontact" });
+        contacts[1] = Contact({ name: "", contact: "@anothercontact" }); // Invalid at index 1
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 1));
+        agreement.setContactDetails(contacts);
     }
 
     function testAddChains() public {
@@ -237,6 +275,27 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(accounts[0])), keccak256(abi.encode(_account)));
     }
 
+    // Test adding accounts with empty account address fails
+    function testAddAccountsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({ accountAddress: "", childContractScope: ChildContractScope.None });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        agreement.addAccounts("eip155:1", accounts);
+    }
+
+    // Test adding multiple accounts where second has empty address fails
+    function testAddAccountsEmptyAccountAddressAtIndex1() public {
+        SHAccount[] memory accounts = new SHAccount[](2);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.None });
+        accounts[1] = SHAccount({ accountAddress: "", childContractScope: ChildContractScope.All });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 1));
+        agreement.addAccounts("eip155:1", accounts);
+    }
+
     function testRemoveAccounts() public {
         SHAccount[] memory accounts = new SHAccount[](1);
         accounts[0] = SHAccount({ accountAddress: "0x02", childContractScope: ChildContractScope.None });
@@ -274,12 +333,72 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(_details)), keccak256(abi.encode(expectedDetails)));
     }
 
+    function testRemoveAccountsCannotRemoveAll() public {
+        // The agreement starts with 1 account on eip155:1 chain
+        AgreementDetails memory detailsBefore = agreement.getDetails();
+        assertEq(detailsBefore.chains[0].accounts.length, 1);
+
+        string memory chainId = detailsBefore.chains[0].caip2ChainId;
+        string memory accountAddr = detailsBefore.chains[0].accounts[0].accountAddress;
+
+        // Try to remove the only account - should fail
+        string[] memory toRemove = new string[](1);
+        toRemove[0] = accountAddr;
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__CannotRemoveAllAccounts.selector, chainId));
+        agreement.removeAccounts(chainId, toRemove);
+
+        // Verify account is still there
+        AgreementDetails memory detailsAfter = agreement.getDetails();
+        assertEq(detailsAfter.chains[0].accounts.length, 1);
+    }
+
+    function testRemoveAccountsCannotRemoveAllMultiple() public {
+        // Add another account first
+        SHAccount[] memory newAccounts = new SHAccount[](2);
+        newAccounts[0] = SHAccount({ accountAddress: "0x02", childContractScope: ChildContractScope.None });
+        newAccounts[1] = SHAccount({ accountAddress: "0x03", childContractScope: ChildContractScope.All });
+
+        vm.prank(owner);
+        agreement.addAccounts("eip155:1", newAccounts);
+
+        // Verify we have 3 accounts now
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains[0].accounts.length, 3);
+
+        // Try to remove all 3 accounts at once - should fail
+        string[] memory toRemove = new string[](3);
+        toRemove[0] = "0x01"; // Original account
+        toRemove[1] = "0x02";
+        toRemove[2] = "0x03";
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__CannotRemoveAllAccounts.selector, "eip155:1"));
+        agreement.removeAccounts("eip155:1", toRemove);
+
+        // Removing 2 out of 3 should succeed (leaves 1 account)
+        string[] memory toRemoveTwo = new string[](2);
+        toRemoveTwo[0] = "0x02";
+        toRemoveTwo[1] = "0x03";
+
+        vm.prank(owner);
+        agreement.removeAccounts("eip155:1", toRemoveTwo);
+
+        // Verify 1 account remains
+        AgreementDetails memory detailsAfter = agreement.getDetails();
+        assertEq(detailsAfter.chains[0].accounts.length, 1);
+    }
+
     // Test setting bounty terms
     function testSetBountyTerms() public {
         AgreementDetails memory initialDetails = getMockAgreementDetails("0x01");
         BountyTerms memory newTerms = initialDetails.bountyTerms;
         newTerms.bountyPercentage = 20;
         newTerms.bountyCapUSD = 2_000_000;
+        // Set to 0 (no aggregate cap) to avoid triggering aggregateBountyCapUSD < bountyCapUSD validation
+        // The mock has aggregateBountyCapUSD = 1000 which is less than our new bountyCapUSD of 2_000_000
+        newTerms.aggregateBountyCapUSD = 0;
 
         // Should fail when called by non-owner
         vm.expectRevert();
@@ -296,11 +415,72 @@ contract AgreementTest is Test {
         assertEq(keccak256(abi.encode(newTerms)), keccak256(abi.encode(_details.bountyTerms)));
 
         // Should fail when trying to set both aggregateBountyCapUSD and retainable
-        newTerms.aggregateBountyCapUSD = 1_000_000;
+        newTerms.aggregateBountyCapUSD = 3_000_000;
         newTerms.retainable = true;
         vm.prank(owner);
         vm.expectRevert(Agreement.Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable.selector);
         agreement.setBountyTerms(newTerms);
+    }
+
+    function testSetBountyTermsBountyPercentageExceedsMaximum() public {
+        BountyTerms memory invalidTerms = agreement.getBountyTerms();
+        invalidTerms.bountyPercentage = 150; // 150% is invalid
+
+        // Cache the value before vm.prank to avoid the external call consuming the prank
+        uint256 maxPercentage = agreement.MAX_BOUNTY_PERCENTAGE();
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 150, maxPercentage)
+        );
+        agreement.setBountyTerms(invalidTerms);
+    }
+
+    function testSetBountyTermsAggregateBountyCapLessThanBountyCap() public {
+        BountyTerms memory invalidTerms = agreement.getBountyTerms();
+        invalidTerms.bountyCapUSD = 2_000_000; // $2M individual cap
+        invalidTerms.aggregateBountyCapUSD = 1_000_000; // $1M aggregate cap (less than individual)
+        invalidTerms.retainable = false; // Ensure retainable is false
+
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__AggregateBountyCapLessThanBountyCap.selector, 1_000_000, 2_000_000
+            )
+        );
+        agreement.setBountyTerms(invalidTerms);
+    }
+
+    function testSetBountyTermsValidBoundaryConditions() public {
+        // Test bounty percentage at exactly 100%
+        BountyTerms memory validTerms = agreement.getBountyTerms();
+        validTerms.bountyPercentage = 100;
+        validTerms.bountyCapUSD = 500_000;
+        validTerms.aggregateBountyCapUSD = 500_000; // Equal to individual cap
+        validTerms.retainable = false;
+
+        vm.prank(owner);
+        agreement.setBountyTerms(validTerms);
+
+        BountyTerms memory storedTerms = agreement.getBountyTerms();
+        assertEq(storedTerms.bountyPercentage, 100);
+        assertEq(storedTerms.bountyCapUSD, 500_000);
+        assertEq(storedTerms.aggregateBountyCapUSD, 500_000);
+    }
+
+    function testSetBountyTermsZeroAggregateCapAllowed() public {
+        // Test that zero aggregate cap is allowed regardless of individual cap
+        BountyTerms memory validTerms = agreement.getBountyTerms();
+        validTerms.bountyPercentage = 50;
+        validTerms.bountyCapUSD = 10_000_000; // $10M individual cap
+        validTerms.aggregateBountyCapUSD = 0; // No aggregate cap
+        validTerms.retainable = false;
+
+        vm.prank(owner);
+        agreement.setBountyTerms(validTerms);
+
+        BountyTerms memory storedTerms = agreement.getBountyTerms();
+        assertEq(storedTerms.aggregateBountyCapUSD, 0);
+        assertEq(storedTerms.bountyCapUSD, 10_000_000);
     }
 
     function testConstructorCannotSetBothAggregateBountyCapUSDAndRetainable() public {
@@ -311,6 +491,62 @@ contract AgreementTest is Test {
         // Should fail when both conditions are true in constructor
         vm.expectRevert(Agreement.Agreement__CannotSetBothAggregateBountyCapUsdAndRetainable.selector);
         new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorBountyPercentageExceedsMaximum() public {
+        AgreementDetails memory invalidDetails = getMockAgreementDetails("0x01");
+        invalidDetails.bountyTerms.bountyPercentage = 101; // Exceeds 100%
+
+        // Should fail when bounty percentage exceeds maximum
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__BountyPercentageExceedsMaximum.selector, 101, agreement.MAX_BOUNTY_PERCENTAGE()
+            )
+        );
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorBountyPercentageAtMaximum() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyPercentage = 100; // At maximum, should succeed
+
+        // Should succeed when bounty percentage is exactly 100%
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().bountyPercentage, 100);
+    }
+
+    function testConstructorAggregateBountyCapLessThanBountyCap() public {
+        AgreementDetails memory invalidDetails = getMockAgreementDetails("0x01");
+        invalidDetails.bountyTerms.bountyCapUSD = 1_000_000; // $1M individual cap
+        invalidDetails.bountyTerms.aggregateBountyCapUSD = 500_000; // $500K aggregate cap (less than individual)
+
+        // Should fail when aggregate cap is less than individual cap
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__AggregateBountyCapLessThanBountyCap.selector, 500_000, 1_000_000
+            )
+        );
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorAggregateBountyCapEqualToBountyCap() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyCapUSD = 1_000_000;
+        validDetails.bountyTerms.aggregateBountyCapUSD = 1_000_000; // Equal, should succeed
+
+        // Should succeed when aggregate cap equals individual cap
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().aggregateBountyCapUSD, 1_000_000);
+    }
+
+    function testConstructorZeroAggregateBountyCapWithHighBountyCap() public {
+        AgreementDetails memory validDetails = getMockAgreementDetails("0x01");
+        validDetails.bountyTerms.bountyCapUSD = 10_000_000; // $10M individual cap
+        validDetails.bountyTerms.aggregateBountyCapUSD = 0; // No aggregate cap
+
+        // Should succeed when aggregate cap is 0 (no aggregate cap applies)
+        Agreement validAgreement = new Agreement(validDetails, address(chainValidator), owner);
+        assertEq(validAgreement.getBountyTerms().aggregateBountyCapUSD, 0);
     }
 
     function testConstructorDuplicateChainValidation() public {
@@ -391,6 +627,98 @@ contract AgreementTest is Test {
         new Agreement(invalidDetails, address(chainValidator), owner);
     }
 
+    function testConstructorEmptyAccountAddress() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.All
+        });
+
+        SHChain memory chain = SHChain({ accounts: accounts, assetRecoveryAddress: "0x01", caip2ChainId: "eip155:1" });
+
+        SHChain[] memory chainsWithEmptyAccount = new SHChain[](1);
+        chainsWithEmptyAccount[0] = chain;
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: chainsWithEmptyAccount,
+            contactDetails: baseDetails.contactDetails,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testAddChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 0));
+        agreement.addChains(newChains);
+    }
+
+    function testAddChainsEmptyAccountAddressAtIndex1() public {
+        // Test that validation correctly reports the index of the empty account
+        SHAccount[] memory accounts = new SHAccount[](2);
+        accounts[0] = SHAccount({ accountAddress: "0x01", childContractScope: ChildContractScope.None });
+        accounts[1] = SHAccount({
+            accountAddress: "", // Empty at index 1
+            childContractScope: ChildContractScope.All
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 1));
+        agreement.addChains(newChains);
+    }
+
+    function testSetChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory chains = new SHChain[](1);
+        chains[0] = SHChain({
+            assetRecoveryAddress: "0x05",
+            accounts: accounts,
+            caip2ChainId: "eip155:1" // Existing chain
+        });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:1", 0));
+        agreement.setChains(chains);
+    }
+
+    function testAddOrSetChainsEmptyAccountAddress() public {
+        SHAccount[] memory accounts = new SHAccount[](1);
+        accounts[0] = SHAccount({
+            accountAddress: "", // Empty account address
+            childContractScope: ChildContractScope.None
+        });
+
+        SHChain[] memory newChains = new SHChain[](1);
+        newChains[0] = SHChain({ assetRecoveryAddress: "0x05", accounts: accounts, caip2ChainId: "eip155:56" });
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidAccountAddress.selector, "eip155:56", 0));
+        agreement.addOrSetChains(newChains);
+    }
+
     function testConstructorInvalidAssetRecoveryAddress() public {
         AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
 
@@ -442,6 +770,42 @@ contract AgreementTest is Test {
         });
 
         vm.expectRevert(Agreement.Agreement__ChainIdHasZeroLength.selector);
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorInvalidContactDetailsEmptyName() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "", contact: "@validcontact" });
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: baseDetails.chains,
+            contactDetails: invalidContacts,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
+        new Agreement(invalidDetails, address(chainValidator), owner);
+    }
+
+    function testConstructorInvalidContactDetailsEmptyContact() public {
+        AgreementDetails memory baseDetails = getMockAgreementDetails("0x01");
+
+        Contact[] memory invalidContacts = new Contact[](1);
+        invalidContacts[0] = Contact({ name: "Valid Name", contact: "" });
+
+        AgreementDetails memory invalidDetails = AgreementDetails({
+            protocolName: "testProtocol",
+            chains: baseDetails.chains,
+            contactDetails: invalidContacts,
+            bountyTerms: baseDetails.bountyTerms,
+            agreementURI: "ipfs://testHash"
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__InvalidContactDetails.selector, 0));
         new Agreement(invalidDetails, address(chainValidator), owner);
     }
 

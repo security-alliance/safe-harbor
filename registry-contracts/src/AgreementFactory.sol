@@ -31,18 +31,18 @@ contract AgreementFactory {
         // Include chainid in salt to prevent cross-chain address collisions
         bytes32 finalSalt;
         assembly {
-            mstore(0x00, chainid())
-            mstore(0x20, caller())
-            mstore(0x40, salt)
-            finalSalt := keccak256(0x00, 0x60)
+            let ptr := mload(0x40)
+            mstore(ptr, chainid())
+            mstore(add(ptr, 0x20), caller())
+            mstore(add(ptr, 0x40), salt)
+            finalSalt := keccak256(ptr, 0x60)
+            mstore(0x40, add(ptr, 0x60))
         }
 
         Agreement agreement = new Agreement{ salt: finalSalt }(details, chainValidator, owner);
         agreementAddress = address(agreement);
 
         emit AgreementCreated(agreementAddress, owner, finalSalt);
-
-        return agreementAddress;
     }
 
     /// @notice Computes the address where an agreement would be deployed.
@@ -65,10 +65,12 @@ contract AgreementFactory {
     {
         bytes32 finalSalt;
         assembly {
-            mstore(0x00, chainid())
-            mstore(0x20, deployer)
-            mstore(0x40, salt)
-            finalSalt := keccak256(0x00, 0x60)
+            let ptr := mload(0x40)
+            mstore(ptr, chainid())
+            mstore(add(ptr, 0x20), deployer)
+            mstore(add(ptr, 0x40), salt)
+            finalSalt := keccak256(ptr, 0x60)
+            mstore(0x40, add(ptr, 0x60))
         }
 
         bytes memory initCode = bytes.concat(type(Agreement).creationCode, abi.encode(details, chainValidator, owner));
