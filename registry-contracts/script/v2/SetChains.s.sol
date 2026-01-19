@@ -73,7 +73,7 @@ contract SetChains is Script {
         caip2ChainIds[54] = "eip155:2000"; // Dogechain Mainnet
         caip2ChainIds[55] = "eip155:3776"; // Aster zkEVM
         caip2ChainIds[56] = "eip155:196"; // X Layer Mainnet
-        caip2ChainIds[58] = "eip155:5888"; // MANTRACHAIN Mainnet
+        caip2ChainIds[57] = "eip155:5888"; // MANTRACHAIN Mainnet
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);
