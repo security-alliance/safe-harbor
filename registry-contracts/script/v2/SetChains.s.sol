@@ -68,6 +68,12 @@ contract SetChains is Script {
         caip2ChainIds[49] = "eip155:1868"; // Soneium
         caip2ChainIds[50] = "eip155:295"; // Hedera
         caip2ChainIds[51] = "eip155:9745"; // Plasma
+        caip2ChainIds[52] = "eip155:13371"; // Immutable zkEVM
+        caip2ChainIds[53] = "eip155:5031"; // Somnia Mainnet
+        caip2ChainIds[54] = "eip155:2000"; // Dogechain Mainnet
+        caip2ChainIds[55] = "eip155:3776"; // Aster zkEVM
+        caip2ChainIds[56] = "eip155:196"; // X Layer Mainnet
+        caip2ChainIds[58] = "eip155:5888"; // MANTRACHAIN Mainnet
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);
