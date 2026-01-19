@@ -6,13 +6,19 @@ import {console} from "forge-std/console.sol";
 import {SafeHarborRegistryV2} from "../../src/v2/SafeHarborRegistryV2.sol";
 
 contract SetChains is Script {
-    address constant REGISTRY_ADDRESS = 0x1eaCD100B0546E433fbf4d773109cAD482c34686;
+    address constant REGISTRY_ADDRESS =
+        0x1eaCD100B0546E433fbf4d773109cAD482c34686;
 
     function run() public {
         SafeHarborRegistryV2 registry = SafeHarborRegistryV2(REGISTRY_ADDRESS);
-        require(address(registry).code.length > 0, "No contract exists at the registry address.");
+        require(
+            address(registry).code.length > 0,
+            "No contract exists at the registry address."
+        );
 
-        uint256 deployerPrivateKey = vm.envUint("REGISTRY_DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint(
+            "REGISTRY_DEPLOYER_PRIVATE_KEY"
+        );
 
         // CAIP-2 chain IDs for various chains
         string[] memory caip2ChainIds = new string[](52);
@@ -68,6 +74,12 @@ contract SetChains is Script {
         caip2ChainIds[49] = "eip155:1868"; // Soneium
         caip2ChainIds[50] = "eip155:295"; // Hedera
         caip2ChainIds[51] = "eip155:9745"; // Plasma
+        caip2ChainIds[52] = "eip155:13371"; // Immutable zkEVM
+        caip2ChainIds[53] = "eip155:5031"; // Somnia Mainnet
+        caip2ChainIds[54] = "eip155:2000"; // Dogechain Mainnet
+        caip2ChainIds[55] = "eip155:3776"; // Aster zkEVM
+        caip2ChainIds[56] = "eip155:196"; // X Layer Mainnet
+        caip2ChainIds[58] = "eip155:5888"; // MANTRACHAIN Mainnet
 
         vm.broadcast(deployerPrivateKey);
         registry.setValidChains(caip2ChainIds);
