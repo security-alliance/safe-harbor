@@ -41,6 +41,7 @@ contract HelperConfig is Script {
 
     // Polygon V2
     address public constant ENSURO = 0x261af6C5A12e268Bb919548c694fC75486B0EBBe;
+    address public constant QUICKSWAP = 0x55b5AA2791Bc58DBf871CaEF5B85aa34A47A7442;
 
     // Ethereum V1
     address public constant SILO = 0xE8e8041cB5E3158A0829A19E014CA1cf91098554;
@@ -136,9 +137,10 @@ contract HelperConfig is Script {
     }
 
     function getPolygonConfig() public pure returns (NetworkConfig memory) {
-        address[] memory adopters = new address[](2);
+        address[] memory adopters = new address[](3);
         adopters[0] = ENSURO;
         adopters[1] = POLYMARKET;
+        adopters[2] = QUICKSWAP;
         return NetworkConfig({
             owner: SEAL_MAINNET_OWNER,
             legacyRegistry: DEFAULT_LEGACY_REGISTRY,
