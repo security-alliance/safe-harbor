@@ -15,7 +15,26 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 -   [releases](https://github.com/security-alliance/safe-harbor/releases) - release changelog for different versions of the seal whitehat safe harbor agreement.
 
 
-## Registry Addresses
+## V3 Contract Addresses
+
+V3 contracts are deployed via [CreateX](https://github.com/pcaversaccio/createx) with deterministic addresses across all chains.
+
+| Contract | Address | Description |
+| -------- | ------- | ----------- |
+| SafeHarborRegistry | [0x326733493E143b8904716E7A64A9f4fb6A185a2c](https://etherscan.io/address/0x326733493E143b8904716E7A64A9f4fb6A185a2c) | Main registry for protocol adoptions |
+| ChainValidator | [0xd01C76ccE414d9B0a294abAFD94feD2e0B88675D](https://etherscan.io/address/0xd01C76ccE414d9B0a294abAFD94feD2e0B88675D) | Validates CAIP-2 chain IDs (upgradeable proxy) |
+| AgreementFactory | [0xcf317fE605397bC3fae6DAD06331aE5154F277fF](https://etherscan.io/address/0xcf317fE605397bC3fae6DAD06331aE5154F277fF) | Factory for creating Agreement contracts |
+
+> **Note:** These addresses are the same on all supported EVM chains due to CREATE3 deployment.
+
+---
+
+## Legacy Registry Addresses (V1/V1.1)
+
+<details>
+<summary>Click to expand legacy addresses</summary>
+
+### Registry Addresses
 
 | Chain         | Address                                                                                                                          | Version |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
@@ -34,13 +53,15 @@ The Whitehat Safe Harbor initiative is a framework in which protocols can offer 
 | Gnosis        | [0x8f72fcf695523A6FC7DD97EafDd7A083c386b7b6](https://gnosisscan.io/address/0x8f72fcf695523a6fc7dd97eafdd7a083c386b7b6)           | 1       |
 | ZKsync        | [0x5f5eEc1a37F42883Df9DacdAb11985467F813877](https://explorer.zksync.io/address/0x5f5eEc1a37F42883Df9DacdAb11985467F813877)      | 1       |
 
-## Factory Addresses
+### Factory Addresses
 
 | Chain    | Address                                                                                                                  | Version |
 | -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
 | Ethereum | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://etherscan.io/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed)    | 1.1     |
 | BSC      | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://bscscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed)     | 1.1     |
 | Polygon  | [0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed](https://polygonscan.com/address/0x98D1594Ba4f2115f75392ac92A7e3C8A81C67Fed) | 1.1     |
+
+</details>
 
 ## How does it work?
 
