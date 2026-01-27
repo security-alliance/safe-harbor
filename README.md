@@ -82,6 +82,30 @@ If the whitehat decides to proceed with a whitehat rescue, they must follow the 
 
 To find out more information about adopting Safe Harbor, please check out the [Safe Harbor SEAL Framework](https://frameworks.securityalliance.org/safe-harbor/index.html). Or reach out to us at [safe-harbor@securityalliance.org](mailto:safe-harbor@securityalliance.org).
 
+# Tests
+
+## Unit
+```bash
+forge test
+```
+
+## Integration
+
+```bash
+# set your MAINNET_RPC_URL and POLYGON_RPC_URL environment variables
+# then run:
+FOUNDRY_PROFILE=integration forge test
+```
+
+## Fork
+
+All tests are compatible to run against a forked environment.
+
+```bash
+forge test --fork-url $MAINNET_RPC_URL
+```
+
+
 
 # Solana programs 
 To clone repo with solana programs 
@@ -96,3 +120,8 @@ or
 ```sh
 $ git clone --recursive git@github.com:security-alliance/safe-harbor.git
 ```
+
+
+# Acknowledgements
+- [Cyfrin](https://www.cyfrin.io/) and [patrickalphac](https://x.com/PatrickAlphaC) for helping create V3 of Safe Harbor and conducting the [security audit](https://github.com/Cyfrin/cyfrin-audit-reports/blob/main/reports/2026-01-13-cyfrin-safe-harbor-v2.0.pdf).
+- [OtterSec](https://osec.io/) for their Solana Safe Harbor implementation.

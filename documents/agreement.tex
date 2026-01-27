@@ -39,7 +39,7 @@
     WHITEHAT SAFE HARBOR AGREEMENT \\
     \& \\
     RELATED MATERIALS \\[4ex]
-    v1.01}
+    v. 3.0.0}
 \author{}
 \date{}
     
@@ -80,24 +80,24 @@ This \textbf{WHITEHAT SAFE HARBOR AGREEMENT (this \textit{Agreement})} sets fort
 
           \end{enumerate}
 
-    \item "\textit{DAO Adoption Procedures}" means that this Agreement has been duly adopted and approved by or on behalf of a DAO by such DAO, by DAO Approval, or a person, group, entity, or other smart contract expressly and specifically authorized by DAO Approval to act for or on behalf of such DAO in such respect, having properly executed a call of the \code{adoptSafeHarbor} function of an instance of the official SEAL SafeHarborRegistryV2.sol (\url{https://github.com/security-alliance/safe-harbor}) that has been deployed to \code{0x1eaCD100B0546E433fbf4d773109cAD482c34686} on a compatible blockchain system, with such call successfully setting the AgreementDetailsV2 struct determining the terms of the Protocol Community's adoption of this Agreement in accordance with the SafeHarborRegistryV2.sol code, including:
+    \item "\textit{DAO Adoption Procedures}" means that this Agreement has been duly adopted and approved by or on behalf of a DAO by such DAO, by DAO Approval, or a person, group, entity, or other smart contract expressly and specifically authorized by DAO Approval to act for or on behalf of such DAO in such respect, having properly executed a call of the \code{adoptSafeHarbor} function of an instance of the official SEAL SafeHarborRegistry.sol (\url{https://github.com/security-alliance/safe-harbor/tree/main/registry-contracts}) that has been deployed to address \code{0xc8C53c0dd6830e15AF3263D718203e1B534C8Abe} on a compatible blockchain system, with such call successfully setting the AgreementDetails struct determining the terms of the Protocol Community's adoption of this Agreement in accordance with the SafeHarborRegistry.sol code, including:
 
           \begin{enumerate}
-              \item the \code{protocolName}, being a string specifying the name of the Protocol governed by such DAO, for which this Agreement is being adopted by such DAO;
+              \item the \code{protocolName} (being a string specifying the name of the Protocol governed by such DAO, for which this Agreement is being adopted by such DAO);
 
-              \item the \code{chains}, being a struct specifying, for each chain on which an Eligible Funds Rescue from the Protocol is intended to be authorized:
+              \item the \code{Chain[] chains}, being a struct specifying, for each chain on which an Eligible Funds Rescue from the Protocol is intended to be authorized:
 
                     \begin{enumerate}
-                        \item the \code{chainID} of such chain;
+                        \item the \code{caip2ChainId} of such chain;
 
-                        \item the \code{assetRecoveryAddress} on such chain (which shall be the Asset Recovery Address with respect to the instance of theProtocol on such chain for Eligible Protocol Rescues pursuant to this Agreement); and
+                        \item the \code{assetRecoveryAddress} on such chain (which shall be the Asset Recovery Address with respect to the instance of the Protocol on such chain for Eligible Protocol Rescues pursuant to this Agreement); and
 
-                        \item the \code{accounts} scope (being a struct specifying, for each blockchain account (which may be an 'externally owned' or 'smart contract' account) included in the Protocol on such chain for purposes of Eligible Funds Rescues of the Protocol on such chain):
+                        \item the \code{Accounts []} scope (being a struct specifying, for each blockchain account (which may be an 'externally owned' or 'smart contract' account) included in the Protocol on such chain for purposes of Eligible Funds Rescues of the Protocol on such chain:
 
                               \begin{enumerate}
                                   \item the \code{accountAddress} of such account on such chain;
 
-                                  \item the \code{childContractScope} for such account,which specifies whether, with respect to the child contracts created by the accountAddress:
+                                  \item the \code{ChildContractScope childContractScope} for such account, which specifies whether, with respect to the child contracts created by the accountAddress:
 
                                         \begin{itemize}
                                             \item none of such contracts are in scope for Eligible Funds Rescues (the \code{None} parameter);
@@ -106,24 +106,22 @@ This \textbf{WHITEHAT SAFE HARBOR AGREEMENT (this \textit{Agreement})} sets fort
 
                                             \item all such contracts, whether created by accountAddress before or after calling \code{adoptSafeHarbor}, are in scope for Eligible Funds Rescues (the \code{All} parameter); and
 
-                                            \item only such contracts as are created by such accountAddress after the time \code{adoptSafeHarbor} is called are in scope for EligibleFunds Rescues (the \code{FutureOnly} parameter);
+                                            \item only such contracts as are created by such accountAddress after the time \code{adoptSafeHarbor} is called are in scope for Eligible Funds Rescues (the \code{FutureOnly} parameter);
 
                                         \end{itemize}
                               \end{enumerate}
 
-                        \item optionally, the \code{signature} for such account, which may be used as additional evidence that such account has affirmatively accepted being subject this Agreement.
-
                     \end{enumerate}
 
-              \item the \code{contactDetails} (being a struct specifying, foreach individual or entity who should be contacted by Eligible Whitehats for notices to the Protocol Community pursuant to this Agreement, the name of such person within the Protocol Community and the contact details (e.g., email, phone, telegram handle, etc.) of such person for purposes of receiving notifications pursuant to this Agreement, including for purposes of receiving pre-rescue notifications pursuant to Section \ref{sec:eligibility});
+              \item the \code{Contact[] contactDetails} (being a struct specifying, for each individual or entity who should be contacted by Eligible Whitehats for notices to the Protocol Community pursuant to this Agreement, the name of such person within the Protocol Community and the contact details (e.g., email, phone, telegram handle, etc.) of such person for purposes of receiving notifications pursuant to this Agreement, including for purposes of receiving pre-rescue notifications pursuant to Section \ref{sec:eligibility});
 
-              \item the \code{bountyTerms} (being a struct specifying theBounty Percentage (the \code{bountyPercentage} string), the Bounty Cap (the \code{bountyCapUSD} integer), the Aggregate Bounty Cap (the \code{aggregateBountyCapUSD} integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehats in connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the \code{retainable} boolean); if \code{aggregateBountyCapUSD} is specified, retainable must be set to false to ensure accurate enforcement of the Aggregate Bounty Cap), the IdentityRequirement identityRequirement struct (specifying whether the Eligible Whitehat can be \code{Anonymous} or \code{Pseudonymous} or rather must confirm their legal name (\code{Named})) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in order to qualify for payment of the Bounty (the \code{diligenceRequirements} string);
+              \item the \code{BountyTerms bountyTerms} (being a struct specifying the Bounty Percentage (the \code{bountyPercentage} integer), the Bounty Cap (the \code{bountyCapUSD} integer), the Aggregate Bounty Cap (the \code{aggregateBountyCapUSD} integer, representing the maximum total aggregate dollar amount of Bounties payable to all Eligible Whitehats in connection with a single Exploit or series of related Exploits), whether or not the Bounty can be paid as a Retained Bounty (the \code{retainable} boolean); if \code{aggregateBountyCapUSD} is specified, retainable must be set to false to ensure accurate enforcement of the Aggregate Bounty Cap), the \code{IdentityRequirements identity} struct (specifying whether the Eligible Whitehat can be \code{Anonymous} or \code{Pseudonymous} or rather must confirm their legal name (\code{Named}) and any KYC, sanctions, diligence or other verification that the Protocol Community will require be performed on the Eligible Whitehat in order to qualify for payment of the Bounty (the \code{diligenceRequirements} string);
 
-              \item the \code{agreementURI} (being the IPFS hash of the exact text of the official version of this Agreement as of the date of adoption).
+              \item the \code{agreementURI} (being a valid URI pointing to or containing the exact text of the official version of this Agreement as of the date of adoption; acceptable URI schemes include, but are not limited to, IPFS (\code{ipfs://}), Arweave (\code{ar://}), and base64-encoded data URIs (\code{data:})).
 
           \end{enumerate}
 
-    \item In the event that a Protocol does not have a DAO, the Security Team may utilize the DAO Adoption Procedures to indicate adoption of this Agreement with respect to the Protocol, and, in such event, references in this Agreement to the DAO shall instead be treated as references to theSecurity Team.
+    \item In the event that a Protocol does not have a DAO, the Security Team may utilize the DAO Adoption Procedures to indicate adoption of this Agreement with respect to the Protocol, and, in such event, references in this Agreement to the DAO shall instead be treated as references to the Security Team.
 
 \end{enumerate}
 
@@ -295,7 +293,7 @@ All other pending, threatened, or possible Exploits; security vulnerabilities; o
 
 \begin{enumerate}
 
-    \item Conditions Precedent. Each clause of the terms "Eligible Whitehat" and "Eligible Funds Rescue," and the fulfillment of each requirement set forth in the \code{identityRequirement} IdentityRequirement struct and diligenceRequirements string of the BountyTerms bountyTerms struct set by the DAO Adoption Procedures, shall be conditions precedent to any person's entitlement to receive a Reward. Such conditions precedent are in furtherance and not in limitation of the other terms and conditions of this Agreement. In the event that a Whitehat receives or retains a Bounty (or any portion thereof) at a time when any of the aforementioned conditions precedent were not satisfied, the Bounty shall be deemed forfeit and the Whitehat shall, upon demand by the Protocol Community or any Protocol Community Member, immediately transfer the full amount of any Retained Bounty directly to the Asset Recovery Address.
+    \item Conditions Precedent. Each clause of the terms "Eligible Whitehat" and "Eligible Funds Rescue," and the fulfillment of each requirement set forth in the \code{IdentityRequirements} identity struct and diligenceRequirements string of the BountyTerms bountyTerms struct set by the DAO Adoption Procedures, shall be conditions precedent to any person's entitlement to receive a Reward. Such conditions precedent are in furtherance and not in limitation of the other terms and conditions of this Agreement. In the event that a Whitehat receives or retains a Bounty (or any portion thereof) at a time when any of the aforementioned conditions precedent were not satisfied, the Bounty shall be deemed forfeit and the Whitehat shall, upon demand by the Protocol Community or any Protocol Community Member, immediately transfer the full amount of any Retained Bounty directly to the Asset Recovery Address.
 
     \item Relationship of Protocol Community to Whitehat. Under no circumstances do the Protocol Community or any Protocol Community Member seek through this Agreement to facilitate, encourage, or condone any conduct by Whitehat that violates any Legal Requirement under any applicable jurisdiction or any fraudulent, misleading, manipulative, reckless, or negligent conduct by Whitehat towards any Party or non-party to this Agreement. The Protocol Community disclaims any liability or direct or consequential damages caused by Whitehat by participating in the Program, and make no representations or warranties to Whitehat that participation in the Program under the terms of this Agreement will protect Whitehat from liability except as otherwise specified in Section \ref{subsec:release_whitehat_liability_protocol_community} below.
 
@@ -418,7 +416,7 @@ This Section \ref{sec:warranties} does not: (a) contain any representation, warr
 
 \subsection{Release of Whitehat Liability to Protocol Community}\label{subsec:release_whitehat_liability_protocol_community}
 \begin{enumerate}
-    \item Release by Protocol Community. The Protocol Community and each Protocol Community Member, hereby, to the extent permitted at law, irrevocably, unconditionally, and completely exculpates, releases, acquits and forever discharges Whitehat from, and hereby irrevocably, unconditionally, and completely waives and relinquishes, every Claim, that any Protocol Community or Protocol Community Member may have had in the past, may now have, or may have in the future against Whitehat, relating to or arising out of each Eligible Funds Rescue successfully executed by or with the assistance of the Whitehat, including any Claim based on a theory of quantum merit, promissory estoppel, or other equitable doctrine and any Claim contrary to any of the acknowledgements and assumptions of risk set forth in this Agreement; \textit{provided, however}, that Whitehat shall not be released from any breach or non-compliance with the terms and conditions of this Agreement and provided further that this release does not apply to any indemnity owed by the Whitehat under Section \ref{subsec:indemnity}(a).
+    \item Release by Protocol Community. The Protocol Community and each Protocol Community Member, hereby, to the extent permitted at law, irrevocably, unconditionally, and completely exculpates, releases, acquits and forever discharges Whitehat from, and hereby irrevocably, unconditionally, and completely waives and relinquishes, every Claim, that any Protocol Community or Protocol Community Member may have had in the past, may now have, or may have in the future against Whitehat, relating to or arising out of each Eligible Funds Rescue successfully executed by or with the assistance of the Whitehat, including any Claim based on a theory of quantum meruit, promissory estoppel, or other equitable doctrine and any Claim contrary to any of the acknowledgements and assumptions of risk set forth in this Agreement; \textit{provided, however}, that Whitehat shall not be released from any breach or non-compliance with the terms and conditions of this Agreement and provided further that this release does not apply to any indemnity owed by the Whitehat under Section \ref{subsec:indemnity}(a).
 
     \item No-Litigation. The Protocol Community and each Protocol Community Member hereby agree not to assert or attempt to assert against the Whitehat any Claim from which such Whitehat has been released under Section \ref{subsec:release_whitehat_liability_protocol_community}.
 

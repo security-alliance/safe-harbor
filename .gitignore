@@ -1,0 +1,6 @@
+.DS_Store
+snapshots/
+report.md
+node_modules/
+.env
+lcov.info

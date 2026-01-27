@@ -6,163 +6,142 @@ This directory houses the "Safe Harbor Registry". This is a smart contract writt
 2. Store the agreement details on-chain as a permanent record.
 3. Allow for future updates to the agreement terms by adopters.
 
-These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and seperately deployed.
+These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and separately deployed.
 
-# Technical Details
+## Technical Details
 
-This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation). To test the contracts, use `forge test`.
+This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation).
 
-There are 2 active versions in this system:
+### Build
 
--   `src/v2/SafeHarborRegistryV2.sol` and `src/v2/AgreementV2.sol` (current)
--   `src/v1/SafeHarborRegistry.sol` and `src/v1/AgreementV1.sol` (legacy)
+```bash
+forge build
+```
 
-## Setup
+### Test
 
-1. The `SafeHarborRegistry` contract is deployed with the fallback registry as constructor arguments.
+```bash
+# Run unit tests
+forge test
 
-In the future SEAL may create new versions of this agreement. When this happens a new registry (e.g. `SafeHarborRegistryV2`) may be deployed. New registries will fallback to prior registries, so the latest deployed registry will act as the source of truth for all adoption details. Old registries will always remain functional.
+# Set your MAINNET_RPC_URL and POLYGON_RPC_URL environment variables to run integration tests
+FOUNDRY_PROFILE=integration forge test
+
+# Fork tests
+forge test --fork-url <RPC_URL>
+```
+
+### Coverage
+
+```bash
+forge coverage
+```
+
+## Architecture
+
+The V3 registry consists of three main contracts:
+
+- **SafeHarborRegistry** - The main registry contract that tracks protocol adoptions
+- **ChainValidator** - Validates CAIP-2 chain IDs for agreements
+- **Agreement** - Stores the agreement details for each protocol
+- **AgreementFactory** - Factory for creating Agreement contracts
+
+### Deployment
+
+V3 uses [CreateX](https://github.com/pcaversaccio/createx) for deterministic CREATE3 deployments, ensuring the same contract addresses across all supported chains.
+
+```bash
+# Deploy to a network
+forge script script/Deploy.s.sol:DeploySafeHarbor --rpc-url <RPC_URL> --broadcast --verify
+```
 
 ## Adoption
 
-1. A protocol creates their agreement details contract using one of the provided `AgreementFactories`. This can be done using any address.
-2. A protocol calls `adoptSafeHarbor()` on a `SafeHarborRegistry` with their agreement contract. This must be done from a legally representative address of that protocol.
+1. A protocol creates their agreement details contract using the `AgreementFactory`. This can be done using any address.
+2. A protocol calls `adoptSafeHarbor()` on the `SafeHarborRegistry` with their agreement contract address. This must be done from a legally representative address of that protocol.
 3. The registry records the adopted `Agreement` address as an adoption by `msg.sender`.
 
-A protocol may update their agreement details using any enabled registry. To do so, the protocol calls `adoptSafeHarbor()` on an agreement registry with their new agreement details. This will create a new `Agreement` contract and store it as the details for `msg.sender`. Protocols may also update their details on any mutable Agreement.
+A protocol may update their agreement details by calling `adoptSafeHarbor()` again with a new agreement contract. Protocols may also update their details directly on their existing Agreement contract using the various setter functions.
 
 Calling `adoptSafeHarbor()` is considered the legally binding action. The `msg.sender` should represent the decision-making authority of the protocol.
 
-### Using the script to adopt Safe Harbor
-
-#### V2 Adoption (Recommended)
-
-The V2 adoption script supports configurable options and is the recommended approach for new adoptions.
-
-**Environment Variables:**
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DEPLOYER_PRIVATE_KEY` | ✅ | - | Private key for transaction signing |
-| `AGREEMENT_OWNER` | ❌ | Deployer address | Address that will own the agreement |
-| `ADOPT_TO_REGISTRY` | ❌ | `false` | Whether to adopt the agreement to the registry |
-
-**Usage:**
-```bash
-cd registry-contracts
-forge script script/v2/AdoptSafeHarborV2.s.sol:AdoptSafeHarborV2 --rpc-url <URL> --verify --broadcast
-```
-
-**Configuration:** The script reads agreement details from `agreementDetailsV2.json`. Make sure this file exists and contains valid agreement configuration before running the script.
-
-#### V1 Adoption (Legacy)
-
-For V1 adoptions:
-1. Edit agreementDetails.json with the agreement details of your protocol.
-2. Create a .env file and set the `DEPLOYER_PRIVATE_KEY` environment variable.
-3. Run the script using:
-
-```bash
-forge script script/v1/AdoptSafeHarborV1.s.sol:AdoptSafeHarborV1 --rpc-url <URL> --verify --broadcast
-```
-
-If you would like to deploy from the protocol multisig, please contact us directly.
-
-### V2 Utilities
-
-#### Add chains to an existing AgreementV2
-
-The add-chains script reads from `addChainsV2.json` and calls `AgreementV2.addChains`.
-
-**Requirements:**
-
-- `DEPLOYER_PRIVATE_KEY` in env (must be the current `owner()` of the agreement)
-- `addChainsV2.json` in the repo root with fields:
-  - `agreementAddress` (checksummed address)
-  - `chains[]` objects with `id` (CAIP-2), `assetRecoveryAddress`, `accounts[]` where each account has `accountAddress` and `childContractScope` (enum as uint)
-
-**Usage:**
-
-```bash
-cd registry-contracts
-forge script script/v2/AddChainsV2.s.sol:AddChainsV2 --rpc-url <URL> --broadcast
-```
-
-#### Change AgreementV2 owner
-
-Transfer ownership of an `AgreementV2` to a new address.
-
-**CLI (recommended):**
-
-```bash
-cd registry-contracts
-forge script script/v2/ChangeOwnerV2.s.sol:ChangeOwnerV2 \
-  --sig 'run(address,address)' 0xAgreementAddress 0xNewOwnerAddress \
-  --rpc-url <URL> --broadcast
-```
-
-**Env-based:**
-
-```bash
-export DEPLOYER_PRIVATE_KEY=0x...
-export AGREEMENT_ADDRESS=0xAgreementAddress
-export NEW_OWNER=0xNewOwnerAddress
-cd registry-contracts
-forge script script/v2/ChangeOwnerV2.s.sol:ChangeOwnerV2 --rpc-url <URL> --broadcast
-```
-
-#### Get AgreementV2 details
-
-Logs the current `AgreementDetailsV2` to the console.
-
-**CLI:**
-
-```bash
-cd registry-contracts
-forge script script/v2/GetAgreementDetailsV2.s.sol:GetAgreementDetailsV2 \
-  --sig 'run(address)' 0xAgreementAddress \
-  --rpc-url <URL>
-```
-
-**Env-based:**
-
-```bash
-export AGREEMENT_ADDRESS=0xAgreementAddress
-cd registry-contracts
-forge script script/v2/GetAgreementDetailsV2.s.sol:GetAgreementDetailsV2 --rpc-url <URL>
-```
-
-### Signed Accounts
-
-For added security, protocols may choose to sign their agreement for the scoped accounts. Both EOA and ERC-1271 signatures are supported and can be validated with the registry. Given a signed account, whitehats can be certain that the owner of the account has approved the agreement details.
-
-`AccountDetails` use EIP-712 hashing for a better client-side experience.
-
-#### Verification of Signed Accounts
-
-Whitehats may use the registy's `validateAccount()` method to verify that a given Account has consented to the agreement details.
-
 ## Querying Agreements
 
-1. Query the `SafeHarborRegistry` contract with the protocol address to get the protocol's `AgreementV*` address.
-2. Query the protocol's `Agreement` contract with `getDetails()` to get the address of the structured agreement details.
+1. Query the `SafeHarborRegistry` contract with the protocol address using `getAgreement()` to get the protocol's `Agreement` address.
+2. Query the protocol's `Agreement` contract with `getDetails()` to get the structured agreement details.
 
-Different versions may have different `AgreementDetails` structs. All `Agreement` and `SafeHarborRegistry` contracts will include a `version()` method which can be used to infer the `AgreementDetails` structure.
+All contracts include a `version()` method which returns `"3.0.0"` for V3 contracts.
 
-If no agreement is present for a given query address in a registry, the registry will check the fallback registry provided in its constructor. This allows SEAL to deploy new registries while remaining backwards-compatible.
+## Agreement Structure
 
-# Deployment
+```solidity
+struct AgreementDetails {
+    string protocolName;           // Name of the protocol
+    Contact[] contactDetails;       // Contact information for pre-notification
+    Chain[] chains;                 // Scope and recovery addresses by chain
+    BountyTerms bountyTerms;        // Bounty terms and conditions
+    string agreementURI;            // IPFS hash or URI of the agreement document
+}
 
-The Safe Harbor Registry will be deployed using the deterministic deployment proxy described here: https://github.com/Arachnid/deterministic-deployment-proxy, which is built into Foundry by default.
+struct Chain {
+    string assetRecoveryAddress;    // Address to send recovered assets
+    Account[] accounts;             // Accounts in scope
+    string caip2ChainId;            // CAIP-2 chain identifier (e.g., "eip155:1")
+}
 
-To deploy the registry to an EVM-compatible chain where it is not currently deployed:
+struct Account {
+    string accountAddress;          // Address of the account
+    ChildContractScope childContractScope;  // Scope of child contracts
+}
 
-1. Ensure the deterministic-deployment-proxy is deployed at 0x4e59b44847b379578588920cA78FbF26c0B4956C, and if it's not, deploy it using [the process mentioned above](https://github.com/Arachnid/deterministic-deployment-proxy).
-2. Deploy the registry using the above proxy with salt `bytes32(0)` from the EOA that will become the registry admin. The file [`script/v1/DeployRegistryV1.s.sol`](script/v1/DeployRegistryV1.s.sol) is a convenience script for this task. To use it, set the `REGISTRY_DEPLOYER_PRIVATE_KEY` environment variable to a private key that can pay for the deployment transaction costs, or use `--ledger` to deploy with a ledger account. Then, run the script using:
-
+struct BountyTerms {
+    uint256 bountyPercentage;       // Percentage of recovered funds (0-100)
+    uint256 bountyCapUSD;           // Maximum bounty in USD
+    bool retainable;                // Whether whitehat can retain bounty
+    IdentityRequirements identity;  // KYC requirements
+    string diligenceRequirements;   // Diligence requirements for Named whitehats
+    uint256 aggregateBountyCapUSD;  // Optional aggregate cap across all whitehats
+}
 ```
-cd registry-contracts
-forge script script/v1/DeployRegistryV1.s.sol:DeployRegistryV1 --rpc-url <CHAIN_RPC_URL> --verify --broadcast --ledger
-```
 
-*https://chainlist.org*
+## Chain Validation
+
+The `ChainValidator` contract maintains a list of valid CAIP-2 chain IDs. Only chains in this list can be used in agreements. The registry owner can add or remove valid chains using:
+
+- `setValidChains(string[] calldata _caip2ChainIds)` - Add chains to the valid list
+- `setInvalidChains(string[] calldata _caip2ChainIds)` - Remove chains from the valid list
+
+## Access Control
+
+| Contract | Owner | Permissions |
+|----------|-------|-------------|
+| **ChainValidator** | SEAL multisig | Add/remove valid chains, upgrade contract (UUPS) |
+| **SafeHarborRegistry** | None | Permissionless - anyone can call `adoptSafeHarbor()` |
+| **AgreementFactory** | None | Permissionless - anyone can create agreements |
+| **Agreement** | Protocol | Modify agreement terms (bounty, chains, contacts, etc.) |
+
+### ChainValidator (Upgradeable)
+
+The `ChainValidator` is deployed behind a UUPS proxy and can be upgraded by the owner. This allows adding support for new chain ID formats or fixing bugs without redeploying the entire system.
+
+### Agreement Ownership
+
+Each `Agreement` contract is owned by the address that created it (typically a protocol's governance or multisig). Only the owner can:
+- Update bounty terms
+- Add/remove chains and accounts
+- Modify contact details
+- Transfer ownership
+
+## Security Considerations for Whitehats
+
+**MEV and Front-running**: The registry does not provide protection against MEV or front-running. If a protocol modifies their agreement terms (e.g., bounty percentage, retainability) while a recovery transaction is in flight, the new terms will apply. Whitehats should:
+
+1. **Use private mempools** (e.g., Flashbots Protect) when submitting recovery transactions
+2. **Assume protocols may act adversarially** - verify terms immediately before submitting
+3. **Snapshot agreement terms off-chain** as evidence before initiating any recovery
+
+The protocol makes no guarantees about the timing or atomicity of agreement changes relative to recovery transactions.
+
+## License
+
+MIT
