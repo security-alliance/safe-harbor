@@ -8,6 +8,19 @@ This directory houses the "Safe Harbor Registry". This is a smart contract writt
 
 These registry contracts were designed for EVM-compatible chains. For non-EVM chains, new registry contracts may need to be written and separately deployed.
 
+## V3 Deployed Addresses
+
+V3 contracts are deployed via [CreateX](https://github.com/pcaversaccio/createx) with deterministic addresses across all supported EVM chains.
+
+| Contract | Address | Description |
+| -------- | ------- | ----------- |
+| **SafeHarborRegistry** | `0x326733493E143b8904716E7A64A9f4fb6A185a2c` | Main registry for protocol adoptions |
+| **ChainValidator** (proxy) | `0xd01C76ccE414d9B0a294abAFD94feD2e0B88675D` | Validates CAIP-2 chain IDs |
+| **ChainValidator** (impl) | `0x1eee8E721816CD5A0033FBA6Ba93486C074dD1cB` | Implementation contract |
+| **AgreementFactory** | `0xcf317fE605397bC3fae6DAD06331aE5154F277fF` | Factory for creating Agreement contracts |
+
+> **Note:** These addresses are identical on all supported chains due to CREATE3 deployment.
+
 ## Technical Details
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation).
