@@ -1,0 +1,30 @@
+{
+    "protocolName": "Test Protocol",
+    "agreementURI": "ipfs://QmTestHash",
+    "contactDetails": [
+        {
+            "name": "Security Team",
+            "contact": "security@test.com"
+        }
+    ],
+    "bountyTerms": {
+        "bountyPercentage": 10,
+        "bountyCapUSD": 100000,
+        "aggregateBountyCapUSD": 500000,
+        "retainable": false,
+        "identity": 1,
+        "diligenceRequirements": "KYC Required"
+    },
+    "chains": [
+        {
+            "caip2ChainId": "eip155:1",
+            "assetRecoveryAddress": "0x1234567890123456789012345678901234567890",
+            "accounts": [
+                {
+                    "accountAddress": "0xAbCdEf1234567890123456789012345678901234",
+                    "childContractScope": 0
+                }
+            ]
+        }
+    ]
+}
