@@ -39,7 +39,7 @@ contract AddChains is Script {
     }
 
     // ----- CONSTANTS -----
-    string private constant DEFAULT_JSON_PATH = "addChains.json";
+    string private constant DEFAULT_JSON_PATH = "examples/addChains.json";
 
     // ======== MAIN ENTRY POINTS ========
 

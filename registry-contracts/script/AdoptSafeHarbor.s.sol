@@ -53,7 +53,7 @@ contract AdoptSafeHarbor is Script {
 
     // ----- CONSTANTS -----
     uint256 private constant MAX_BOUNTY_PERCENTAGE = 100;
-    string private constant DEFAULT_JSON_PATH = "agreementDetails.json";
+    string private constant DEFAULT_JSON_PATH = "examples/agreementDetails.json";
 
     // ======== MAIN ENTRY POINTS ========
 
