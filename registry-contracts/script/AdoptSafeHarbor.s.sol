@@ -89,12 +89,9 @@ contract AdoptSafeHarbor is Script {
     {
         AgreementFactory factory = AgreementFactory(config.factory);
         address owner = config.owner == address(0) ? msg.sender : config.owner;
-        bytes32 salt = config.salt == bytes32(0)
-            ? keccak256(abi.encodePacked(details.protocolName, block.timestamp))
-            : config.salt;
 
         vm.startBroadcast();
-        agreementAddress = factory.create(details, config.chainValidator, owner, salt);
+        agreementAddress = factory.create(details, config.chainValidator, owner, config.salt);
         vm.stopBroadcast();
 
         return agreementAddress;
