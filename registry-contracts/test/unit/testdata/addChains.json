@@ -1,0 +1,29 @@
+{
+    "agreementAddress": "0xC72616c53e7544469421249B7140CE2eBFC856C8",
+    "chains": [
+        {
+            "caip2ChainId": "eip155:137",
+            "assetRecoveryAddress": "0x2222222222222222222222222222222222222222",
+            "accounts": [
+                {
+                    "accountAddress": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "childContractScope": 2
+                }
+            ]
+        },
+        {
+            "caip2ChainId": "eip155:42161",
+            "assetRecoveryAddress": "0x3333333333333333333333333333333333333333",
+            "accounts": [
+                {
+                    "accountAddress": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                    "childContractScope": 1
+                },
+                {
+                    "accountAddress": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+                    "childContractScope": 0
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,395 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.30;
+
+import { Test } from "forge-std/Test.sol";
+import { Vm } from "forge-std/Vm.sol";
+import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
+import { ChainValidator } from "src/ChainValidator.sol";
+import { AgreementFactory } from "src/AgreementFactory.sol";
+import { Agreement } from "src/Agreement.sol";
+import {
+    AgreementDetails,
+    Chain as AgreementChain,
+    Account as AgreementAccount,
+    Contact,
+    BountyTerms,
+    ChildContractScope,
+    IdentityRequirements
+} from "src/types/AgreementTypes.sol";
+import { AddChains } from "script/AddChains.s.sol";
+import { HelperConfig } from "script/HelperConfig.s.sol";
+import { DeploySafeHarbor } from "script/Deploy.s.sol";
+
+/// @title AddChainsTest
+/// @notice Test suite for the AddChains script
+contract AddChainsTest is Test {
+    // ----- STATE -----
+    AddChains public addChainsScript;
+    HelperConfig public helperConfig;
+    DeploySafeHarbor public deployer;
+
+    SafeHarborRegistry public registry;
+    ChainValidator public chainValidator;
+    AgreementFactory public factory;
+
+    address public owner;
+    uint256 public ownerPrivateKey;
+    address public protocol;
+
+    Agreement public agreement;
+    address public agreementAddress;
+
+    // ----- SETUP -----
+
+    function setUp() public {
+        // Generate owner keypair (will be the agreement owner)
+        ownerPrivateKey = 0xABCD;
+        owner = vm.addr(ownerPrivateKey);
+
+        // Deploy contracts
+        helperConfig = new HelperConfig();
+        deployer = new DeploySafeHarbor();
+        deployer.initialize(helperConfig);
+
+        HelperConfig.NetworkConfig memory networkConfig = helperConfig.getNetworkConfig();
+
+        chainValidator = ChainValidator(deployer.deployChainValidator());
+        registry = SafeHarborRegistry(deployer.deployRegistry());
+        factory = AgreementFactory(deployer.deployAgreementFactory());
+
+        // Deploy the AddChains script
+        addChainsScript = new AddChains();
+
+        // Create initial agreement for testing
+        AgreementDetails memory details = _getInitialAgreementDetails();
+        vm.prank(owner);
+        agreement = new Agreement(details, address(chainValidator), owner);
+        agreementAddress = address(agreement);
+    }
+
+    // ======== HELPER FUNCTIONS ========
+
+    /// @notice Get initial agreement details with one chain
+    function _getInitialAgreementDetails() internal pure returns (AgreementDetails memory details) {
+        Contact[] memory contacts = new Contact[](1);
+        contacts[0] = Contact({ name: "Security Team", contact: "security@test.com" });
+
+        AgreementAccount[] memory accounts = new AgreementAccount[](1);
+        accounts[0] =
+            AgreementAccount({ accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None });
+
+        AgreementChain[] memory chains = new AgreementChain[](1);
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:1",
+            assetRecoveryAddress: "0x1234567890123456789012345678901234567890",
+            accounts: accounts
+        });
+
+        BountyTerms memory terms = BountyTerms({
+            bountyPercentage: 10,
+            bountyCapUSD: 100_000,
+            aggregateBountyCapUSD: 500_000,
+            retainable: false,
+            identity: IdentityRequirements.Pseudonymous,
+            diligenceRequirements: "KYC Required"
+        });
+
+        details = AgreementDetails({
+            protocolName: "Test Protocol",
+            agreementURI: "ipfs://QmTestHash",
+            contactDetails: contacts,
+            chains: chains,
+            bountyTerms: terms
+        });
+    }
+
+    /// @notice Get chains to add for testing
+    function _getChainsToAdd() internal pure returns (AgreementChain[] memory chains) {
+        chains = new AgreementChain[](2);
+
+        // Chain 1: Polygon
+        AgreementAccount[] memory accounts1 = new AgreementAccount[](1);
+        accounts1[0] =
+            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:137",
+            assetRecoveryAddress: "0x2222222222222222222222222222222222222222",
+            accounts: accounts1
+        });
+
+        // Chain 2: Arbitrum
+        AgreementAccount[] memory accounts2 = new AgreementAccount[](2);
+        accounts2[0] = AgreementAccount({
+            accountAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            childContractScope: ChildContractScope.ExistingOnly
+        });
+        accounts2[1] =
+            AgreementAccount({ accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.None });
+
+        chains[1] = AgreementChain({
+            caip2ChainId: "eip155:42161",
+            assetRecoveryAddress: "0x3333333333333333333333333333333333333333",
+            accounts: accounts2
+        });
+    }
+
+    /// @notice Get single chain to add
+    function _getSingleChainToAdd() internal pure returns (AgreementChain[] memory chains) {
+        chains = new AgreementChain[](1);
+
+        AgreementAccount[] memory accounts = new AgreementAccount[](1);
+        accounts[0] =
+            AgreementAccount({ accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", childContractScope: ChildContractScope.FutureOnly });
+
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:8453",
+            assetRecoveryAddress: "0x4444444444444444444444444444444444444444",
+            accounts: accounts
+        });
+    }
+
+    /// @notice Get chain with duplicate ID (should fail)
+    function _getDuplicateChain() internal pure returns (AgreementChain[] memory chains) {
+        chains = new AgreementChain[](1);
+
+        AgreementAccount[] memory accounts = new AgreementAccount[](1);
+        accounts[0] =
+            AgreementAccount({ accountAddress: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", childContractScope: ChildContractScope.All });
+
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:1", // Already exists in initial agreement
+            assetRecoveryAddress: "0x5555555555555555555555555555555555555555",
+            accounts: accounts
+        });
+    }
+
+    // ======== SUCCESS TESTS ========
+
+    function test_addChains_singleChain() public {
+        // Ensure we're using the owner key
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+        
+        AgreementChain[] memory chainsToAdd = _getSingleChainToAdd();
+
+        // Add chains
+        addChainsScript.run(agreementAddress, chainsToAdd);
+
+        // Verify chains were added
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 2); // Original + 1 new
+        assertEq(details.chains[1].caip2ChainId, "eip155:8453");
+    }
+
+    function test_addChains_multipleChains() public {
+        // Ensure we're using the owner key
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+        
+        AgreementChain[] memory chainsToAdd = _getChainsToAdd();
+
+        // Add chains
+        addChainsScript.run(agreementAddress, chainsToAdd);
+
+        // Verify chains were added
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 3); // Original + 2 new
+        assertEq(details.chains[1].caip2ChainId, "eip155:137");
+        assertEq(details.chains[2].caip2ChainId, "eip155:42161");
+    }
+
+    function test_addChains_withConfig() public {
+        // Ensure we're using the owner key
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+        
+        AgreementChain[] memory chainsToAdd = _getSingleChainToAdd();
+
+        AddChains.ChainAdditionConfig memory config = AddChains.ChainAdditionConfig({
+            jsonPath: "", // Not used when passing chains directly
+            agreement: agreementAddress
+        });
+
+        // This would need the script to support config + chains, but current implementation
+        // uses config for JSON only. We'll test the direct approach instead.
+        addChainsScript.run(agreementAddress, chainsToAdd);
+
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 2);
+    }
+
+    function test_addChains_multipleTimes() public {
+        // Ensure we're using the owner key (in case previous test changed env)
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+        
+        AgreementChain[] memory firstBatch = _getSingleChainToAdd();
+        AgreementChain[] memory secondBatch = _getChainsToAdd();
+
+        // Add first batch
+        addChainsScript.run(agreementAddress, firstBatch);
+
+        // Add second batch
+        addChainsScript.run(agreementAddress, secondBatch);
+
+        // Verify all chains present
+        AgreementDetails memory details = agreement.getDetails();
+        assertEq(details.chains.length, 4); // Original + 1 + 2
+    }
+
+    // ======== JSON PARSING TESTS ========
+
+    function test_jsonParsing_validChains() public {
+        // Use pre-existing test file
+        AgreementChain[] memory chains = addChainsScript.preview("test/unit/testdata/addChains.json");
+
+        assertEq(chains.length, 2);
+        assertEq(chains[0].caip2ChainId, "eip155:137");
+        assertEq(chains[1].caip2ChainId, "eip155:42161");
+        assertEq(chains[1].accounts.length, 2);
+    }
+
+    function test_jsonParsing_invalidPath() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                AddChains.AddChains__InvalidJsonPath.selector,
+                "nonexistent/file.json"
+            )
+        );
+        addChainsScript.preview("nonexistent/file.json");
+    }
+
+    // ======== ERROR HANDLING TESTS ========
+
+    function test_revert_zeroAddress() public {
+        AgreementChain[] memory chains = _getSingleChainToAdd();
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(AddChains.AddChains__InvalidAgreementAddress.selector);
+        addChainsScript.run(address(0), chains);
+    }
+
+    function test_revert_notContract() public {
+        AgreementChain[] memory chains = _getSingleChainToAdd();
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(AddChains.AddChains__InvalidAgreementAddress.selector);
+        addChainsScript.run(address(0x1234), chains); // Random EOA address
+    }
+
+    function test_revert_notOwner() public {
+        // First set owner key to ensure agreement state is correct
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+        
+        AgreementChain[] memory chains = _getSingleChainToAdd();
+
+        // Use different private key (not the owner)
+        uint256 nonOwnerKey = 0xDEAD; // Use a different key to avoid conflicts
+        address nonOwner = vm.addr(nonOwnerKey);
+        
+        // Ensure nonOwner is actually different from owner
+        assertTrue(nonOwner != owner, "Test setup error: nonOwner should differ from owner");
+        
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(nonOwnerKey));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                AddChains.AddChains__NotAgreementOwner.selector,
+                nonOwner,
+                owner
+            )
+        );
+        addChainsScript.run(agreementAddress, chains);
+    }
+
+    function test_revert_noChains() public {
+        AgreementChain[] memory emptyChains = new AgreementChain[](0);
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(AddChains.AddChains__NoChainsProvided.selector);
+        addChainsScript.run(agreementAddress, emptyChains);
+    }
+
+    function test_revert_duplicateChain() public {
+        AgreementChain[] memory duplicateChain = _getDuplicateChain();
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        // This will revert from the Agreement contract, not the script
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Agreement.Agreement__DuplicateChainId.selector,
+                "eip155:1"
+            )
+        );
+        addChainsScript.run(agreementAddress, duplicateChain);
+    }
+
+    function test_revert_emptyChainId() public {
+        AgreementChain[] memory chains = new AgreementChain[](1);
+        AgreementAccount[] memory accounts = new AgreementAccount[](1);
+        accounts[0] =
+            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+
+        chains[0] = AgreementChain({
+            caip2ChainId: "", // Empty chain ID
+            assetRecoveryAddress: "0x1234567890123456789012345678901234567890",
+            accounts: accounts
+        });
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                AddChains.AddChains__ChainValidationFailed.selector,
+                "",
+                "Empty chain ID"
+            )
+        );
+        addChainsScript.run(agreementAddress, chains);
+    }
+
+    function test_revert_emptyRecoveryAddress() public {
+        AgreementChain[] memory chains = new AgreementChain[](1);
+        AgreementAccount[] memory accounts = new AgreementAccount[](1);
+        accounts[0] =
+            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:137",
+            assetRecoveryAddress: "", // Empty recovery address
+            accounts: accounts
+        });
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                AddChains.AddChains__ChainValidationFailed.selector,
+                "eip155:137",
+                "Empty recovery address"
+            )
+        );
+        addChainsScript.run(agreementAddress, chains);
+    }
+
+    function test_revert_noAccounts() public {
+        AgreementChain[] memory chains = new AgreementChain[](1);
+        chains[0] = AgreementChain({
+            caip2ChainId: "eip155:137",
+            assetRecoveryAddress: "0x1234567890123456789012345678901234567890",
+            accounts: new AgreementAccount[](0) // No accounts
+        });
+
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                AddChains.AddChains__ChainValidationFailed.selector,
+                "eip155:137",
+                "No accounts provided"
+            )
+        );
+        addChainsScript.run(agreementAddress, chains);
+    }
+}
