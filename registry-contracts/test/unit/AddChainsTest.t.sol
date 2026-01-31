@@ -217,16 +217,15 @@ contract AddChainsTest is Test {
     }
 
     function test_addChains_multipleTimes() public {
-        // Ensure we're using the owner key (in case previous test changed env)
-        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
-        
         AgreementChain[] memory firstBatch = _getSingleChainToAdd();
         AgreementChain[] memory secondBatch = _getChainsToAdd();
 
         // Add first batch
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
         addChainsScript.run(agreementAddress, firstBatch);
 
-        // Add second batch
+        // Add second batch - reset env var in case it was changed
+        vm.setEnv("PROTOCOL_PRIVATE_KEY", vm.toString(ownerPrivateKey));
         addChainsScript.run(agreementAddress, secondBatch);
 
         // Verify all chains present
