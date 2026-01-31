@@ -44,8 +44,8 @@ contract AddChains is Script {
     // ======== MAIN ENTRY POINTS ========
 
     /// @notice Main entry point - uses environment variables for configuration
-    /// @dev Required env vars: PROTOCOL_PRIVATE_KEY
-    ///      Optional env vars: ADD_CHAINS_JSON_PATH (default: addChains.json)
+    /// @dev Uses vm.startBroadcast() for key management (pass --private-key via CLI)
+    ///      Optional env vars: ADD_CHAINS_JSON_PATH (default: examples/addChains.json)
     ///                         AGREEMENT_ADDRESS
     function run() external {
         ChainAdditionConfig memory config = _loadConfigFromEnv();
@@ -108,8 +108,7 @@ contract AddChains is Script {
 
         // Validate ownership
         address owner = agreement.owner();
-        uint256 deployerPrivateKey = vm.envUint("PROTOCOL_PRIVATE_KEY");
-        address caller = vm.addr(deployerPrivateKey);
+        address caller = msg.sender;
 
         if (caller != owner) {
             revert AddChains__NotAgreementOwner(caller, owner);
@@ -119,9 +118,7 @@ contract AddChains is Script {
         _logChains(chains);
 
         // Execute addition
-        vm.startBroadcast(deployerPrivateKey);
         agreement.addChains(chains);
-        vm.stopBroadcast();
 
         emit ChainsAdded(agreementAddress, chains.length);
 

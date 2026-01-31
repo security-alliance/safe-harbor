@@ -58,8 +58,8 @@ contract AdoptSafeHarbor is Script {
     // ======== MAIN ENTRY POINTS ========
 
     /// @notice Main entry point - uses environment variables for configuration
-    /// @dev Required env vars: PROTOCOL_PRIVATE_KEY
-    ///      Optional env vars: AGREEMENT_DETAILS_PATH (default: agreementDetails.json)
+    /// @dev Uses vm.startBroadcast() for key management (pass --private-key via CLI)
+    ///      Optional env vars: AGREEMENT_DETAILS_PATH (default: examples/agreementDetails.json)
     ///                         AGREEMENT_FACTORY
     ///                         REGISTRY_ADDRESS
     ///                         CHAIN_VALIDATOR_ADDRESS
@@ -153,8 +153,7 @@ contract AdoptSafeHarbor is Script {
     {
         AgreementFactory factory = AgreementFactory(config.factory);
 
-        uint256 deployerPrivateKey = vm.envUint("PROTOCOL_PRIVATE_KEY");
-        address owner = config.owner == address(0) ? vm.addr(deployerPrivateKey) : config.owner;
+        address owner = config.owner == address(0) ? msg.sender : config.owner;
 
         // Generate salt if not provided
         bytes32 salt = config.salt;
@@ -163,14 +162,11 @@ contract AdoptSafeHarbor is Script {
         }
 
         // Compute expected address
-        address predictedAddress = factory.computeAddress(details, config.chainValidator, owner, salt, vm.addr(deployerPrivateKey));
+        address deployer = msg.sender;
+        address predictedAddress = factory.computeAddress(details, config.chainValidator, owner, salt, deployer);
         console.log("Predicted agreement address:", predictedAddress);
 
-        vm.startBroadcast(deployerPrivateKey);
-
         agreementAddress = factory.create(details, config.chainValidator, owner, salt);
-
-        vm.stopBroadcast();
 
         if (agreementAddress == address(0)) {
             revert AdoptSafeHarbor__DeploymentFailed();
@@ -196,14 +192,9 @@ contract AdoptSafeHarbor is Script {
     /// @param agreementAddress The address of the agreement to adopt
     function _adoptToRegistry(AdoptionConfig memory config, address agreementAddress) internal {
         SafeHarborRegistry registry = SafeHarborRegistry(config.registry);
-        uint256 deployerPrivateKey = vm.envUint("PROTOCOL_PRIVATE_KEY");
-        address adopter = vm.addr(deployerPrivateKey);
-
-        vm.startBroadcast(deployerPrivateKey);
+        address adopter = msg.sender;
 
         registry.adoptSafeHarbor(agreementAddress);
-
-        vm.stopBroadcast();
 
         emit SafeHarborAdopted(adopter, agreementAddress);
         console.log("Agreement adopted to registry:", config.registry);
