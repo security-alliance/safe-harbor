@@ -21,6 +21,8 @@ V3 contracts are deployed via [CreateX](https://github.com/pcaversaccio/createx)
 
 > **Note:** These addresses are identical on all supported chains due to CREATE3 deployment.
 
+> **Note:** The V3 contracts have been audited by [Cyfrin](https://www.cyfrin.io/). The smart contracts are bytecode equivilant to the [hash](https://github.com/security-alliance/safe-harbor/tree/0b0abb8b627eff87e2f7b52bf8ec484cd6ce0e32) of the audit. The audit can be found [here](documents/2026-01-13-cyfrin-safe-harbor-v2.0.pdf)
+
 ## Technical Details
 
 This repository is built using [Foundry](https://book.getfoundry.sh/). See the installation instructions [here](https://github.com/foundry-rs/foundry#installation).
