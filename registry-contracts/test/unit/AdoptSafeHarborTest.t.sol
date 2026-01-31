@@ -91,10 +91,10 @@ contract AdoptSafeHarborTest is Test {
     // ======== JSON PARSING TESTS ========
 
     function test_jsonParsing_validAgreement() public view {
-        AgreementDetails memory details = adoptionScript.preview("test/unit/testdata/parseTest.json");
+        AgreementDetails memory details = adoptionScript.preview("test/unit/testdata/agreement.json");
 
-        assertEq(details.protocolName, "Parse Test");
-        assertEq(details.agreementURI, "ipfs://QmParse");
+        assertEq(details.protocolName, "Env Test");
+        assertEq(details.agreementURI, "ipfs://test");
         assertEq(details.contactDetails.length, 1);
         assertEq(details.chains.length, 1);
         assertEq(details.chains[0].caip2ChainId, "eip155:1");
@@ -185,10 +185,10 @@ contract AdoptSafeHarborTest is Test {
         vm.setEnv("REGISTRY_ADDRESS", vm.toString(address(registry)));
         vm.setEnv("CHAIN_VALIDATOR_ADDRESS", vm.toString(address(chainValidator)));
         vm.setEnv("ADOPT_TO_REGISTRY", "true");
-        vm.setEnv("AGREEMENT_DETAILS_PATH", "test/unit/testdata/envTest.json");
+        vm.setEnv("AGREEMENT_DETAILS_PATH", "test/unit/testdata/agreement.json");
 
         // Preview to verify JSON parsing works
-        AgreementDetails memory details = adoptionScript.preview("test/unit/testdata/envTest.json");
+        AgreementDetails memory details = adoptionScript.preview("test/unit/testdata/agreement.json");
         assertEq(details.protocolName, "Env Test");
 
         // Create and adopt directly
