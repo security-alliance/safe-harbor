@@ -147,5 +147,5 @@ $ git clone --recursive git@github.com:security-alliance/safe-harbor.git
 
 # Acknowledgements
 - [Cyfrin](https://www.cyfrin.io/) and [patrickalphac](https://x.com/PatrickAlphaC) for helping create V3 of Safe Harbor and conducting the [security audit](https://github.com/Cyfrin/cyfrin-audit-reports/blob/main/reports/2026-01-13-cyfrin-safe-harbor-v2.0.pdf).
-
 - [OtterSec](https://osec.io/) for their Solana Safe Harbor implementation.
+
