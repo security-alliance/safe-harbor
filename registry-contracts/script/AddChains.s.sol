@@ -123,7 +123,7 @@ contract AddChains is Script {
     {
         while (true) {
             string memory path = string.concat(arrayPath, "[", _uintToString(count), "]", testField);
-            if (!vm.keyExists(json, path)) break;
+            if (!vm.keyExistsJson(json, path)) break;
             ++count;
         }
     }

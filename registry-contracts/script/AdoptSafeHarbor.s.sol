@@ -5,7 +5,6 @@ import { Script, console } from "forge-std/Script.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { SafeHarborRegistry } from "src/SafeHarborRegistry.sol";
 import { AgreementFactory } from "src/AgreementFactory.sol";
-import { Agreement } from "src/Agreement.sol";
 import {
     AgreementDetails,
     Chain as AgreementChain,
@@ -153,7 +152,7 @@ contract AdoptSafeHarbor is Script {
         }
     }
 
-    function _parseBountyTerms(string memory json) internal view returns (BountyTerms memory terms) {
+    function _parseBountyTerms(string memory json) internal pure returns (BountyTerms memory terms) {
         terms = BountyTerms({
             bountyPercentage: json.readUint(".bountyTerms.bountyPercentage"),
             bountyCapUSD: json.readUint(".bountyTerms.bountyCapUSD"),
@@ -188,7 +187,7 @@ contract AdoptSafeHarbor is Script {
     {
         while (true) {
             string memory path = string.concat(arrayPath, "[", _uintToString(count), "]", testField);
-            if (!vm.keyExists(json, path)) break;
+            if (!vm.keyExistsJson(json, path)) break;
             ++count;
         }
     }
