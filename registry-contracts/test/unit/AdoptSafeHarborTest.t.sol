@@ -33,7 +33,7 @@ contract AdoptSafeHarborTest is Test {
     AgreementFactory public factory;
 
     address public owner;
-    
+
     address public protocol;
 
     // ----- SETUP -----
@@ -68,8 +68,9 @@ contract AdoptSafeHarborTest is Test {
 
         // Create accounts
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None
+        });
 
         // Create chain
         AgreementChain[] memory chains = new AgreementChain[](1);
@@ -106,8 +107,9 @@ contract AdoptSafeHarborTest is Test {
 
         // Chain 1 accounts
         AgreementAccount[] memory accounts1 = new AgreementAccount[](1);
-        accounts1[0] =
-            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+        accounts1[0] = AgreementAccount({
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
+        });
 
         // Chain 2 accounts
         AgreementAccount[] memory accounts2 = new AgreementAccount[](1);
@@ -152,14 +154,16 @@ contract AdoptSafeHarborTest is Test {
         contacts[0] = Contact({ name: "Security", contact: "sec@example.com" });
 
         AgreementAccount[] memory accounts = new AgreementAccount[](3);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.None });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.None
+        });
         accounts[1] = AgreementAccount({
             accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
             childContractScope: ChildContractScope.ExistingOnly
         });
-        accounts[2] =
-            AgreementAccount({ accountAddress: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", childContractScope: ChildContractScope.All });
+        accounts[2] = AgreementAccount({
+            accountAddress: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", childContractScope: ChildContractScope.All
+        });
 
         AgreementChain[] memory chains = new AgreementChain[](1);
         chains[0] = AgreementChain({
@@ -206,8 +210,6 @@ contract AdoptSafeHarborTest is Test {
         AdoptSafeHarbor.AdoptionConfig memory config = _getDefaultConfig();
         config.shouldAdoptToRegistry = false;
 
-        
-
         vm.recordLogs();
         adoptionScript.run(config, details);
 
@@ -230,14 +232,14 @@ contract AdoptSafeHarborTest is Test {
 
         // Execute adoption with registry directly (script changes msg.sender)
         vm.recordLogs();
-        
+
         // Create agreement directly
         Agreement newAgreement = new Agreement(details, config.chainValidator, address(this));
         address agreementAddress = address(newAgreement);
-        
+
         // Adopt to registry
         registry.adoptSafeHarbor(agreementAddress);
-        
+
         // Verify registration
         address registeredAgreement = registry.getAgreement(address(this));
         assertEq(registeredAgreement, agreementAddress, "Agreement not registered correctly");
@@ -254,8 +256,6 @@ contract AdoptSafeHarborTest is Test {
         AdoptSafeHarbor.AdoptionConfig memory config = _getDefaultConfig();
         config.owner = customOwner;
         config.shouldAdoptToRegistry = false;
-
-        
 
         // Capture logs to find the created agreement
         vm.recordLogs();
@@ -283,8 +283,6 @@ contract AdoptSafeHarborTest is Test {
         config.salt = customSalt;
         config.shouldAdoptToRegistry = false;
 
-        
-
         adoptionScript.run(config, details);
     }
 
@@ -294,8 +292,6 @@ contract AdoptSafeHarborTest is Test {
         AgreementDetails memory details = _getMultiChainAgreementDetails();
         AdoptSafeHarbor.AdoptionConfig memory config = _getDefaultConfig();
         config.shouldAdoptToRegistry = true;
-
-        
 
         // Execute and capture logs
         vm.recordLogs();
@@ -327,8 +323,6 @@ contract AdoptSafeHarborTest is Test {
         AdoptSafeHarbor.AdoptionConfig memory config1 = _getDefaultConfig();
         config1.shouldAdoptToRegistry = true;
 
-        
-
         // Execute and capture logs
         vm.recordLogs();
         adoptionScript.run(config1, details1);
@@ -345,7 +339,6 @@ contract AdoptSafeHarborTest is Test {
 
         // Second protocol (different key)
         uint256 protocol2Key = 0xBEEF;
-        
 
         AgreementDetails memory details2 = _getValidAgreementDetails();
         details2.protocolName = "Second Protocol";
@@ -379,14 +372,16 @@ contract AdoptSafeHarborTest is Test {
         contacts[0] = Contact({ name: "Test", contact: "test@test.com" });
 
         AgreementAccount[] memory accounts = new AgreementAccount[](4);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.None });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.None
+        });
         accounts[1] = AgreementAccount({
             accountAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
             childContractScope: ChildContractScope.ExistingOnly
         });
-        accounts[2] =
-            AgreementAccount({ accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.All });
+        accounts[2] = AgreementAccount({
+            accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.All
+        });
         accounts[3] = AgreementAccount({
             accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
             childContractScope: ChildContractScope.FutureOnly
@@ -416,8 +411,6 @@ contract AdoptSafeHarborTest is Test {
             bountyTerms: terms
         });
 
-        
-
         // Execute and capture logs
         vm.recordLogs();
         adoptionScript.run(_getDefaultConfig(), details);
@@ -444,7 +437,6 @@ contract AdoptSafeHarborTest is Test {
         // Test all IdentityRequirements values (0-2)
         for (uint256 i; i < 3; ++i) {
             uint256 freshKey = 0x1000 + i;
-            
 
             AgreementDetails memory details = _getValidAgreementDetails();
             details.bountyTerms.identity = IdentityRequirements(i);
@@ -540,12 +532,7 @@ contract AdoptSafeHarborTest is Test {
         details.bountyTerms.bountyPercentage = 101; // > 100%
         AdoptSafeHarbor.AdoptionConfig memory config = _getDefaultConfig();
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AdoptSafeHarbor.AdoptSafeHarbor__InvalidBountyPercentage.selector,
-                101
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AdoptSafeHarbor.AdoptSafeHarbor__InvalidBountyPercentage.selector, 101));
         adoptionScript.run(config, details);
     }
 
@@ -561,16 +548,16 @@ contract AdoptSafeHarborTest is Test {
 
         // Preview agreement details from JSON file
         AgreementDetails memory details = adoptionScript.preview("test/unit/testdata/envTest.json");
-        
+
         // Verify agreement details were loaded correctly from JSON
         assertEq(details.protocolName, "Env Test");
         assertEq(details.chains.length, 1);
         assertEq(details.chains[0].caip2ChainId, "eip155:1");
-        
+
         // Create and adopt agreement directly (test contract is the adopter)
         address agreementAddress = factory.create(details, address(chainValidator), address(this), bytes32(0));
         registry.adoptSafeHarbor(agreementAddress);
-        
+
         // Verify registration
         address registeredAgreement = registry.getAgreement(address(this));
         assertTrue(registeredAgreement != address(0), "Agreement not registered");
@@ -594,10 +581,7 @@ contract AdoptSafeHarborTest is Test {
 
     function test_jsonParsing_invalidJsonPath() public {
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AdoptSafeHarbor.AdoptSafeHarbor__InvalidJsonPath.selector,
-                "nonexistent/file.json"
-            )
+            abi.encodeWithSelector(AdoptSafeHarbor.AdoptSafeHarbor__InvalidJsonPath.selector, "nonexistent/file.json")
         );
         adoptionScript.preview("nonexistent/file.json");
     }

@@ -108,12 +108,7 @@ contract AdoptSafeHarbor is Script {
     /// @notice Execute the full adoption flow with pre-parsed details
     /// @param config The adoption configuration
     /// @param details The pre-parsed agreement details
-    function _executeAdoptionWithDetails(
-        AdoptionConfig memory config,
-        AgreementDetails memory details
-    )
-        internal
-    {
+    function _executeAdoptionWithDetails(AdoptionConfig memory config, AgreementDetails memory details) internal {
         // Validate contract addresses
         _validateAddresses(config);
 
@@ -443,9 +438,7 @@ contract AdoptSafeHarbor is Script {
             for (uint256 j; j < chain.accounts.length; ++j) {
                 AgreementAccount memory account = chain.accounts[j];
                 console.log("        [", j, "] Address:", account.accountAddress);
-                console.log(
-                    "            Scope:", childContractScopes[uint256(account.childContractScope)]
-                );
+                console.log("            Scope:", childContractScopes[uint256(account.childContractScope)]);
             }
         }
 

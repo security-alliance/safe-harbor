@@ -83,9 +83,8 @@ contract AddChains is Script {
         string memory json = _readJsonFile(config.jsonPath);
 
         // Get agreement address from JSON if not provided in config
-        address agreementAddress = config.agreement == address(0) 
-            ? json.readAddress(".agreementAddress") 
-            : config.agreement;
+        address agreementAddress =
+            config.agreement == address(0) ? json.readAddress(".agreementAddress") : config.agreement;
 
         AgreementChain[] memory chains = _parseChains(json);
         _executeChainAdditionWithChains(agreementAddress, chains);
@@ -94,12 +93,7 @@ contract AddChains is Script {
     /// @notice Execute chain addition with pre-parsed chains
     /// @param agreementAddress The address of the Agreement contract
     /// @param chains Array of chains to add
-    function _executeChainAdditionWithChains(
-        address agreementAddress,
-        AgreementChain[] memory chains
-    )
-        internal
-    {
+    function _executeChainAdditionWithChains(address agreementAddress, AgreementChain[] memory chains) internal {
         // Validate inputs
         _validateAgreement(agreementAddress);
         _validateChains(chains);
@@ -183,7 +177,7 @@ contract AddChains is Script {
     /// @return config The populated ChainAdditionConfig struct
     function _loadConfigFromEnv() internal view returns (ChainAdditionConfig memory config) {
         config.jsonPath = vm.envOr("ADD_CHAINS_JSON_PATH", DEFAULT_JSON_PATH);
-        
+
         // Try to load agreement address from env (optional)
         string memory agreementStr = vm.envOr("AGREEMENT_ADDRESS", string(""));
         if (bytes(agreementStr).length > 0) {
@@ -312,9 +306,7 @@ contract AddChains is Script {
             for (uint256 j; j < chain.accounts.length; ++j) {
                 AgreementAccount memory account = chain.accounts[j];
                 console.log("        [", j, "] Address:", account.accountAddress);
-                console.log(
-                    "            Scope:", childContractScopes[uint256(account.childContractScope)]
-                );
+                console.log("            Scope:", childContractScopes[uint256(account.childContractScope)]);
             }
         }
     }

@@ -72,8 +72,9 @@ contract AddChainsTest is Test {
         contacts[0] = Contact({ name: "Security Team", contact: "security@test.com" });
 
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None
+        });
 
         AgreementChain[] memory chains = new AgreementChain[](1);
         chains[0] = AgreementChain({
@@ -106,8 +107,9 @@ contract AddChainsTest is Test {
 
         // Chain 1: Polygon
         AgreementAccount[] memory accounts1 = new AgreementAccount[](1);
-        accounts1[0] =
-            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+        accounts1[0] = AgreementAccount({
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
+        });
 
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:137",
@@ -121,8 +123,9 @@ contract AddChainsTest is Test {
             accountAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
             childContractScope: ChildContractScope.ExistingOnly
         });
-        accounts2[1] =
-            AgreementAccount({ accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.None });
+        accounts2[1] = AgreementAccount({
+            accountAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", childContractScope: ChildContractScope.None
+        });
 
         chains[1] = AgreementChain({
             caip2ChainId: "eip155:42161",
@@ -136,8 +139,10 @@ contract AddChainsTest is Test {
         chains = new AgreementChain[](1);
 
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", childContractScope: ChildContractScope.FutureOnly });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+            childContractScope: ChildContractScope.FutureOnly
+        });
 
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:8453",
@@ -151,8 +156,9 @@ contract AddChainsTest is Test {
         chains = new AgreementChain[](1);
 
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", childContractScope: ChildContractScope.All });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", childContractScope: ChildContractScope.All
+        });
 
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:1", // Already exists in initial agreement
@@ -165,8 +171,7 @@ contract AddChainsTest is Test {
 
     function test_addChains_singleChain() public {
         // Ensure we're using the owner key
-        
-        
+
         AgreementChain[] memory chainsToAdd = _getSingleChainToAdd();
 
         // Add chains
@@ -180,8 +185,7 @@ contract AddChainsTest is Test {
 
     function test_addChains_multipleChains() public {
         // Ensure we're using the owner key
-        
-        
+
         AgreementChain[] memory chainsToAdd = _getChainsToAdd();
 
         // Add chains
@@ -196,8 +200,7 @@ contract AddChainsTest is Test {
 
     function test_addChains_withConfig() public {
         // Ensure we're using the owner key
-        
-        
+
         AgreementChain[] memory chainsToAdd = _getSingleChainToAdd();
 
         AddChains.ChainAdditionConfig memory config = AddChains.ChainAdditionConfig({
@@ -218,11 +221,11 @@ contract AddChainsTest is Test {
         AgreementChain[] memory secondBatch = _getChainsToAdd();
 
         // Add first batch
-        
+
         agreement.addChains(firstBatch);
 
         // Add second batch - reset env var in case it was changed
-        
+
         agreement.addChains(secondBatch);
 
         // Verify all chains present
@@ -243,12 +246,7 @@ contract AddChainsTest is Test {
     }
 
     function test_jsonParsing_invalidPath() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AddChains.AddChains__InvalidJsonPath.selector,
-                "nonexistent/file.json"
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AddChains.AddChains__InvalidJsonPath.selector, "nonexistent/file.json"));
         addChainsScript.preview("nonexistent/file.json");
     }
 
@@ -257,16 +255,12 @@ contract AddChainsTest is Test {
     function test_revert_zeroAddress() public {
         AgreementChain[] memory chains = _getSingleChainToAdd();
 
-        
-
         vm.expectRevert(AddChains.AddChains__InvalidAgreementAddress.selector);
         addChainsScript.run(address(0), chains);
     }
 
     function test_revert_notContract() public {
         AgreementChain[] memory chains = _getSingleChainToAdd();
-
-        
 
         vm.expectRevert(AddChains.AddChains__InvalidAgreementAddress.selector);
         addChainsScript.run(address(0x1234), chains); // Random EOA address
@@ -280,7 +274,7 @@ contract AddChainsTest is Test {
         AgreementDetails memory otherDetails = _getInitialAgreementDetails();
         vm.prank(otherOwner);
         Agreement otherAgreement = new Agreement(otherDetails, address(chainValidator), otherOwner);
-        
+
         // Try to add chains from this test contract (not the owner)
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -295,8 +289,6 @@ contract AddChainsTest is Test {
     function test_revert_noChains() public {
         AgreementChain[] memory emptyChains = new AgreementChain[](0);
 
-        
-
         vm.expectRevert(AddChains.AddChains__NoChainsProvided.selector);
         addChainsScript.run(agreementAddress, emptyChains);
     }
@@ -304,23 +296,17 @@ contract AddChainsTest is Test {
     function test_revert_duplicateChain() public {
         AgreementChain[] memory duplicateChain = _getDuplicateChain();
 
-        
-
         // This will revert from the Agreement contract directly
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Agreement.Agreement__DuplicateChainId.selector,
-                "eip155:1"
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Agreement.Agreement__DuplicateChainId.selector, "eip155:1"));
         agreement.addChains(duplicateChain);
     }
 
     function test_revert_emptyChainId() public {
         AgreementChain[] memory chains = new AgreementChain[](1);
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
+        });
 
         chains[0] = AgreementChain({
             caip2ChainId: "", // Empty chain ID
@@ -328,14 +314,8 @@ contract AddChainsTest is Test {
             accounts: accounts
         });
 
-        
-
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AddChains.AddChains__ChainValidationFailed.selector,
-                "",
-                "Empty chain ID"
-            )
+            abi.encodeWithSelector(AddChains.AddChains__ChainValidationFailed.selector, "", "Empty chain ID")
         );
         addChainsScript.run(agreementAddress, chains);
     }
@@ -343,8 +323,9 @@ contract AddChainsTest is Test {
     function test_revert_emptyRecoveryAddress() public {
         AgreementChain[] memory chains = new AgreementChain[](1);
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
-        accounts[0] =
-            AgreementAccount({ accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All });
+        accounts[0] = AgreementAccount({
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
+        });
 
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:137",
@@ -352,13 +333,9 @@ contract AddChainsTest is Test {
             accounts: accounts
         });
 
-        
-
         vm.expectRevert(
             abi.encodeWithSelector(
-                AddChains.AddChains__ChainValidationFailed.selector,
-                "eip155:137",
-                "Empty recovery address"
+                AddChains.AddChains__ChainValidationFailed.selector, "eip155:137", "Empty recovery address"
             )
         );
         addChainsScript.run(agreementAddress, chains);
@@ -372,13 +349,9 @@ contract AddChainsTest is Test {
             accounts: new AgreementAccount[](0) // No accounts
         });
 
-        
-
         vm.expectRevert(
             abi.encodeWithSelector(
-                AddChains.AddChains__ChainValidationFailed.selector,
-                "eip155:137",
-                "No accounts provided"
+                AddChains.AddChains__ChainValidationFailed.selector, "eip155:137", "No accounts provided"
             )
         );
         addChainsScript.run(agreementAddress, chains);
