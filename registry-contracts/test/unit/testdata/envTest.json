@@ -1,1 +1,30 @@
-{"protocolName":"Env Test","agreementURI":"ipfs://test","contactDetails":[{"name":"Test","contact":"test@test.com"}],"bountyTerms":{"bountyPercentage":10,"bountyCapUSD":100000,"aggregateBountyCapUSD":0,"retainable":false,"identity":0,"diligenceRequirements":""},"chains":[{"caip2ChainId":"eip155:1","assetRecoveryAddress":"0x1234567890123456789012345678901234567890","accounts":[{"accountAddress":"0xAbCdEf1234567890123456789012345678901234","childContractScope":0}]}]}
+{
+    "protocolName": "Env Test",
+    "agreementURI": "ipfs://test",
+    "contactDetails": [
+        {
+            "name": "Test",
+            "contact": "test@test.com"
+        }
+    ],
+    "bountyTerms": {
+        "bountyPercentage": 10,
+        "bountyCapUSD": 100000,
+        "aggregateBountyCapUSD": 0,
+        "retainable": false,
+        "identity": 0,
+        "diligenceRequirements": ""
+    },
+    "chains": [
+        {
+            "caip2ChainId": "eip155:1",
+            "assetRecoveryAddress": "0x1234567890123456789012345678901234567890",
+            "accounts": [
+                {
+                    "accountAddress": "0xAbCdEf1234567890123456789012345678901234",
+                    "childContractScope": 0
+                }
+            ]
+        }
+    ]
+}
