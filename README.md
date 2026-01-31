@@ -27,6 +27,8 @@ V3 contracts are deployed via [CreateX](https://github.com/pcaversaccio/createx)
 
 > **Note:** These addresses are the same on all supported EVM chains due to CREATE3 deployment.
 
+> **Note:** The V3 contracts have been audited by [Cyfrin](https://www.cyfrin.io/). The smart contracts are bytecode equivilant to the [hash](https://github.com/security-alliance/safe-harbor/tree/0b0abb8b627eff87e2f7b52bf8ec484cd6ce0e32) of the audit. The audit can be found [here](documents/2026-01-13-cyfrin-safe-harbor-v2.0.pdf)
+
 ---
 
 ## Legacy Registry Addresses (V1/V1.1)
@@ -145,4 +147,5 @@ $ git clone --recursive git@github.com:security-alliance/safe-harbor.git
 
 # Acknowledgements
 - [Cyfrin](https://www.cyfrin.io/) and [patrickalphac](https://x.com/PatrickAlphaC) for helping create V3 of Safe Harbor and conducting the [security audit](https://github.com/Cyfrin/cyfrin-audit-reports/blob/main/reports/2026-01-13-cyfrin-safe-harbor-v2.0.pdf).
+
 - [OtterSec](https://osec.io/) for their Solana Safe Harbor implementation.
