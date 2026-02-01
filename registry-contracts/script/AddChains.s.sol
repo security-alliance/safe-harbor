@@ -46,9 +46,8 @@ contract AddChains is Script {
     function _executeChainAddition(ChainAdditionConfig memory config) internal {
         string memory json = vm.readFile(config.jsonPath);
 
-        address agreementAddress = config.agreement == address(0)
-            ? json.readAddress(".agreementAddress")
-            : config.agreement;
+        address agreementAddress =
+            config.agreement == address(0) ? json.readAddress(".agreementAddress") : config.agreement;
 
         AgreementChain[] memory chains = _parseChains(json);
         _executeChainAdditionWithChains(agreementAddress, chains);

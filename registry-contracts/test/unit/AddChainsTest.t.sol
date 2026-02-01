@@ -55,8 +55,7 @@ contract AddChainsTest is Test {
 
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
         accounts[0] = AgreementAccount({
-            accountAddress: "0xAbCdEf1234567890123456789012345678901234",
-            childContractScope: ChildContractScope.None
+            accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None
         });
 
         AgreementChain[] memory chains = new AgreementChain[](1);
@@ -87,8 +86,7 @@ contract AddChainsTest is Test {
 
         AgreementAccount[] memory accounts1 = new AgreementAccount[](1);
         accounts1[0] = AgreementAccount({
-            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            childContractScope: ChildContractScope.All
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
         });
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:137",
@@ -171,8 +169,7 @@ contract AddChainsTest is Test {
         AgreementChain[] memory chains = new AgreementChain[](1);
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
         accounts[0] = AgreementAccount({
-            accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-            childContractScope: ChildContractScope.All
+            accountAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", childContractScope: ChildContractScope.All
         });
         chains[0] = AgreementChain({
             caip2ChainId: "eip155:1", // Already exists
@@ -200,8 +197,7 @@ contract AddChainsTest is Test {
         AgreementChain[] memory chains = new AgreementChain[](1);
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
         accounts[0] = AgreementAccount({
-            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            childContractScope: ChildContractScope.All
+            accountAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", childContractScope: ChildContractScope.All
         });
         chains[0] = AgreementChain({
             caip2ChainId: "", // Empty chain ID - validated on-chain

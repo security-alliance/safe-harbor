@@ -49,8 +49,7 @@ contract AdoptSafeHarborTest is Test {
 
         AgreementAccount[] memory accounts = new AgreementAccount[](1);
         accounts[0] = AgreementAccount({
-            accountAddress: "0xAbCdEf1234567890123456789012345678901234",
-            childContractScope: ChildContractScope.None
+            accountAddress: "0xAbCdEf1234567890123456789012345678901234", childContractScope: ChildContractScope.None
         });
 
         AgreementChain[] memory chains = new AgreementChain[](1);
@@ -132,7 +131,8 @@ contract AdoptSafeHarborTest is Test {
         bytes32 customSalt = keccak256("custom");
         AgreementDetails memory details = _getValidAgreementDetails();
 
-        address predicted = factory.computeAddress(details, address(chainValidator), address(this), customSalt, address(this));
+        address predicted =
+            factory.computeAddress(details, address(chainValidator), address(this), customSalt, address(this));
         address actual = factory.create(details, address(chainValidator), address(this), customSalt);
 
         assertEq(predicted, actual);
