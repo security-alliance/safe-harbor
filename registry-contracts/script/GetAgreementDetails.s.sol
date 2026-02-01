@@ -97,7 +97,13 @@ contract GetAgreementDetails is Script {
                 AgreementAccount memory account = chain.accounts[j];
                 console.log(
                     string.concat(
-                        "      [", _uintToString(j), "] ", account.accountAddress, " (", _childScopeToString(account.childContractScope), ")"
+                        "      [",
+                        _uintToString(j),
+                        "] ",
+                        account.accountAddress,
+                        " (",
+                        _childScopeToString(account.childContractScope),
+                        ")"
                     )
                 );
             }
