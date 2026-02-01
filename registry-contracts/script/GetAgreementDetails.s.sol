@@ -18,27 +18,11 @@ import {
 /// @dev Fetches agreement details from an Agreement contract and logs them in a readable format.
 ///      Can be used via environment variable or direct address parameter.
 contract GetAgreementDetails is Script {
-    // ----- CONSTANTS -----
-    string private constant DEFAULT_AGREEMENT_ADDRESS_ENV = "AGREEMENT_ADDRESS";
-
     // ----- ENTRY POINTS -----
-
-    /// @notice Main entry point - uses AGREEMENT_ADDRESS environment variable
-    function run() external view {
-        address agreementAddress = vm.envAddress(DEFAULT_AGREEMENT_ADDRESS_ENV);
-        _execute(agreementAddress);
-    }
 
     /// @notice Execute with explicit agreement address
     /// @param agreementAddress The address of the Agreement contract to query
     function run(address agreementAddress) external view {
-        _execute(agreementAddress);
-    }
-
-    /// @notice Execute with explicit agreement address (alias for clarity in CLI)
-    /// @param agreementAddress The address of the Agreement contract to query
-    /// @dev Alternative entry point: forge script ... --sig 'getDetails(address)' <agreementAddress>
-    function getDetails(address agreementAddress) external view {
         _execute(agreementAddress);
     }
 
